@@ -1,0 +1,23 @@
+# dependencies and build output
+node_modules/
+dist/
+*.log
+
+# secrets and local data (never commit real keys)
+.env
+.env.*
+!.env.example
+backend/data/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local test artefacts
+frontend/shots*/
+frontend/strings.json
+frontend/*.png
+frontend/*.pdf
+frontend/*.mjs
