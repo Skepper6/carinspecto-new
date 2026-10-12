@@ -85,7 +85,6 @@ export default function Dashboard() {
             <li><Check size={16} /> Certified multi-point checklist</li>
             <li><Check size={16} /> Photo-backed PDF report</li>
             <li><Check size={16} /> Free reschedule up to 4 hrs before</li>
-            <li><Check size={16} /> Use code <b>FIRST10</b> for 10% off</li>
           </ul>
         </Card>
       </div>
