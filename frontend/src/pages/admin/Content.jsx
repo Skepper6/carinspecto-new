@@ -47,7 +47,7 @@ export default function Content() {
       <div className="toolbar"><Tabs value={tab} onChange={setTab} tabs={[{ value: 'faq', label: 'FAQ' }, { value: 'legal', label: 'Terms & privacy' }, { value: 'plans', label: 'Plan pricing' }]} /><span /></div>
 
       {tab === 'faq' && (
-        <Card title={`${content.faqs.length} questions`} action={<div className="row-actions"><SearchInput value={fq} onChange={setFq} placeholder="Search by question or answer…" /><Button size="sm" icon={Plus} onClick={() => { setErr({}); setEdit({ id: uid('f'), q: '', a: '' }); }}>Add FAQ</Button></div>} pad={false}>
+        <Card title={`${content.faqs.length} questions`} action={<div className="row-actions"><SearchInput value={fq} onChange={setFq} placeholder="Search by question or answer…" /><Button size="sm" className="keep-label" icon={Plus} onClick={() => { setErr({}); setEdit({ id: uid('f'), q: '', a: '' }); }}>Add FAQ</Button></div>} pad={false}>
           {content.faqs.length === 0 ? <EmptyState title="No FAQs yet" text="Add the first question." /> : (
             <ul className="list static">
               {content.faqs.filter((f) => `${f.q} ${f.a}`.toLowerCase().includes(fq.toLowerCase())).map((f) => (

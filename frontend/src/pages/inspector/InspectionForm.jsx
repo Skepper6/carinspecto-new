@@ -108,7 +108,7 @@ export default function InspectionForm() {
 function InspectionFormInner({ id }) {
   const nav = useNavigate();
   const { user } = useAuth();
-  const { toast, confirm } = useUI();
+  const { toast } = useUI();
   const booking = useDB((s) => s.bookings.find((b) => b.id === id));
   const plan = useDB((s) => s.plans.find((p) => p.id === booking?.planId));
   const stored = useDB((s) => s.inspections[id]);
@@ -193,8 +193,6 @@ function InspectionFormInner({ id }) {
   if (comment.trim().length < 20) missing.push('Write an inspector comment (20+ characters)');
 
   const finish = async () => {
-    const ok = await confirm({ title: 'End this inspection?', message: 'The customer will be notified and the PDF report will be generated. You can still edit it later from History.', confirmText: 'End inspection' });
-    if (!ok) return;
     if (!await persist(true)) return;
     try { await completeInspection(id); } catch (e) { toast.error(e.message || 'Could not complete the inspection.'); return; }
     toast.success('Inspection completed and report generated.', 'Nice work!');
@@ -325,8 +323,8 @@ function InspectionFormInner({ id }) {
 
       <PlateMaskModal photo={maskFor} onClose={() => setMaskFor(null)} onApply={(src) => { setPhotos(photos.map((p) => (p.id === maskFor.id ? { ...p, src } : p))); setDirty(true); setMaskFor(null); toast.success('Number plate covered with the Car InspectO logo.'); }} />
       <Modal open={finishOpen} onClose={() => setFinishOpen(false)} size="sm" title="Ready to submit?"
-        footer={<><Button variant="ghost" onClick={() => setFinishOpen(false)}>Review again</Button><Button icon={Flag} onClick={() => { setFinishOpen(false); finish(); }}>Continue</Button></>}>
-        <div className="center"><ScoreRing score={totals.score} label="health score" /><p className="muted mt-s">{v.label} – {v.text}</p></div>
+        footer={<><Button variant="ghost" onClick={() => setFinishOpen(false)}>Review again</Button><Button icon={Flag} onClick={() => { setFinishOpen(false); finish(); }}>End inspection</Button></>}>
+        <div className="center"><ScoreRing score={totals.score} label="health score" /><p className="muted mt-s">{v.label} – {v.text}</p><p className="muted small mt-s">The customer will be notified and the PDF report will be generated. You can still edit it later from History.</p></div>
       </Modal>
     </div>
   );

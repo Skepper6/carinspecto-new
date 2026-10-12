@@ -39,7 +39,7 @@ export default function MyBookings() {
   const canChange = (b) => ['pending', 'assigned'].includes(b.status);
 
   const cancel = async (b) => {
-    const ok = await confirm({ title: 'Cancel this booking?', message: `${b.id} (${carName(b.car)}) will be cancelled and ${money(b.pricing.total)} refunded to your original payment method.`, confirmText: 'Yes, cancel booking', cancelText: 'Keep booking', danger: true });
+    const ok = await confirm({ title: 'Cancel this booking?', message: `${b.id} (${carName(b.car)}) will be cancelled${b.payment.status === 'paid' ? ` and ${money(b.pricing.total)} refunded to your original payment method` : ''}.`, confirmText: 'Yes, cancel booking', cancelText: 'Keep booking', danger: true });
     if (!ok) return;
     if (await guard(cancelBooking(b.id), b.payment.status === 'paid' ? 'Booking cancelled. Your refund is on its way.' : 'Booking cancelled.')) setView(null);
   };

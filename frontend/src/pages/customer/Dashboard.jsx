@@ -69,7 +69,7 @@ export default function Dashboard() {
                 {TRACK.map(([l, Icon], i) => (
                   <li key={l} className={i <= stage(next.status) ? 'done' : ''}><span><Icon size={16} /></span><em>{l}</em></li>
                 ))}
-                <i className="track-fill" style={{ width: `${(stage(next.status) / 3) * 75}%` }} />
+                <li aria-hidden="true" className="track-fill" style={{ width: `${(stage(next.status) / 3) * 75}%` }} />
               </ol>
               <p className="next-note">
                 {next.inspectorId ? <>Your inspector is <b>{users.find((u) => u.id === next.inspectorId)?.name}</b>.</> : 'We are matching you with the best available inspector.'}

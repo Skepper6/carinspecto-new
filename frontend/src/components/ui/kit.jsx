@@ -19,7 +19,7 @@ export const PayBadge = ({ status }) => (
   <Badge tone={status === 'paid' ? 'green' : status === 'refunded' ? 'red' : 'amber'}>{status}</Badge>
 );
 
-const HUES = ['#3a2a8c', '#f58220', '#2ea6a0', '#c2410c', '#6d28d9', '#0e7490', '#be185d'];
+const HUES = ['#3a2a8c', '#b84d00', '#18766f', '#c2410c', '#6d28d9', '#0e7490', '#be185d'];
 export const Avatar = ({ name = '?', size = 36 }) => {
   const c = HUES[[...name].reduce((a, ch) => a + ch.charCodeAt(0), 0) % HUES.length];
   return <span className="avatar" style={{ width: size, height: size, background: c, fontSize: size * 0.38 }}>{initials(name)}</span>;

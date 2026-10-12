@@ -37,7 +37,19 @@ async function request(path, { method = 'GET', body, raw, type, timeout = 30000 
   }
 }
 
-export async function api(method, path, body) {
+// A write that is already on its way is not sent twice: a double-tap on "Confirm booking" / "Submit" / "Save" shares
+// the first request instead of creating a second booking, ticket, address… (same method + path + body, while in flight).
+const inflight = new Map();
+export function api(method, path, body) {
+  if (method === 'GET') return send(method, path, body);
+  const key = `${method} ${path} ${body === undefined ? '' : JSON.stringify(body)}`;
+  if (inflight.has(key)) return inflight.get(key);
+  const p = send(method, path, body).finally(() => inflight.delete(key));
+  inflight.set(key, p);
+  return p;
+}
+
+async function send(method, path, body) {
   const res = await request(path, { method, body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

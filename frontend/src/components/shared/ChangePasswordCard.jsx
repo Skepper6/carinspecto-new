@@ -47,7 +47,7 @@ export default function ChangePasswordCard() {
             <Input label="Repeat new password" type={show ? 'text' : 'password'} value={f.again} onChange={set('again')} error={errs.again} autoComplete="new-password" />
           </div>
           <div className="row-between">
-            <button type="button" className="link-btn" onClick={() => setShow((s) => !s)}>{show ? <EyeOff size={14} /> : <Eye size={14} />} {show ? 'Hide' : 'Show'} passwords</button>
+            <button type="button" className="link-btn" style={{ whiteSpace: 'nowrap' }} onClick={() => setShow((s) => !s)}>{show ? <EyeOff size={14} /> : <Eye size={14} />} {show ? 'Hide' : 'Show'} passwords</button>
             <Button icon={KeyRound} loading={busy} onClick={save}>Change password</Button>
           </div>
         </>

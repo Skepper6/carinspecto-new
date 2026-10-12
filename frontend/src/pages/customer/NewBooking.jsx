@@ -117,12 +117,14 @@ export default function NewBooking() {
   };
 
 
+  const payLock = useRef(false);   // a quick double-tap must not start two payments
   const pay = async () => {
-    if (!validate()) return;
+    if (payLock.current || !validate()) return;
+    payLock.current = true;
     setPaying(true);
     let intent = null;
     if (method === 'stripe') {
-      try { intent = await confirmRef.current(); } catch (err) { setPaying(false); toast.error(err.message || 'Payment failed', 'Payment not completed'); return; }
+      try { intent = await confirmRef.current(); } catch (err) { payLock.current = false; setPaying(false); toast.error(err.message || 'Payment failed', 'Payment not completed'); return; }
     } else await new Promise((r) => setTimeout(r, 1200));
     const card = me.paymentMethods?.find((c) => 'card:' + c.id === method);
     const label = method === 'stripe' ? 'Card / Apple Pay (Stripe)' : method === 'applepay' ? 'Apple Pay' : method === 'cash' ? 'Cash on arrival' : method === 'newcard' ? `Card •••• ${nc.number.replace(/\s/g, '').slice(-4)}` : `${card.brand} •••• ${card.last4}`;
@@ -130,12 +132,12 @@ export default function NewBooking() {
     try {
       b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
     } catch (err) {
-      setPaying(false);
+      payLock.current = false; setPaying(false);
       toast.error(intent ? `${err.message} Your card was charged, so please contact support with reference ${intent.id}.` : err.message, 'Booking not completed');
       return;
     }
     if (saveAddr) updateUser(me.id, { addresses: [...(me.addresses ?? []), { id: uid('a'), ...withLabel(loc), lat: null, lng: null, line: formatAddress(loc), address: formatAddress(loc), isDefault: !me.addresses?.length }] }).catch(() => {});
-    setPaying(false);
+    payLock.current = false; setPaying(false);
     setDone(b);
   };
 
@@ -151,7 +153,7 @@ export default function NewBooking() {
             </button>
           </li>
         ))}
-        <i className="stepper-fill" style={{ width: `${(step / (STEPS.length - 1)) * 80}%` }} />
+        <li aria-hidden="true" className="stepper-fill" style={{ width: `${(step / (STEPS.length - 1)) * 80}%` }} />
       </ol>
 
       <div className="book-grid">
