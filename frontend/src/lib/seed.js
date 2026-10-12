@@ -1,7 +1,8 @@
-import { CAR_MAKES, CAR_TYPES, FUELS, TIME_SLOTS, BOOKING_FEE, VAT_RATE } from './constants';
+import { CAR_MAKES, CAR_TYPES, FUELS, TIME_SLOTS } from './constants';
 import { SECTIONS, countCheckpoints, isGradedType } from './inspectionSchema';
 import { addDays, isoDate } from './format';
 import { placeholderPhoto, carCoverArt } from './image';
+import { priceFor } from './pricing';
 
 function rng(seed) {
   let a = seed;
@@ -102,13 +103,6 @@ function mkAddress(id, label, no, street, city, isDefault) {
   const area = AREAS[(no * 7) % AREAS.length];
   const building = `Villa ${no}`;
   return { id, label, building, unit: '', street, area, landmark: 'Near the main entrance', city, phone: '', line: `${building}, ${street}, ${area}`, address: `${building}, ${street}, ${area}`, isDefault };
-}
-
-export function priceFor(plan, promoPct = 0) {
-  const discount = Math.round(plan.price * promoPct);
-  const taxable = plan.price - discount + BOOKING_FEE;
-  const vat = Math.round(taxable * VAT_RATE);
-  return { plan: plan.price, bookingFee: BOOKING_FEE, discount, vat, total: taxable + vat };
 }
 
 export function buildSeed() {

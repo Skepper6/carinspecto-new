@@ -5,25 +5,25 @@ import { useUI } from '../../context/UIContext';
 import { useDB, updateUser } from '../../lib/db';
 import { Avatar, Card, Input, PageHeader, Select, Stars, PhoneInput } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
+import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
 import { CITIES } from '../../lib/constants';
 import { fmtDate, isValidPhone } from '../../lib/format';
 
 export default function Profile() {
   const { user } = useAuth();
-  const { toast } = useUI();
+  const { guard } = useUI();
   const me = useDB((s) => s.users.find((u) => u.id === user.id));
   const done = useDB((s) => s.bookings.filter((b) => b.inspectorId === user.id && b.status === 'completed').length);
   const [f, setF] = useState({ name: me.name, phone: me.phone ?? '', city: me.city ?? '', specialization: me.specialization ?? '' });
   const [err, setErr] = useState({});
 
-  const save = () => {
+  const save = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter your name';
     if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
     setErr(e);
     if (Object.keys(e).length) return;
-    updateUser(me.id, f);
-    toast.success('Profile updated.');
+    await guard(updateUser(me.id, f), 'Profile updated.');
   };
 
   return (
@@ -50,6 +50,7 @@ export default function Profile() {
           <p className="muted small mt-s">Ratings come from customers after each completed inspection.</p>
         </Card>
       </div>
+      <div className="mt"><ChangePasswordCard /></div>
     </div>
   );
 }

@@ -33,11 +33,11 @@ export default function History() {
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
   const cols = [
-    { key: 'id', label: 'Booking', width: 100, render: (r) => <b className="mono">{r.id}</b> },
+    { key: 'id', label: 'Booking ID', width: 135, render: (r) => <b className="mono">{r.id}</b> },
     { key: 'car', label: 'Vehicle', sortValue: (r) => carName(r.car), render: (r) => <div className="cell-2"><b>{carName(r.car)}</b><span className="muted small">{r.car.reg}</span></div> },
-    { key: 'cust', hide: 'md', label: 'Customer', sortValue: (r) => r.customer?.name, render: (r) => r.customer?.name },
+    { key: 'cust', hide: 'md', label: 'Customer', width: 160, sortValue: (r) => r.customer?.name, render: (r) => r.customer?.name },
     { key: 'date', hide: 'lg', label: 'Date', width: 120, render: (r) => fmtDate(r.date) },
-    { key: 'score', hide: 'sm', label: 'Score', width: 140, render: (r) => { const v = verdict(r.score); return <span className="score-cell"><b>{r.score}</b><Badge tone={v.tone}>{v.label}</Badge></span>; } },
+    { key: 'score', hide: 'sm', label: 'Score', width: 160, render: (r) => { const v = verdict(r.score); return <span className="score-cell"><b>{r.score}</b><Badge tone={v.tone}>{v.label}</Badge></span>; } },
     { key: 'rating', hide: 'lg', label: 'Rating', width: 90, sortValue: (r) => r.rating ?? 0, render: (r) => (r.rating ? <span className="rate"><Star size={14} fill="currentColor" /> {r.rating}</span> : <span className="muted">—</span>) },
     {
       key: 'a', label: '', width: 210, align: 'right', sortable: false,

@@ -14,7 +14,7 @@ const EMPTY = { name: '', email: '', phone: '', city: '', specialization: '', pw
 
 export default function Inspectors() {
   const s = useDB((x) => x);
-  const { toast, confirm } = useUI();
+  const { toast, confirm, guard } = useUI();
   const loading = useLoading(500);
   const [tab, setTab] = useState('all');
   const [q, setQ] = useState('');
@@ -39,29 +39,27 @@ export default function Inspectors() {
   ];
   const cur = base.find((u) => u.id === open);
 
-  const create = () => {
+  const create = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter a name';
     if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email';
     else if (findUserByEmail(f.email)) e.email = 'This email is already in use';
     if (!f.city) e.city = 'Select a city';
     if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
-    if (f.pw.length < 6) e.pw = 'Min. 6 characters';
+    if (f.pw.length < 8) e.pw = 'Min. 8 characters';
     setErr(e);
     if (Object.keys(e).length) return;
-    createUser({ role: 'inspector', ...f, name: f.name.trim(), rating: 4.5, available: true });
-    toast.success(`${f.name} added as an inspector.`, 'Inspector created');
+    if (!await guard(createUser({ ...f, name: f.name.trim() }), `${f.name.trim()} added as an inspector.`, 'Inspector created')) return;
     setAdd(false); setF(EMPTY);
   };
   const toggle = async (u) => {
     const suspend = u.status === 'active';
     if (suspend && !await confirm({ title: `Suspend ${u.name}?`, message: 'Suspended inspectors cannot sign in or receive new assignments.', confirmText: 'Suspend', danger: true })) return;
-    updateUser(u.id, { status: suspend ? 'suspended' : 'active' });
-    toast.success(suspend ? `${u.name} suspended.` : `${u.name} reactivated.`);
+    await guard(updateUser(u.id, { status: suspend ? 'suspended' : 'active' }), suspend ? `${u.name} suspended.` : `${u.name} reactivated.`);
   };
   const remove = async (u) => {
     if (!await confirm({ title: `Remove ${u.name}?`, message: u.active ? `${u.active} open inspection(s) will go back to the unassigned queue.` : 'This permanently removes the inspector account.', confirmText: 'Remove inspector', danger: true })) return;
-    removeUser(u.id); setOpen(null); toast.success('Inspector removed.');
+    if (await guard(removeUser(u.id), 'Inspector removed.')) setOpen(null);
   };
 
   const cols = [
@@ -70,7 +68,7 @@ export default function Inspectors() {
     { key: 'active', hide: 'md', label: 'Active', width: 80 },
     { key: 'completed', hide: 'lg', label: 'Completed', width: 100 },
     { key: 'rating', hide: 'lg', label: 'Rating', width: 90, render: (u) => <span className="rate"><Star size={14} fill="currentColor" /> {u.rating}</span> },
-    { key: 'status', label: 'Status', width: 110, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
+    { key: 'status', label: 'Status', width: 130, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
   ];
 
   const actions = (

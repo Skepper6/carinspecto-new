@@ -10,7 +10,7 @@ import { inspectorPerformance, suggestInspector } from '../../lib/stats';
 import { carName, fmtDate, fmtTime } from '../../lib/format';
 
 export default function AssignModal({ booking, onClose }) {
-  const { toast } = useUI();
+  const { guard } = useUI();
   const state = useDB((s) => s);
   const [sel, setSel] = useState(null);
   const [q, setQ] = useState('');
@@ -20,10 +20,8 @@ export default function AssignModal({ booking, onClose }) {
   useEffect(() => { setSel(booking?.inspectorId ?? best?.id ?? null); }, [booking?.id]); // eslint-disable-line
 
   const list = booking ? inspectorPerformance(state).filter((p) => p.status === 'active').filter((p) => (!city || p.city === city) && `${p.name} ${p.city}`.toLowerCase().includes(q.toLowerCase())) : [];
-  const save = () => {
-    assignInspector(booking.id, sel);
-    toast.success(`${state.users.find((u) => u.id === sel).name} assigned to ${booking.id}.`);
-    onClose();
+  const save = async () => {
+    if (await guard(assignInspector(booking.id, sel), `${state.users.find((u) => u.id === sel).name} assigned to ${booking.id}.`)) onClose();
   };
 
   return (

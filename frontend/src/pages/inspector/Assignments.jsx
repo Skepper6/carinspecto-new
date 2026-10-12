@@ -34,12 +34,12 @@ export default function Assignments() {
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Booking', width: 100, render: (b) => <b className="mono">{b.id}</b> },
+    { key: 'id', hide: 'sm', label: 'Booking ID', width: 135, render: (b) => <b className="mono">{b.id}</b> },
     { key: 'car', label: 'Vehicle', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.car.fuel} · {b.car.reg}</span></div> },
     { key: 'date', label: 'Slot', width: 150, render: (b) => <div className="cell-2"><b>{b.date === today ? 'Today' : fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
-    { key: 'loc', hide: 'md', label: 'Location', sortValue: (b) => b.location.city, render: (b) => <div className="cell-2"><b><MapPin size={13} /> {b.location.city}</b><span className="muted small">{b.location.address}</span></div> },
+    { key: 'loc', hide: 'md', label: 'Location', width: 180, sortValue: (b) => b.location.city, render: (b) => <div className="cell-2"><b><MapPin size={13} /> {b.location.city}</b><span className="muted small">{b.location.address}</span></div> },
     { key: 'plan', hide: 'lg', label: 'Plan', width: 100, render: (b) => plans.find((p) => p.id === b.planId)?.name },
-    { key: 'status', label: 'Status', width: 120, render: (b) => <StatusBadge status={b.status} /> },
+    { key: 'status', label: 'Status', width: 140, render: (b) => <StatusBadge status={b.status} /> },
     {
       key: 'a', label: '', width: 140, align: 'right', sortable: false,
       render: (b) => <Button size="sm" icon={Play} onClick={(e) => { e.stopPropagation(); nav(`/inspector/inspect/${b.id}`); }}>{b.status === 'ongoing' ? 'Continue' : 'Start'}</Button>,

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, Check, X as XIcon, ChevronDown, Share2, FileSearch, Camera } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { Badge, ScoreRing, EmptyState } from '../ui/kit';
-import { useDB } from '../../lib/db';
+import { useDB, fullInspection } from '../../lib/db';
 import { useUI } from '../../context/UIContext';
 import { sectionsForPlan, itemTotals, verdict, gradeItem, isAnswered, DEFECTS } from '../../lib/inspectionSchema';
 import { downloadReport } from '../../lib/pdf';
@@ -37,14 +37,16 @@ export default function ReportModal({ bookingId, onClose }) {
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState(null);
 
+  useEffect(() => { if (bookingId) fullInspection(bookingId).catch(() => {}); }, [bookingId]);   // photos are loaded on demand
+
   const download = async () => {
     setBusy(true);
-    try { await downloadReport(data); toast.success('Report downloaded.', 'PDF ready'); }
+    try { const inspection = await fullInspection(bookingId); await downloadReport({ ...data, inspection: inspection ?? data.inspection }); toast.success('Report downloaded.', 'PDF ready'); }
     catch (e) { console.error(e); toast.error('Could not generate the PDF.'); }
     finally { setBusy(false); }
   };
   const share = async () => {
-    try { await navigator.clipboard.writeText(`${location.origin}/report/${bookingId}`); toast.success('Report link copied to clipboard.'); }
+    try { await navigator.clipboard.writeText(`${location.origin}/app/reports?report=${bookingId}`); toast.success('Report link copied to clipboard.'); }
     catch { toast.info('Copy not available in this browser.'); }
   };
 

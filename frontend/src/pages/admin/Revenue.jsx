@@ -28,14 +28,14 @@ export default function Revenue() {
   const refunds = base.filter((p) => p.status === 'refunded').reduce((a, p) => a + p.amount, 0);
 
   const cols = [
-    { key: 'txnId', hide: 'md', label: 'Transaction', width: 150, render: (p) => <span className="mono">{p.txnId}</span> },
-    { key: 'bookingId', label: 'Order', width: 100, render: (p) => <b className="mono">{p.bookingId}</b> },
+    { key: 'txnId', hide: 'md', label: 'Transaction', width: 165, render: (p) => <span className="mono">{p.txnId}</span> },
+    { key: 'bookingId', label: 'Order', width: 110, render: (p) => <b className="mono">{p.bookingId}</b> },
     { key: 'customer', label: 'Customer' },
     { key: 'method', hide: 'md', label: 'Method', width: 170 },
     { key: 'at', hide: 'lg', label: 'Date', width: 150, render: (p) => fmtDateTime(p.at) },
     { key: 'vat', hide: 'md', label: 'VAT', width: 90, render: (p) => money(p.vat) },
     { key: 'amount', label: 'Amount', width: 110, render: (p) => <b>{money(p.amount)}</b> },
-    { key: 'status', label: 'Status', width: 110, render: (p) => <PayBadge status={p.status} /> },
+    { key: 'status', label: 'Status', width: 130, render: (p) => <PayBadge status={p.status} /> },
   ];
 
   return (

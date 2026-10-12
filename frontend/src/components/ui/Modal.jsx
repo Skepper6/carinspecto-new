@@ -14,8 +14,10 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
   useEffect(() => {
     if (open) {
       setMounted(true);
-      const r = requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
-      return () => cancelAnimationFrame(r);
+      // both frames are cancelled on close, otherwise a quick open-then-close could flip a closing modal back to "visible"
+      let r2;
+      const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setVisible(true)); });
+      return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
     }
     setVisible(false);
     const t = setTimeout(() => setMounted(false), 240);

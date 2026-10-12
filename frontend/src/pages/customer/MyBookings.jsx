@@ -16,7 +16,7 @@ import { TIME_SLOTS, INSPECTION_REASONS } from '../../lib/constants';
 
 export default function MyBookings() {
   const { user } = useAuth();
-  const { toast, confirm } = useUI();
+  const { toast, confirm, guard } = useUI();
   const all = useDB((s) => s.bookings.filter((b) => b.customerId === user.id));
   const plans = useDB((s) => s.plans);
   const loading = useLoading(500);
@@ -41,23 +41,20 @@ export default function MyBookings() {
   const cancel = async (b) => {
     const ok = await confirm({ title: 'Cancel this booking?', message: `${b.id} (${carName(b.car)}) will be cancelled and ${money(b.pricing.total)} refunded to your original payment method.`, confirmText: 'Yes, cancel booking', cancelText: 'Keep booking', danger: true });
     if (!ok) return;
-    cancelBooking(b.id, user.name);
-    setView(null);
-    toast.success('Booking cancelled. Your refund is on its way.');
+    if (await guard(cancelBooking(b.id), b.payment.status === 'paid' ? 'Booking cancelled. Your refund is on its way.' : 'Booking cancelled.')) setView(null);
   };
-  const saveResched = () => {
+  const saveResched = async () => {
     if (!rd.date || !rd.time) return toast.warn('Pick a new date and time.');
-    rescheduleBooking(resched.id, rd.date, rd.time, user.name);
-    toast.success(`Rescheduled to ${fmtDate(rd.date)} at ${fmtTime(rd.time)}.`);
+    if (!await guard(rescheduleBooking(resched.id, rd.date, rd.time), `Rescheduled to ${fmtDate(rd.date)} at ${fmtTime(rd.time)}.`)) return;
     setResched(null); setView(null);
   };
 
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Booking', width: 100, render: (b) => <b className="mono">{b.id}</b> },
+    { key: 'id', hide: 'sm', label: 'Booking ID', width: 135, render: (b) => <b className="mono">{b.id}</b> },
     { key: 'car', label: 'Vehicle', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.car.fuel} · {b.car.reg}</span></div> },
     { key: 'planId', hide: 'lg', label: 'Plan', width: 110, render: (b) => planName(b.planId) },
     { key: 'date', hide: 'sm', label: 'Date & time', width: 170, render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
-    { key: 'status', label: 'Status', width: 120, render: (b) => <StatusBadge status={b.status} /> },
+    { key: 'status', label: 'Status', width: 140, render: (b) => <StatusBadge status={b.status} /> },
     { key: 'total', hide: 'md', label: 'Total', width: 100, sortValue: (b) => b.pricing.total, render: (b) => money(b.pricing.total) },
     {
       key: 'actions', label: '', width: 150, sortable: false, align: 'right',
@@ -93,7 +90,7 @@ export default function MyBookings() {
           {canChange(b) && <Button variant="outline" icon={CalendarClock} onClick={() => { setRd({ date: '', time: '' }); setResched(b); }}>Reschedule</Button>}
           {b.status === 'completed' && (
             <>
-              <span className="rate-inline"><span className="muted small">{b.rating ? 'Your rating' : 'Rate your inspector'}</span><Stars value={b.rating ?? 0} onChange={(n) => { rateBooking(b.id, n); toast.success('Thanks for your feedback!'); }} /></span>
+              <span className="rate-inline"><span className="muted small">{b.rating ? 'Your rating' : 'Rate your inspector'}</span><Stars value={b.rating ?? 0} onChange={(n) => guard(rateBooking(b.id, n), 'Thanks for your feedback!')} /></span>
               <Button icon={FileText} onClick={() => setReport(b.id)}>View report</Button>
             </>
           )}

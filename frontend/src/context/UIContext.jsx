@@ -37,12 +37,31 @@ export function UIProvider({ children }) {
     return () => window.removeEventListener('ci:storage-full', onFull);
   }, [push]);
 
+  useEffect(() => {
+    const onExpired = () => push('info', 'Your session has ended. Please sign in again.');
+    window.addEventListener('ci:session-expired', onExpired);
+    return () => window.removeEventListener('ci:session-expired', onExpired);
+  }, [push]);
+
   const toast = useMemo(() => ({
     success: (m, t) => push('success', m, t),
     error: (m, t) => push('error', m, t),
     info: (m, t) => push('info', m, t),
     warn: (m, t) => push('warn', m, t),
   }), [push]);
+
+  // Waits for a data change to be accepted by the server: shows the success message only then, or the server's reason if it fails.
+  // Resolves with { data } on success and null on failure.
+  const guard = useCallback(async (promise, successMessage, successTitle) => {
+    try {
+      const data = await promise;
+      if (successMessage) push('success', successMessage, successTitle);
+      return { data };
+    } catch (e) {
+      push('error', e?.message || 'Something went wrong. Please try again.');
+      return null;
+    }
+  }, [push]);
 
   const confirm = useCallback((opts) => new Promise((resolve) => setConfirmState({ ...opts, resolve })), []);
   const closeConfirm = (val) => { confirmState?.resolve(val); setConfirmState(null); };
@@ -53,7 +72,7 @@ export function UIProvider({ children }) {
     setThemeState(t);
   }, []);
 
-  const value = useMemo(() => ({ toast, confirm, theme, setTheme }), [toast, confirm, theme, setTheme]);
+  const value = useMemo(() => ({ toast, guard, confirm, theme, setTheme }), [toast, guard, confirm, theme, setTheme]);
 
   return (
     <Ctx.Provider value={value}>

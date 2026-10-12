@@ -2,6 +2,7 @@ export const CURRENCY = 'AED ';
 export const VAT_RATE = 0.05;
 export const BOOKING_FEE = 15;
 
+export const SHOW_PROMO = false;   // promo box hidden in the booking form; codes still work on the server
 export const PROMOS = {
   FIRST10: { pct: 0.1, label: '10% off your first inspection' },
   DUBAI15: { pct: 0.15, label: '15% off - Dubai launch offer' },

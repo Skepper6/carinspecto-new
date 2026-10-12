@@ -35,7 +35,7 @@ export default function StripeCheckout({ amount, email, register }) {
   if (!secret) return <Skeleton h={150} r={12} />;
   return (
     <div className="stripe-box">
-      <Elements key={secret} stripe={stripePromise} options={{ clientSecret: secret, appearance: { theme: 'stripe', variables: { colorPrimary: '#33237f', borderRadius: '11px', fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif' } } }}>
+      <Elements key={secret} stripe={stripePromise} options={{ clientSecret: secret, appearance: { theme: 'stripe', variables: { colorPrimary: '#33237f', borderRadius: '8px', fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif' } } }}>
         <Form register={register} />
       </Elements>
     </div>

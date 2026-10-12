@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { useDB, saveInspection, startInspection, completeInspection } from '../../lib/db';
+import { useDB, saveInspection, startInspection, completeInspection, useFullInspection } from '../../lib/db';
 import {
   sectionsForPlan, itemTotals, verdict, gradeItem, isAnswered, isGradedType, missingItems, passAllValues, PAINT_STATES, DEFECTS,
 } from '../../lib/inspectionSchema';
@@ -92,8 +92,20 @@ function ItemRow({ item, cell, onChange, toast }) {
   );
 }
 
+// The lists only carry inspections without photos, so the full record is loaded before the form is built from it.
 export default function InspectionForm() {
   const { id } = useParams();
+  const booking = useDB((s) => s.bookings.find((b) => b.id === id));
+  const full = useFullInspection(booking ? id : null);
+  if (!full.ready) {
+    return full.error
+      ? <div className="page"><EmptyState title="Could not open this inspection" text={full.error} action={<Link to="/inspector/assignments"><Button>Back to assignments</Button></Link>} /></div>
+      : <div className="boot"><i className="spinner" /></div>;
+  }
+  return <InspectionFormInner key={id} id={id} />;
+}
+
+function InspectionFormInner({ id }) {
   const nav = useNavigate();
   const { user } = useAuth();
   const { toast, confirm } = useUI();
@@ -124,7 +136,10 @@ export default function InspectionForm() {
   const allowed = booking && booking.inspectorId === user.id && booking.status !== 'cancelled';
 
   useEffect(() => {
-    if (allowed && !started.current && booking.status === 'assigned') { started.current = true; startInspection(id, user); toast.info('Inspection started – customer has been notified.'); }
+    if (allowed && !started.current && booking.status === 'assigned') {
+      started.current = true;
+      startInspection(id).then(() => toast.info('Inspection started – customer has been notified.')).catch((e) => toast.error(e.message || 'Could not start the inspection.'));
+    }
   }, [allowed]); // eslint-disable-line
 
   const sections = useMemo(() => (plan ? sectionsForPlan(plan) : []), [plan]);
@@ -132,10 +147,16 @@ export default function InspectionForm() {
   const cur = steps[step];
   const totals = plan ? itemTotals(plan, data) : { score: 0, progress: 0, pass: 0, fail: 0, na: 0 };
 
-  const persist = (silent) => {
-    saveInspection(id, { data, photos, comment });
-    setSaved(new Date().toISOString()); setDirty(false);
-    if (!silent) toast.success('Draft saved.');
+  const persist = async (silent) => {
+    try {
+      await saveInspection(id, { data, photos, comment });
+      setSaved(new Date().toISOString()); setDirty(false);
+      if (!silent) toast.success('Draft saved.');
+      return true;
+    } catch (e) {
+      toast.error(e.message || 'Could not save your changes. Check your connection – they are still on this screen.');
+      return false;
+    }
   };
   useEffect(() => {
     if (!dirty || completed) return;
@@ -174,12 +195,12 @@ export default function InspectionForm() {
   const finish = async () => {
     const ok = await confirm({ title: 'End this inspection?', message: 'The customer will be notified and the PDF report will be generated. You can still edit it later from History.', confirmText: 'End inspection' });
     if (!ok) return;
-    saveInspection(id, { data, photos, comment });
-    completeInspection(id, user);
+    if (!await persist(true)) return;
+    try { await completeInspection(id); } catch (e) { toast.error(e.message || 'Could not complete the inspection.'); return; }
     toast.success('Inspection completed and report generated.', 'Nice work!');
     nav('/inspector/history');
   };
-  const saveEdits = () => { persist(true); toast.success('Changes saved to the report.'); };
+  const saveEdits = async () => { if (await persist(true)) toast.success('Changes saved to the report.'); };
   const v = verdict(totals.score);
   const secState = (s) => {
     const need = s.items.filter((it) => isGradedType(it) || it.req);

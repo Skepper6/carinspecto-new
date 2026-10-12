@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Save, RotateCcw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save } from 'lucide-react';
 import { useUI } from '../../context/UIContext';
-import { useDB, updateContent, updatePlan, resetDB } from '../../lib/db';
+import { useDB, updateContent, updatePlan } from '../../lib/db';
 import { Card, Input, PageHeader, Tabs, Textarea, EmptyState, SearchInput } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -10,7 +10,7 @@ import { money, uid } from '../../lib/format';
 export default function Content() {
   const content = useDB((s) => s.content);
   const plans = useDB((s) => s.plans);
-  const { toast, confirm } = useUI();
+  const { toast, confirm, guard } = useUI();
   const [tab, setTab] = useState('faq');
   const [fq, setFq] = useState('');
   const [edit, setEdit] = useState(null);
@@ -19,39 +19,31 @@ export default function Content() {
   const [privacy, setPrivacy] = useState(content.privacy);
   const [prices, setPrices] = useState(Object.fromEntries(plans.map((p) => [p.id, p.price])));
 
-  const saveFaq = () => {
+  const saveFaq = async () => {
     const e = {};
     if (edit.q.trim().length < 5) e.q = 'Enter the question';
     if (edit.a.trim().length < 10) e.a = 'Enter a fuller answer';
     setErr(e);
     if (Object.keys(e).length) return;
     const exists = content.faqs.some((f) => f.id === edit.id);
-    updateContent({ faqs: exists ? content.faqs.map((f) => (f.id === edit.id ? edit : f)) : [...content.faqs, edit] });
-    toast.success(exists ? 'FAQ updated.' : 'FAQ added.');
+    if (!await guard(updateContent({ faqs: exists ? content.faqs.map((f) => (f.id === edit.id ? edit : f)) : [...content.faqs, edit] }), exists ? 'FAQ updated.' : 'FAQ added.')) return;
     setEdit(null);
   };
   const delFaq = async (f) => {
     if (!await confirm({ title: 'Delete this FAQ?', message: f.q, confirmText: 'Delete', danger: true })) return;
-    updateContent({ faqs: content.faqs.filter((x) => x.id !== f.id) });
-    toast.success('FAQ deleted.');
+    await guard(updateContent({ faqs: content.faqs.filter((x) => x.id !== f.id) }), 'FAQ deleted.');
   };
-  const savePrices = () => {
+  const savePrices = async () => {
     for (const p of plans) {
       const n = Number(prices[p.id]);
       if (!n || n < 100) return toast.error(`Enter a valid price for ${p.name}.`);
     }
-    plans.forEach((p) => updatePlan(p.id, { price: Number(prices[p.id]) }));
-    toast.success('Plan prices updated. New bookings will use these prices.');
-  };
-  const reset = async () => {
-    if (!await confirm({ title: 'Reset demo data?', message: 'All local demo data (bookings, users, inspections) is restored to the original sample set.', confirmText: 'Reset everything', danger: true })) return;
-    resetDB(); toast.success('Demo data restored.'); setTimeout(() => location.reload(), 600);
+    await guard(Promise.all(plans.map((p) => updatePlan(p.id, { price: Number(prices[p.id]) }))), 'Plan prices updated. New bookings will use these prices.');
   };
 
   return (
     <div className="page">
-      <PageHeader title="Content & plans" subtitle="Manage the FAQ, legal text and package pricing shown across the site."
-        actions={<Button variant="ghost" icon={RotateCcw} onClick={reset}>Reset demo data</Button>} />
+      <PageHeader title="Content & plans" subtitle="Manage the FAQ, legal text and package pricing shown across the site." />
       <div className="toolbar"><Tabs value={tab} onChange={setTab} tabs={[{ value: 'faq', label: 'FAQ' }, { value: 'legal', label: 'Terms & privacy' }, { value: 'plans', label: 'Plan pricing' }]} /><span /></div>
 
       {tab === 'faq' && (
@@ -72,8 +64,8 @@ export default function Content() {
 
       {tab === 'legal' && (
         <div className="grid-2">
-          <Card title="Terms & conditions"><Textarea rows={9} value={terms} onChange={(e) => setTerms(e.target.value)} /><Button icon={Save} onClick={() => { updateContent({ terms }); toast.success('Terms saved.'); }}>Save terms</Button></Card>
-          <Card title="Privacy policy"><Textarea rows={9} value={privacy} onChange={(e) => setPrivacy(e.target.value)} /><Button icon={Save} onClick={() => { updateContent({ privacy }); toast.success('Privacy policy saved.'); }}>Save policy</Button></Card>
+          <Card title="Terms & conditions"><Textarea rows={9} value={terms} onChange={(e) => setTerms(e.target.value)} /><Button icon={Save} onClick={() => guard(updateContent({ terms }), 'Terms saved.')}>Save terms</Button></Card>
+          <Card title="Privacy policy"><Textarea rows={9} value={privacy} onChange={(e) => setPrivacy(e.target.value)} /><Button icon={Save} onClick={() => guard(updateContent({ privacy }), 'Privacy policy saved.')}>Save policy</Button></Card>
         </div>
       )}
 

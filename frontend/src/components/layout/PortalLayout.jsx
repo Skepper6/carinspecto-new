@@ -22,7 +22,7 @@ const NAV = {
   admin: [
     ['/admin', 'Overview', LayoutDashboard, true], ['/admin/bookings', 'Orders', ClipboardList], ['/admin/customers', 'Customers', Users],
     ['/admin/inspectors', 'Inspectors', UserCog], ['/admin/tickets', 'Support tickets', Ticket], ['/admin/revenue', 'Revenue', Wallet],
-    ['/admin/analytics', 'Analytics', BarChart3], ['/admin/content', 'Content & plans', FileCog],
+    ['/admin/analytics', 'Analytics', BarChart3], ['/admin/content', 'Content & plans', FileCog], ['/admin/profile', 'Profile', UserCircle],
   ],
 };
 const ROLE_LABEL = { customer: 'Customer', inspector: 'Inspector', admin: 'Administrator' };

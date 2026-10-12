@@ -245,7 +245,7 @@ export default function Home() {
         <div className="wrap foot-grid">
           <div><span className="logo-chip"><Logo height={36} /></span><p>Certified digital vehicle inspections across Dubai and the UAE.</p></div>
           <div><h5>Portals</h5>{Object.entries(PORTALS).map(([r, p]) => <Link key={r} to={`/login?role=${r}`}>{p.label}</Link>)}</div>
-          <div><h5>Company</h5><button onClick={() => scrollTo('how')}>How it works</button><button onClick={() => scrollTo('plans')}>Plans</button><button onClick={() => scrollTo('faq')}>FAQ</button></div>
+          <div><h5>Company</h5><button onClick={() => scrollTo('how')}>How it works</button><button onClick={() => scrollTo('plans')}>Plans</button><button onClick={() => scrollTo('faq')}>FAQ</button><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div>
           <div><h5>Contact</h5><span><Phone size={14} /> +971 4 123 4567</span><span><Mail size={14} /> hello@carinspecto.ae</span></div>
         </div>
         <div className="wrap foot-base">© {new Date().getFullYear()} Car InspectO. All rights reserved.</div>

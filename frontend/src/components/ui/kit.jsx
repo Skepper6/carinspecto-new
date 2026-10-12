@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import { Search, Star, Inbox, Check, X as XIcon, Minus } from 'lucide-react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Search, Star, Inbox, Check, X as XIcon, Minus, Filter, ChevronDown } from 'lucide-react';
 import { STATUS } from '../../lib/constants';
 import { initials, fmtPhone } from '../../lib/format';
+import Button from './Button';
 
 export const Logo = ({ height = 38 }) => <img src="/logo.png" alt="Car InspectO" className="logo-img" style={{ height }} />;
 
@@ -73,12 +74,23 @@ export const PageHeader = ({ title, subtitle, actions }) => (
   </div>
 );
 
-export const SearchInput = ({ value, onChange, placeholder = 'Search…' }) => (
-  <label className="search">
-    <Search size={16} />
-    <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-  </label>
-);
+export const SearchInput = ({ value, onChange, placeholder = 'Search' }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') { e.preventDefault(); ref.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <label className="search">
+      <Search size={16} />
+      <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+      <kbd className="search-kbd">Ctrl + J</kbd>
+    </label>
+  );
+};
 
 export const Field = ({ label, hint, error, children, className = '', htmlFor }) => (
   <div className={`field ${error ? 'has-error' : ''} ${className}`}>
@@ -214,25 +226,85 @@ export const Tm = ({ t }) => {
 };
 
 // ---- list filters ----
+// Dropdowns/date pickers edit a local draft so picking a value never re-filters mid-click;
+// the draft is only committed (and the list actually filtered) once Apply is pressed.
 export function useFilters() {
   const [f, setF] = useState({});
-  return { f, set: (k, v) => setF((x) => ({ ...x, [k]: v })), reset: () => setF({}), key: JSON.stringify(f) };
+  const [draft, setDraft] = useState({});
+  const set = (k, v) => setDraft((x) => ({ ...x, [k]: v }));
+  const apply = () => setF(draft);
+  const reset = () => { setDraft({}); setF({}); };
+  const dirty = JSON.stringify(draft) !== JSON.stringify(f);
+  return { f, draft, set, apply, reset, dirty, key: JSON.stringify(f) };
 }
 export const inRange = (iso, f) => { const d = (iso || '').slice(0, 10); return (!f.from || d >= f.from) && (!f.to || d <= f.to); };
+
+// Custom select for the filter popover – a styled trigger + animated list, no native <select> chrome.
+const FilterSelect = ({ value, onChange, options, placeholder }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const opts = useMemo(() => options.map((o) => (typeof o === 'object' ? o : { value: o, label: o })), [options]);
+  const current = opts.find((o) => o.value === value);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+  const pick = (v) => { onChange(v); setOpen(false); };
+  return (
+    <div className={`fselect ${open ? 'open' : ''}`} ref={ref}>
+      <button type="button" className="fselect-btn" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span className={current ? '' : 'ph'}>{current?.label ?? placeholder}</span>
+        <ChevronDown size={16} />
+      </button>
+      {open && (
+        <ul className="fselect-pop" role="listbox">
+          <li role="option" aria-selected={!value} className={!value ? 'sel' : ''} onClick={() => pick('')}>{placeholder}</li>
+          {opts.map((o) => (
+            <li key={o.value} role="option" aria-selected={o.value === value} className={o.value === value ? 'sel' : ''} onClick={() => pick(o.value)}>
+              <span>{o.label}</span>{o.value === value && <Check size={14} />}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 // defs: { key, label, type?: 'select' | 'date', options: string[] | { value, label }[] }
+// Filters live behind a funnel-icon popover: picking values only edits a draft, Apply commits it.
 export const FilterBar = ({ defs, flt }) => {
   const active = defs.filter((d) => flt.f[d.key]).length;
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+  const apply = () => { flt.apply(); setOpen(false); };
   return (
-    <div className="fbar">
-      {defs.map((d) => (d.type === 'date' ? (
-        <label key={d.key} className="fdate"><span>{d.label}</span><input type="date" className="input sm" value={flt.f[d.key] || ''} onChange={(e) => flt.set(d.key, e.target.value)} /></label>
-      ) : (
-        <select key={d.key} className="input sm" aria-label={d.label} value={flt.f[d.key] || ''} onChange={(e) => flt.set(d.key, e.target.value)}>
-          <option value="">{d.label}</option>
-          {d.options.map((o) => (typeof o === 'object' ? <option key={o.value} value={o.value}>{o.label}</option> : <option key={o} value={o}>{o}</option>))}
-        </select>
-      )))}
-      {active > 0 && <button type="button" className="link-btn" onClick={flt.reset}>Clear filters ({active})</button>}
+    <div className="fbar" ref={ref}>
+      <button type="button" className={`icon-btn fbar-trigger ${open ? 'on' : ''}`} onClick={() => setOpen((o) => !o)} aria-label="Filters" aria-expanded={open} title="Filters">
+        <Filter size={18} />
+        {active > 0 && <i className="nav-badge">{active}</i>}
+      </button>
+      {open && (
+        <div className="fbar-pop">
+          <div className="fbar-pop-grid">
+            {defs.map((d) => (d.type === 'date' ? (
+              <label key={d.key} className="fdate"><span>{d.label}</span><input type="date" className="input sm" value={flt.draft[d.key] || ''} onChange={(e) => flt.set(d.key, e.target.value)} onKeyDown={(e) => e.key === 'Enter' && apply()} /></label>
+            ) : (
+              <FilterSelect key={d.key} value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} options={d.options} placeholder={d.label} />
+            )))}
+          </div>
+          <div className="fbar-pop-foot">
+            {active > 0 ? <button type="button" className="link-btn" onClick={flt.reset}>Clear filters ({active})</button> : <span />}
+            <Button size="sm" disabled={!flt.dirty} onClick={apply}>Apply</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

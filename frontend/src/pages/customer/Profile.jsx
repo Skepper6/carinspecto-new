@@ -7,12 +7,14 @@ import { Avatar, Card, EmptyState, Input, PageHeader, Select, Badge, PhoneInput 
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
+import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
+import { resendVerification } from '../../services/auth';
 import { CITIES } from '../../lib/constants';
 import { fmtDate, uid, isValidPhone } from '../../lib/format';
 
 export default function Profile() {
   const { user } = useAuth();
-  const { toast, confirm } = useUI();
+  const { confirm, guard } = useUI();
   const me = useDB((s) => s.users.find((u) => u.id === user.id));
   const [f, setF] = useState({ name: me.name, phone: me.phone ?? '' });
   const [errs, setErrs] = useState({});
@@ -23,44 +25,41 @@ export default function Profile() {
   const [ae, setAe] = useState({});
   const [ce, setCe] = useState({});
 
-  const saveProfile = () => {
+  const resend = () => guard(resendVerification(), 'Verification email sent. Check your inbox.');
+  const saveProfile = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter your name';
     if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
     setErrs(e);
     if (Object.keys(e).length) return;
-    updateUser(me.id, { name: f.name.trim(), phone: f.phone });
-    toast.success('Profile updated.');
+    await guard(updateUser(me.id, { name: f.name.trim(), phone: f.phone }), 'Profile updated.');
   };
 
-  const addAddress = () => {
+  const addAddress = async () => {
     const e = validateAddress(a, { phone: false });
     setAe(e);
     if (Object.keys(e).length) return;
     const list = [...(me.addresses ?? []), { id: uid('a'), ...withLabel(a), line: formatAddress(a), address: formatAddress(a), isDefault: !(me.addresses?.length) }];
-    updateUser(me.id, { addresses: list });
+    if (!await guard(updateUser(me.id, { addresses: list }), 'Address saved.')) return;
     setAddrModal(false); setA({ ...EMPTY_ADDRESS });
-    toast.success('Address saved.');
   };
-  const addCard = () => {
+  const addCard = async () => {
     const digits = c.number.replace(/\s/g, '');
     const e = {};
     if (!/^\d{16}$/.test(digits)) e.number = 'Enter a 16-digit card number';
     if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(c.exp)) e.exp = 'Use MM/YY';
     setCe(e);
     if (Object.keys(e).length) return;
-    updateUser(me.id, { paymentMethods: [...(me.paymentMethods ?? []), { id: uid('p'), type: 'card', brand: c.brand, last4: digits.slice(-4), exp: c.exp, isDefault: !(me.paymentMethods?.length) }] });
+    if (!await guard(updateUser(me.id, { paymentMethods: [...(me.paymentMethods ?? []), { id: uid('p'), type: 'card', brand: c.brand, last4: digits.slice(-4), exp: c.exp, isDefault: !(me.paymentMethods?.length) }] }), 'Payment method added.')) return;
     setCardModal(false); setC({ number: '', exp: '', brand: 'Visa' });
-    toast.success('Payment method added.');
   };
 
   const remove = async (kind, item) => {
     const ok = await confirm({ title: `Remove this ${kind === 'addresses' ? 'address' : 'card'}?`, message: 'This cannot be undone.', confirmText: 'Remove', danger: true });
     if (!ok) return;
-    updateUser(me.id, { [kind]: me[kind].filter((x) => x.id !== item.id) });
-    toast.success('Removed.');
+    await guard(updateUser(me.id, { [kind]: me[kind].filter((x) => x.id !== item.id) }), 'Removed.');
   };
-  const makeDefault = (kind, item) => { updateUser(me.id, { [kind]: me[kind].map((x) => ({ ...x, isDefault: x.id === item.id })) }); toast.success('Default updated.'); };
+  const makeDefault = (kind, item) => guard(updateUser(me.id, { [kind]: me[kind].map((x) => ({ ...x, isDefault: x.id === item.id })) }), 'Default updated.');
 
   return (
     <div className="page">
@@ -72,6 +71,11 @@ export default function Profile() {
             <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} />
             <PhoneInput label="Phone" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErrs({ ...errs, phone: undefined }); }} error={errs.phone} />
             <Input className="span-2" label="Email" value={me.email} disabled hint="Email is linked to your sign-in and cannot be changed here." />
+          </div>
+          <div className="verify-row">
+            {me.emailVerified
+              ? <Badge tone="green" dot>Email verified</Badge>
+              : <><Badge tone="amber" dot>Email not verified</Badge><button type="button" className="link-btn" onClick={resend}>Resend verification email</button></>}
           </div>
           <Button icon={Save} onClick={saveProfile}>Save changes</Button>
         </Card>
@@ -87,6 +91,8 @@ export default function Profile() {
           )) : <EmptyState icon={CreditCard} title="No saved cards" text="Add a card for faster checkout." />}
         </Card>
       </div>
+
+      <div className="mt"><ChangePasswordCard /></div>
 
       <Card title="Saved addresses" className="mt" action={<Button size="sm" variant="outline" icon={Plus} onClick={() => setAddrModal(true)}>Add address</Button>}>
         {me.addresses?.length ? (

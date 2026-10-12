@@ -24,7 +24,7 @@ export const ChartTip = ({ active, payload, label, money: isMoney }) => {
 
 export default function Overview() {
   const s = useDB((x) => x);
-  const { toast } = useUI();
+  const { toast, guard } = useUI();
   const loading = useLoading();
   const flt = useFilters();
   const bookings = useMemo(() => {
@@ -56,11 +56,10 @@ export default function Overview() {
 
   if (loading) return <div className="page"><Skeleton h={34} w={260} /><div className="grid-6 mt">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={92} r={16} />)}</div><Skeleton h={300} r={16} className="mt" /></div>;
 
-  const autoAssign = (b) => {
+  const autoAssign = async (b) => {
     const i = suggestInspector(getState(), b);
     if (!i) return toast.error('No inspector is available right now.');
-    assignInspector(b.id, i.id);
-    toast.success(`${b.id} auto-assigned to ${i.name}.`);
+    await guard(assignInspector(b.id, i.id), `${b.id} auto-assigned to ${i.name}.`);
   };
 
   return (

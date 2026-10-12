@@ -11,7 +11,7 @@ import { carName, downloadCSV, fmtDate, money } from '../../lib/format';
 
 export default function Customers() {
   const s = useDB((x) => x);
-  const { toast, confirm } = useUI();
+  const { toast, confirm, guard } = useUI();
   const loading = useLoading(500);
   const [tab, setTab] = useState('all');
   const [q, setQ] = useState('');
@@ -36,12 +36,11 @@ export default function Customers() {
   const toggle = async (u) => {
     const suspend = u.status === 'active';
     if (suspend && !await confirm({ title: `Suspend ${u.name}?`, message: 'They will not be able to sign in or book until reactivated.', confirmText: 'Suspend', danger: true })) return;
-    updateUser(u.id, { status: suspend ? 'suspended' : 'active' });
-    toast.success(suspend ? `${u.name} suspended.` : `${u.name} reactivated.`);
+    await guard(updateUser(u.id, { status: suspend ? 'suspended' : 'active' }), suspend ? `${u.name} suspended.` : `${u.name} reactivated.`);
   };
   const remove = async (u) => {
     if (!await confirm({ title: `Delete ${u.name}?`, message: 'The customer account is removed permanently. Their past bookings remain for your records.', confirmText: 'Delete customer', danger: true })) return;
-    removeUser(u.id); setOpen(null); toast.success('Customer deleted.');
+    if (await guard(removeUser(u.id), 'Customer deleted.')) setOpen(null);
   };
 
   const cols = [
@@ -51,7 +50,7 @@ export default function Customers() {
     { key: 'orders', hide: 'md', label: 'Orders', width: 90 },
     { key: 'spent', hide: 'sm', label: 'Total spent', width: 120, render: (u) => money(u.spent) },
     { key: 'joinedAt', hide: 'md', label: 'Joined', width: 120, render: (u) => fmtDate(u.joinedAt) },
-    { key: 'status', label: 'Status', width: 110, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
+    { key: 'status', label: 'Status', width: 130, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
   ];
 
   return (

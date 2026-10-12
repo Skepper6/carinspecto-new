@@ -6,16 +6,11 @@ import PortalLayout from './components/layout/PortalLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
+import Legal from './pages/Legal';
 
-const Landing1 = lazy(() => import('./pages/landing/Landing1'));
-const Landing2 = lazy(() => import('./pages/landing/Landing2'));
-const Landing3 = lazy(() => import('./pages/landing/Landing3'));
-const Homes = lazy(() => import('./pages/landing/Homes'));
-const LandingRivian = lazy(() => import('./pages/landing/LandingRivian'));
-const LandingZoox = lazy(() => import('./pages/landing/LandingZoox'));
-const LandingAzak = lazy(() => import('./pages/landing/LandingAzak'));
-const LandingVanmoof = lazy(() => import('./pages/landing/LandingVanmoof'));
-const LandingSpacex = lazy(() => import('./pages/landing/LandingSpacex'));
 const CustomerDashboard = lazy(() => import('./pages/customer/Dashboard'));
 const NewBooking = lazy(() => import('./pages/customer/NewBooking'));
 const MyBookings = lazy(() => import('./pages/customer/MyBookings'));
@@ -37,11 +32,12 @@ const AdminTickets = lazy(() => import('./pages/admin/Tickets'));
 const AdminRevenue = lazy(() => import('./pages/admin/Revenue'));
 const AdminAnalytics = lazy(() => import('./pages/admin/Analytics'));
 const AdminContent = lazy(() => import('./pages/admin/Content'));
+const AdminProfile = lazy(() => import('./pages/admin/Profile'));
 
 function Guard({ role, children }) {
   const { user } = useAuth();
   const loc = useLocation();
-  if (!user) return <Navigate to={`/login?role=${role}`} state={{ from: loc.pathname }} replace />;
+  if (!user) return <Navigate to={`/login?role=${role}`} state={{ from: loc.pathname + loc.search }} replace />;
   if (user.role !== role) return <Navigate to={PORTALS[user.role].home} replace />;
   return children;
 }
@@ -53,6 +49,11 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Login signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/terms" element={<Legal kind="terms" />} />
+      <Route path="/privacy" element={<Legal kind="privacy" />} />
 
       <Route path="/app" element={<Guard role="customer"><PortalLayout role="customer" /></Guard>}>
         <Route index element={<CustomerDashboard />} />
@@ -80,18 +81,8 @@ export default function App() {
         <Route path="revenue" element={<AdminRevenue />} />
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="content" element={<AdminContent />} />
+        <Route path="profile" element={<AdminProfile />} />
       </Route>
-
-      {/* home page concepts (preview) */}
-      <Route path="/homes" element={<Homes />} />
-      <Route path="/home-1" element={<Landing1 />} />
-      <Route path="/home-2" element={<Landing2 />} />
-      <Route path="/home-3" element={<Landing3 />} />
-      <Route path="/home-4" element={<LandingRivian />} />
-      <Route path="/home-5" element={<LandingZoox />} />
-      <Route path="/home-6" element={<LandingAzak />} />
-      <Route path="/home-7" element={<LandingVanmoof />} />
-      <Route path="/home-8" element={<LandingSpacex />} />
       {/* friendly aliases */}
       <Route path="/user/*" element={<Navigate to="/app" replace />} />
       <Route path="/customer/*" element={<Navigate to="/app" replace />} />

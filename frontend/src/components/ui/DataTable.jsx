@@ -2,14 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowDown, SearchX } from 'lucide-react';
 import { Skeleton } from './kit';
 
-const HEAD_H = 46;
+const HEAD_H = 44;
 
 /**
  * Viewport-fitted table. The page size is derived from the height available to the table card, so rows
  * never push the page past the screen. The pager lives *outside* (below) the table card.
  * The parent must be a flex column with a bounded height (`.page.fill`).
  */
-export default function DataTable({ columns, rows, rowHeight = 68, onRowClick, rowClass, loading, empty, rowKey = (r) => r.id, resetKey }) {
+export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, rowClass, loading, empty, rowKey = (r) => r.id, resetKey }) {
   const cardRef = useRef(null);
   const [height, setHeight] = useState(0);
   const [page, setPage] = useState(1);

@@ -6,8 +6,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, createBooking, updateUser } from '../../lib/db';
-import { priceFor } from '../../lib/seed';
-import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, PROMOS, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
+import { priceFor } from '../../lib/pricing';
+import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, PROMOS, SHOW_PROMO, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
 import { addDays, carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
 import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
@@ -121,7 +121,7 @@ export default function NewBooking() {
   const applyPromo = () => {
     const p = PROMOS[promo.trim().toUpperCase()];
     if (!p) return toast.error('That promo code is not valid.');
-    setApplied(p);
+    setApplied({ ...p, code: promo.trim().toUpperCase() });
     toast.success(p.label, 'Promo applied');
   };
 
@@ -134,8 +134,15 @@ export default function NewBooking() {
     } else await new Promise((r) => setTimeout(r, 1200));
     const card = me.paymentMethods?.find((c) => 'card:' + c.id === method);
     const label = method === 'stripe' ? 'Card / Apple Pay (Stripe)' : method === 'applepay' ? 'Apple Pay' : method === 'cash' ? 'Cash on arrival' : method === 'newcard' ? `Card •••• ${nc.number.replace(/\s/g, '').slice(-4)}` : `${card.brand} •••• ${card.last4}`;
-    const b = createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, applied?.pct ?? 0, label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
-    if (saveAddr) updateUser(me.id, { addresses: [...(me.addresses ?? []), { id: uid('a'), ...withLabel(loc), lat: null, lng: null, line: formatAddress(loc), address: formatAddress(loc), isDefault: !me.addresses?.length }] });
+    let b;
+    try {
+      b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, applied?.code ?? '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
+    } catch (err) {
+      setPaying(false);
+      toast.error(intent ? `${err.message} Your card was charged, so please contact support with reference ${intent.id}.` : err.message, 'Booking not completed');
+      return;
+    }
+    if (saveAddr) updateUser(me.id, { addresses: [...(me.addresses ?? []), { id: uid('a'), ...withLabel(loc), lat: null, lng: null, line: formatAddress(loc), address: formatAddress(loc), isDefault: !me.addresses?.length }] }).catch(() => {});
     setPaying(false);
     setDone(b);
   };
@@ -249,12 +256,12 @@ export default function NewBooking() {
                   <div><span>Slot</span><b>{fmtDate(date)} · {fmtTime(time)}</b></div>
                 </div>
 
-                <Field label="Promo code">
+                {SHOW_PROMO && <Field label="Promo code">
                   <div className="inline">
                     <input className="input" value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="Try FIRST10" />
                     <Button type="button" variant="outline" icon={Tag} onClick={applyPromo}>Apply</Button>
                   </div>
-                </Field>
+                </Field>}
 
                 <Field label="Payment method">
                   <div className="pay-methods">
@@ -283,6 +290,7 @@ export default function NewBooking() {
                 )}
                 {method === 'cash' && <p className="muted small mt-s">Pay the inspector in cash (or by card machine) when they arrive. Total due: {money(price.total)}.</p>}
                 <p className="secure"><Lock size={14} /> Payments are encrypted and processed by our secure gateway.</p>
+                <p className="muted small mt-s">By booking you agree to our <Link to="/terms" target="_blank">Terms &amp; Conditions</Link> and <Link to="/privacy" target="_blank">Privacy Policy</Link>.</p>
               </>
             )}
           </div>

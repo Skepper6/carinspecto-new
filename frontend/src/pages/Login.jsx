@@ -7,7 +7,7 @@ import { Logo, Input, Tabs, PhoneInput } from '../components/ui/kit';
 import { isValidPhone } from '../lib/format';
 import Button from '../components/ui/Button';
 import { PORTALS } from '../lib/constants';
-import { firebaseEnabled } from '../services/firebase';
+import { googleEnabled } from '../services/auth';
 
 const DEMO = {
   customer: { email: 'omar@example.com', pw: 'demo123' },
@@ -32,12 +32,14 @@ export default function Login({ signup: signupMode = false }) {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const { user, login, signup, google } = useAuth();
   const { toast } = useUI();
   const nav = useNavigate();
   const loc = useLocation();
 
-  if (user) return <Navigate to={PORTALS[user.role].home} replace />;
+  // already signed in (or just signed in): go where the user was heading, otherwise to their portal
+  if (user) return <Navigate to={loc.state?.from?.startsWith(PORTALS[user.role].home) ? loc.state.from : PORTALS[user.role].home} replace />;
 
   const set = (k) => (e) => { setF({ ...f, [k]: e.target.value }); setErrors({ ...errors, [k]: undefined }); };
   const isSignup = mode === 'signup' && role === 'customer';
@@ -46,7 +48,8 @@ export default function Login({ signup: signupMode = false }) {
     const e = {};
     if (isSignup && f.name.trim().length < 2) e.name = 'Please enter your full name';
     if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email address';
-    if (f.pw.length < 6) e.pw = 'Password must be at least 6 characters';
+    if (isSignup ? f.pw.length < 8 : f.pw.length < 1) e.pw = isSignup ? 'Password must be at least 8 characters' : 'Enter your password';
+    if (isSignup && !accepted) e.terms = 'Please accept the Terms and Privacy Policy';
     if (isSignup && f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
     setErrors(e);
     return !Object.keys(e).length;
@@ -60,7 +63,7 @@ export default function Login({ signup: signupMode = false }) {
     setBusy(true);
     try {
       if (isSignup) {
-        await signup({ name: f.name.trim(), email: f.email.trim(), password: f.pw, phone: f.phone });
+        await signup({ name: f.name.trim(), email: f.email.trim(), password: f.pw, phone: f.phone, acceptTerms: true });
         toast.success('Your account is ready. Let\'s book your first inspection!', 'Welcome to Car InspectO');
       } else {
         await login(f.email.trim(), f.pw, role);
@@ -106,7 +109,7 @@ export default function Login({ signup: signupMode = false }) {
             <p className="muted">{sub}</p>
           </div>
 
-          {role === 'customer' && (
+          {role === 'customer' && googleEnabled && (
             <>
               <Button type="button" variant="outline" className="w-full" onClick={googleSignIn} disabled={busy}><GoogleIcon /> Continue with Google</Button>
               <div className="divider"><span>or use email</span></div>
@@ -121,6 +124,14 @@ export default function Login({ signup: signupMode = false }) {
             <button type="button" className="pw-eye" onClick={() => setShowPw((s) => !s)} aria-label="Toggle password">{showPw ? <EyeOff size={17} /> : <Eye size={17} />}</button>
           </div>
 
+          {!isSignup && <div className="forgot-row"><Link to="/forgot-password" className="link-btn">Forgot password?</Link></div>}
+          {isSignup && (
+            <div>
+              <label className="check consent"><input type="checkbox" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); setErrors({ ...errors, terms: undefined }); }} /><span>I agree to the <Link to="/terms" target="_blank">Terms &amp; Conditions</Link> and <Link to="/privacy" target="_blank">Privacy Policy</Link></span></label>
+              {errors.terms && <p className="field-error">{errors.terms}</p>}
+            </div>
+          )}
+
           <Button type="submit" loading={busy} className="w-full" size="lg">{isSignup ? 'Create account' : 'Sign in'}</Button>
 
           {role === 'customer' && (
@@ -130,10 +141,10 @@ export default function Login({ signup: signupMode = false }) {
             </p>
           )}
 
-          {!firebaseEnabled && !isSignup && (
+          {import.meta.env.DEV && !isSignup && (
             <button type="button" className="demo-box" onClick={fillDemo}>
               <Sparkles size={16} />
-              <span><b>Demo mode</b> – click to fill {PORTALS[role].label.toLowerCase()} credentials<br /><em>{DEMO[role].email} · {DEMO[role].pw}</em></span>
+              <span><b>Demo logins</b> (development only) – click to fill {PORTALS[role].label.toLowerCase()} credentials<br /><em>{DEMO[role].email} · {DEMO[role].pw}</em></span>
             </button>
           )}
         </form>

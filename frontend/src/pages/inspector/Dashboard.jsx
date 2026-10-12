@@ -10,7 +10,7 @@ import { addDays, carName, fmtDate, fmtTime, isoDate } from '../../lib/format';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { toast } = useUI();
+  const { guard } = useUI();
   const nav = useNavigate();
   const me = useDB((s) => s.users.find((u) => u.id === user.id));
   const mine = useDB((s) => s.bookings.filter((b) => b.inspectorId === user.id));
@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   if (loading) return <div className="page"><Skeleton h={34} w={260} /><div className="grid-4 mt"><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /></div><Skeleton h={260} r={16} className="mt" /></div>;
 
-  const toggle = () => { updateUser(me.id, { available: !me.available }); toast.info(me.available ? 'You are now unavailable for new assignments.' : 'You are available for new assignments.'); };
+  const toggle = () => guard(updateUser(me.id, { available: !me.available }), me.available ? 'You are now unavailable for new assignments.' : 'You are available for new assignments.');
 
   return (
     <div className="page">

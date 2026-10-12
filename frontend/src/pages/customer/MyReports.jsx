@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Download, Eye, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { useDB } from '../../lib/db';
+import { useDB, fullInspection } from '../../lib/db';
 import { PageHeader, SearchInput, useLoading, Badge, FilterBar, useFilters, inRange } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
@@ -18,7 +19,8 @@ export default function MyReports() {
   const loading = useLoading(500);
   const [q, setQ] = useState('');
   const flt = useFilters();
-  const [open, setOpen] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const [open, setOpen] = useState(() => params.get('report'));   // a shared link opens that report straight away
   const [busy, setBusy] = useState(null);
 
   const rows = useMemo(() => state.bookings
@@ -39,17 +41,17 @@ export default function MyReports() {
   ];
   const dl = async (r) => {
     setBusy(r.id);
-    try { await downloadReport({ booking: r, inspection: r.ins, plan: r.plan, customer: user, inspector: r.inspector }); toast.success('Report downloaded.'); }
+    try { const ins = await fullInspection(r.id); await downloadReport({ booking: r, inspection: ins ?? r.ins, plan: r.plan, customer: user, inspector: r.inspector }); toast.success('Report downloaded.'); }
     catch { toast.error('Could not generate the PDF.'); }
     finally { setBusy(null); }
   };
 
   const cols = [
-    { key: 'id', label: 'Report', width: 100, render: (r) => <b className="mono">{r.id}</b> },
+    { key: 'id', label: 'Report', width: 115, render: (r) => <b className="mono">{r.id}</b> },
     { key: 'car', label: 'Vehicle', sortValue: (r) => carName(r.car), render: (r) => <div className="cell-2"><b>{carName(r.car)}</b><span className="muted small">{r.car.reg}</span></div> },
     { key: 'date', hide: 'lg', label: 'Inspected', width: 130, render: (r) => fmtDate(r.date) },
     { key: 'plan', hide: 'md', label: 'Plan', width: 110, sortValue: (r) => r.plan.name, render: (r) => r.plan.name },
-    { key: 'score', hide: 'sm', label: 'Health score', width: 150, render: (r) => { const v = verdict(r.score); return <span className="score-cell"><b>{r.score}</b><Badge tone={v.tone}>{v.label}</Badge></span>; } },
+    { key: 'score', hide: 'sm', label: 'Health score', width: 170, render: (r) => { const v = verdict(r.score); return <span className="score-cell"><b>{r.score}</b><Badge tone={v.tone}>{v.label}</Badge></span>; } },
     {
       key: 'a', label: '', sortable: false, width: 220, align: 'right',
       render: (r) => (
@@ -67,7 +69,7 @@ export default function MyReports() {
       <div className="toolbar"><span /><div className="filters"><FilterBar defs={fdefs} flt={flt} /><SearchInput value={q} onChange={setQ} placeholder="Search by report ID, car or plate…" /></div></div>
       <DataTable columns={cols} rows={rows} loading={loading} onRowClick={(r) => setOpen(r.id)} resetKey={q + flt.key}
         empty={<><FileText size={30} /><b>No reports yet</b><span className="muted">Reports appear here as soon as an inspection is completed.</span></>} />
-      <ReportModal bookingId={open} onClose={() => setOpen(null)} />
+      <ReportModal bookingId={open} onClose={() => { setOpen(null); if (params.has('report')) setParams({}, { replace: true }); }} />
     </div>
   );
 }

@@ -21,3 +21,5 @@ frontend/strings.json
 frontend/*.png
 frontend/*.pdf
 frontend/*.mjs
+
+Design.md

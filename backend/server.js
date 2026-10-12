@@ -1,79 +1,66 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import Stripe from 'stripe';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import { ZodError } from 'zod';
+import { connectDB } from './src/config/db.js';
+import { ensureCounters, HttpError } from './src/services/helpers.js';
+import syncRoutes from './src/routes/sync.js';
+import authRoutes from './src/routes/auth.js';
+import userRoutes from './src/routes/users.js';
+import bookingRoutes from './src/routes/bookings.js';
+import inspectionRoutes from './src/routes/inspections.js';
+import ticketRoutes from './src/routes/tickets.js';
+import fileRoutes from './src/routes/files.js';
+import paymentRoutes, { stripeWebhook } from './src/routes/payments.js';
+import miscRoutes from './src/routes/misc.js';
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('JWT_SECRET is missing or too short (use 32+ random characters). See backend/.env.example.');
+  process.exit(1);
+}
+if (!(await connectDB())) {
+  console.error('Cannot start without the database. Check MONGODB_URI in backend/.env.');
+  process.exit(1);
+}
+await ensureCounters();
 
 const app = express();
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(',') ?? true }));
-app.use(express.json({ limit: '60mb' }));
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors({ origin: process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(',').map((s) => s.trim()) : true }));
+app.use(compression());
+app.post('/api/payments/webhook', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhook);   // needs the raw body
+const bigJson = express.json({ limit: '30mb' });   // inspection saves carry compressed photos
+app.use('/api/inspections', bigJson);
+app.use(express.json({ limit: '2mb' }));
+app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: 600, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many requests. Please slow down.' } }));
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, stripe: Boolean(stripe) }));
+app.use('/api', syncRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/inspections', inspectionRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api', miscRoutes);
 
-// Creates a PaymentIntent in AED. `amount` arrives in dirhams (e.g. 345.5) and is converted to fils.
-app.post('/api/payments/create-intent', async (req, res) => {
-  if (!stripe) return res.status(503).json({ error: 'Stripe is not configured on the server (set STRIPE_SECRET_KEY).' });
-  const amount = Number(req.body?.amount);
-  if (!Number.isFinite(amount) || amount < 2 || amount > 50000) return res.status(400).json({ error: 'Invalid amount.' });
-  try {
-    const intent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: 'aed',
-      automatic_payment_methods: { enabled: true },
-      receipt_email: req.body?.email || undefined,
-      metadata: { app: 'car-inspecto' },
-    });
-    res.json({ clientSecret: intent.client_secret, id: intent.id });
-  } catch (err) {
-    console.error('Stripe error:', err.message);
-    res.status(502).json({ error: 'Could not create the payment.' });
-  }
-});
+app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
 
-/* ---------- shared app state (demo sync) ----------
- * Every browser / device reads and writes the same state through these endpoints, so a message sent by the
- * admin reaches the customer anywhere. Optimistic concurrency: PUT must carry the revision it was based on;
- * on a mismatch the server answers 409 with the latest state and the client re-applies its pending changes. */
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA = path.join(__dirname, 'data');
-const FILES = path.join(DATA, 'files');
-fs.mkdirSync(FILES, { recursive: true });
-const STATE_FILE = path.join(DATA, 'state.json');
-let store = { rev: 0, state: null };
-try { store = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch { /* first run */ }
-const saveStore = () => fs.writeFile(STATE_FILE, JSON.stringify(store), () => {});
-
-app.get('/api/state/rev', (_req, res) => res.json({ rev: store.rev }));
-app.get('/api/state', (_req, res) => res.json(store));
-app.put('/api/state', (req, res) => {
-  const { baseRev, state } = req.body ?? {};
-  if (!state || typeof state !== 'object') return res.status(400).json({ error: 'Invalid state.' });
-  if (store.state && baseRev !== store.rev) return res.status(409).json(store);
-  store = { rev: store.rev + 1, state };
-  saveStore();
-  res.json({ rev: store.rev });
-});
-app.delete('/api/state', (_req, res) => { store = { rev: store.rev + 1, state: null }; saveStore(); res.json({ ok: true }); });
-
-// attachments (max 5 MB, images / pdf / word)
-const okId = (id) => /^[\w-]{3,64}$/.test(id);
-app.put('/api/files/:id', express.raw({ type: '*/*', limit: '6mb' }), (req, res) => {
-  if (!okId(req.params.id) || !Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: 'Invalid file.' });
-  fs.writeFileSync(path.join(FILES, req.params.id), req.body);
-  fs.writeFileSync(path.join(FILES, `${req.params.id}.type`), String(req.get('content-type') || 'application/octet-stream'));
-  res.json({ ok: true });
-});
-app.get('/api/files/:id', (req, res) => {
-  if (!okId(req.params.id)) return res.status(400).end();
-  const f = path.join(FILES, req.params.id);
-  if (!fs.existsSync(f)) return res.status(404).end();
-  let type = 'application/octet-stream';
-  try { type = fs.readFileSync(`${f}.type`, 'utf8'); } catch { /* default */ }
-  res.type(type).send(fs.readFileSync(f));
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  if (err instanceof HttpError) return res.status(err.status).json({ error: err.message });
+  if (err instanceof ZodError) return res.status(400).json({ error: err.issues[0]?.message ?? 'Invalid request.' });
+  if (err?.type === 'entity.too.large') return res.status(413).json({ error: 'That is too large to upload.' });
+  if (err?.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid request.' });
+  if (err?.name === 'CastError') return res.status(400).json({ error: 'Invalid request.' });
+  if (err?.code === 11000) return res.status(409).json({ error: 'That already exists.' });
+  console.error(err);
+  res.status(500).json({ error: 'Something went wrong on our side. Please try again.' });
 });
 
 const port = process.env.PORT || 5000;

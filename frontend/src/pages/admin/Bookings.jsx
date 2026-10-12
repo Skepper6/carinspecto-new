@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Download, FileText, UserPlus, FileDown, ClipboardList, XCircle } from 'lucide-react';
 import { useUI } from '../../context/UIContext';
-import { useDB, cancelBooking } from '../../lib/db';
+import { useDB, cancelBooking, fullInspection } from '../../lib/db';
 import { Avatar, PageHeader, PayBadge, SearchInput, StatusBadge, Tabs, useLoading, FilterBar, useFilters, inRange } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
@@ -14,7 +14,7 @@ import { carName, downloadCSV, fmtDate, fmtTime, money } from '../../lib/format'
 
 export default function Bookings() {
   const s = useDB((x) => x);
-  const { toast, confirm } = useUI();
+  const { toast, confirm, guard } = useUI();
   const loading = useLoading(500);
   const [tab, setTab] = useState('all');
   const [q, setQ] = useState('');
@@ -40,16 +40,15 @@ export default function Bookings() {
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
   const dl = async (b) => {
-    const ins = s.inspections[b.id];
-    if (!ins || ins.status !== 'completed') return toast.warn('No completed report for this booking yet.');
+    if (s.inspections[b.id]?.status !== 'completed') return toast.warn('No completed report for this booking yet.');
     setBusy(b.id);
-    try { await downloadReport({ booking: b, inspection: ins, plan: s.plans.find((p) => p.id === b.planId), customer: b.customer, inspector: b.inspector }); toast.success('Report downloaded.'); }
+    try { const ins = await fullInspection(b.id); await downloadReport({ booking: b, inspection: ins, plan: s.plans.find((p) => p.id === b.planId), customer: b.customer, inspector: b.inspector }); toast.success('Report downloaded.'); }
     catch { toast.error('Could not generate the PDF.'); }
     setBusy(null);
   };
   const cancel = async (b) => {
     if (!await confirm({ title: 'Cancel this booking?', message: `${b.id} will be cancelled and the customer refunded ${money(b.pricing.total)}.`, confirmText: 'Cancel booking', cancelText: 'Keep', danger: true })) return;
-    cancelBooking(b.id, 'Admin Team'); setView(null); toast.success('Booking cancelled and refund initiated.');
+    if (await guard(cancelBooking(b.id), b.payment.status === 'paid' ? 'Booking cancelled and refund initiated.' : 'Booking cancelled.')) setView(null);
   };
   const exportCSV = () => {
     downloadCSV('car-inspecto-orders.csv', rows.map((b) => ({ Booking: b.id, Customer: b.customer?.name, Vehicle: carName(b.car), Reg: b.car.reg, Plan: b.planName, City: b.location.city, Date: b.date, Time: b.time, Status: b.status, Inspector: b.inspector?.name ?? '', Total: b.pricing.total, Payment: b.payment.status })));
@@ -58,15 +57,15 @@ export default function Bookings() {
   const count = (st) => base.filter((b) => b.status === st).length;
 
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Order', width: 96, render: (b) => <b className="mono">{b.id}</b> },
-    { key: 'customer', hide: 'md', label: 'Customer', sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
+    { key: 'id', hide: 'sm', label: 'Order', width: 110, render: (b) => <b className="mono">{b.id}</b> },
+    { key: 'customer', hide: 'md', label: 'Customer', width: 170, sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
     { key: 'car', label: 'Vehicle', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.planName} · {b.location.city}</span></div> },
     { key: 'date', hide: 'lg', label: 'Slot', width: 130, render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
     { key: 'inspector', hide: 'md', label: 'Inspector', sortValue: (b) => b.inspector?.name ?? '', render: (b) => (b.inspector ? b.inspector.name : <Button size="sm" variant="outline" icon={UserPlus} onClick={(e) => { e.stopPropagation(); setAssign(b); }} disabled={['cancelled', 'completed'].includes(b.status)}>Assign</Button>) },
-    { key: 'status', label: 'Status', width: 118, render: (b) => <StatusBadge status={b.status} /> },
+    { key: 'status', label: 'Status', width: 140, render: (b) => <StatusBadge status={b.status} /> },
     { key: 'pay', hide: 'sm', label: 'Total', width: 120, sortValue: (b) => b.pricing.total, render: (b) => <div className="cell-2"><b>{money(b.pricing.total)}</b><PayBadge status={b.payment.status} /></div> },
     {
-      key: 'a', label: '', width: 60, sortable: false, align: 'right',
+      key: 'a', label: '', width: 76, sortable: false, align: 'right',
       render: (b) => b.status === 'completed' ? <button className="icon-btn sm" title="Download report" aria-label="Download report" disabled={busy === b.id} onClick={(e) => { e.stopPropagation(); dl(b); }}><FileDown size={17} /></button> : null,
     },
   ];

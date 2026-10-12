@@ -40,9 +40,9 @@ export function TicketThread({ ticketId, as }) {
     setBusy(true);
     try {
       const attachments = await Promise.all(files.map(saveFile));
-      replyTicket(t.id, as, text.trim(), attachments);
+      await replyTicket(t.id, as, text.trim(), attachments);
       setText(''); setFiles([]);
-    } catch { toast.error('Could not attach the files. Please try again.'); }
+    } catch (e) { toast.error(e.message || 'Could not send your message. Please try again.'); }
     setBusy(false);
   };
   return (
@@ -108,18 +108,18 @@ export default function Support() {
     setBusy(true);
     try {
       const attachments = await Promise.all(files.map(saveFile));
-      const t = createTicket(user, { ...f, categoryDetail: f.category === 'Other' ? f.categoryDetail.trim() : '', attachments });
+      const t = await createTicket(user, { ...f, categoryDetail: f.category === 'Other' ? f.categoryDetail.trim() : '', attachments });
       setCreating(false); setF(blank); setFiles([]);
       toast.success(`Ticket ${t.id} created. We usually reply within a few hours.`);
-    } catch { toast.error('Could not attach the files. Please try again.'); }
+    } catch (e) { toast.error(e.message || 'Could not create the ticket. Please try again.'); }
     setBusy(false);
   };
 
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Ticket', width: 90, render: (t) => <b className="mono">{t.id}</b> },
+    { key: 'id', hide: 'sm', label: 'Ticket', width: 115, render: (t) => <b className="mono">{t.id}</b> },
     { key: 'subject', label: 'Subject', render: (t) => <div className="cell-2"><b className="tk-title">{ticketState(t, 'customer').unseen && <i className="new-dot" />}<span>{t.subject}</span>{ticketState(t, 'customer').unseen && <span className="new-tag">New reply</span>}</b><span className="muted small">{t.category}{t.category === 'Other' && t.categoryDetail ? ` · ${t.categoryDetail}` : ''}</span></div> },
     { key: 'priority', hide: 'md', label: 'Priority', width: 110, render: (t) => <Badge tone={PRIORITY_TONE[t.priority]}>{t.priority}</Badge> },
-    { key: 'status', label: 'Status', width: 130, render: (t) => <Badge tone={TICKET_TONE[t.status]} dot>{TICKET_LABEL[t.status]}</Badge> },
+    { key: 'status', label: 'Status', width: 150, render: (t) => <Badge tone={TICKET_TONE[t.status]} dot>{TICKET_LABEL[t.status]}</Badge> },
     { key: 'createdAt', hide: 'md', label: 'Created', width: 130, render: (t) => fmtDate(t.createdAt) },
     { key: 'm', hide: 'lg', label: 'Replies', width: 90, sortValue: (t) => t.messages.length, render: (t) => <span className="muted"><MessageCircle size={14} /> {t.messages.length}{t.messages.some((m) => m.attachments?.length) && <> · <Paperclip size={13} /></>}</span> },
   ];
