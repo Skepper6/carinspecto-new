@@ -1,13 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Car, Layers, MapPin, CalendarClock, CreditCard, Check, ArrowLeft, ArrowRight, Crosshair, Tag, Lock, PartyPopper, Apple, Banknote,
+  Car, Layers, MapPin, CalendarClock, CreditCard, Check, ArrowLeft, ArrowRight, Crosshair, Lock, PartyPopper, Apple, Banknote,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, createBooking, updateUser } from '../../lib/db';
 import { priceFor } from '../../lib/pricing';
-import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, PROMOS, SHOW_PROMO, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
+import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
 import { addDays, carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
 import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
@@ -52,14 +52,12 @@ export default function NewBooking() {
   const setOtherField = (k) => (e) => { setOther((o) => ({ ...o, [k]: e.target.value })); setErrors((x) => ({ ...x, [`${k}Other`]: undefined })); };
   const [method, setMethod] = useState(me.paymentMethods?.[0] ? 'card:' + me.paymentMethods[0].id : stripeEnabled ? 'stripe' : 'newcard');
   const [nc, setNc] = useState({ number: '', exp: '', cvv: '' });
-  const [promo, setPromo] = useState('');
-  const [applied, setApplied] = useState(null);
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(null);
   const [locating, setLocating] = useState(false);
 
   const plan = plans.find((p) => p.id === planId);
-  const price = useMemo(() => priceFor(plan, applied?.pct ?? 0), [plan, applied]);
+  const price = useMemo(() => priceFor(plan, 0), [plan]);
   const setCarField = (k, v) => {
     setCar((c) => {
       const n = { ...c, [k]: v };
@@ -118,12 +116,6 @@ export default function NewBooking() {
     );
   };
 
-  const applyPromo = () => {
-    const p = PROMOS[promo.trim().toUpperCase()];
-    if (!p) return toast.error('That promo code is not valid.');
-    setApplied({ ...p, code: promo.trim().toUpperCase() });
-    toast.success(p.label, 'Promo applied');
-  };
 
   const pay = async () => {
     if (!validate()) return;
@@ -136,7 +128,7 @@ export default function NewBooking() {
     const label = method === 'stripe' ? 'Card / Apple Pay (Stripe)' : method === 'applepay' ? 'Apple Pay' : method === 'cash' ? 'Cash on arrival' : method === 'newcard' ? `Card •••• ${nc.number.replace(/\s/g, '').slice(-4)}` : `${card.brand} •••• ${card.last4}`;
     let b;
     try {
-      b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, applied?.code ?? '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
+      b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
     } catch (err) {
       setPaying(false);
       toast.error(intent ? `${err.message} Your card was charged, so please contact support with reference ${intent.id}.` : err.message, 'Booking not completed');
@@ -197,7 +189,7 @@ export default function NewBooking() {
                       <span className="pick-check"><Check size={14} /></span>
                       <h4>{p.name}</h4>
                       <b>{money(p.price)}<small> + VAT</small></b>
-                      <span className="pick-total">All-in: <b>{money(priceFor(p, applied?.pct ?? 0).total)}</b></span>
+                      <span className="pick-total">All-in: <b>{money(priceFor(p, 0).total)}</b></span>
                       <span className="muted small">{p.checkpoints} checkpoints · {p.duration}</span>
                       <ul>{p.features.map((f) => <li key={f}><Check size={14} />{f}</li>)}</ul>
                     </button>
@@ -256,13 +248,6 @@ export default function NewBooking() {
                   <div><span>Slot</span><b>{fmtDate(date)} · {fmtTime(time)}</b></div>
                 </div>
 
-                {SHOW_PROMO && <Field label="Promo code">
-                  <div className="inline">
-                    <input className="input" value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="Try FIRST10" />
-                    <Button type="button" variant="outline" icon={Tag} onClick={applyPromo}>Apply</Button>
-                  </div>
-                </Field>}
-
                 <Field label="Payment method">
                   <div className="pay-methods">
                     {stripeEnabled ? (
@@ -309,7 +294,6 @@ export default function NewBooking() {
             <div className="sum-plan" style={{ '--c': plan.color }}><b>{plan.name}</b><span>{plan.checkpoints} checkpoints</span></div>
             <div className="price-box flat">
               <div><span>Inspection</span><b>{money(price.plan)}</b></div>
-              {price.discount > 0 && <div className="disc"><span>Promo</span><b>−{money(price.discount)}</b></div>}
               <div><span>Booking fee</span><b>{money(price.bookingFee)}</b></div>
               <div><span>VAT ({Math.round(VAT_RATE * 100)}%)</span><b>{money(price.vat)}</b></div>
               <div className="total"><span>Total</span><b>{money(price.total)}</b></div>

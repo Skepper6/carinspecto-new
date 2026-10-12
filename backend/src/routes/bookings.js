@@ -46,7 +46,7 @@ router.post('/', requireRole('customer'), async (req, res) => {
     if (!pi || pi.status !== 'succeeded' || pi.currency !== 'aed' || pi.amount !== Math.round(pricing.total * 100)) fail(402, 'The payment could not be verified.');
     if (await Payment.exists({ txnId: pi.id })) fail(409, 'This payment was already used for another booking.');
     txnId = pi.id;
-  }
+  } else if (payStatus === 'paid' && process.env.NODE_ENV === 'production') fail(402, 'Card payments are not available right now.');
 
   const customer = req.user;
   const code = `CI-${await nextSeq('booking')}`;

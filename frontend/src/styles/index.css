@@ -898,3 +898,31 @@ select.input { border-radius: var(--radius-md); }
 
 /* a modal that is opening or closing must never swallow clicks meant for the layer above or below it */
 .modal-root:not(.in) { pointer-events: none; }
+
+/* ---- phones: tables become stacked cards (every column stays visible, nothing is cut off) ---- */
+@media (max-width: 640px) {
+  .page.fill { height: auto; min-height: 0; }
+  .dt { flex: none; }
+  .dt-card { flex: none; min-height: 0 !important; background: transparent; border: 0; box-shadow: none; overflow: visible; }
+  .dt-scroll { height: auto; overflow: visible; }
+  .table, .table tbody { display: block; width: 100%; }
+  .table thead { display: none; }
+  .table tbody tr { display: block; margin-bottom: 10px; padding: 6px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow-sm); }
+  .table tbody tr:last-child { margin-bottom: 0; }
+  .table tbody tr.row-attn { box-shadow: inset 4px 0 0 var(--accent), var(--shadow-sm); }
+  .table tr.row-attn td:first-child { box-shadow: none; }
+  .table tbody td, .table tbody td.hide-sm, .table tbody td.hide-md, .table tbody td.hide-lg, .table tbody td.hide-xl {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; height: auto; min-height: 40px; max-width: none; width: auto !important;
+    padding: 8px 0; border-bottom: 1px solid var(--border); white-space: normal; overflow: visible; text-align: right !important;
+  }
+  .table tbody td:last-child { border-bottom: 0; }
+  .table tbody td:empty { display: none; }
+  .table tbody td::before { content: attr(data-label); flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); text-align: left; }
+  .table tbody td[data-label=""]::before { display: none; }
+  .table tbody td[data-label=""] { justify-content: flex-end; }
+  .table tbody td .cell-2, .table td .cell-2, .cell-2.lm { max-width: none; min-width: 0; align-items: flex-end; text-align: right; }
+  .table tbody td .cell-2 > * { white-space: normal; }
+  .table .row-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .dt-empty { position: static; padding: 32px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+}
+@media (max-width: 640px) { .row-between.mb { flex-wrap: wrap; align-items: flex-start; } .row-between.mb > div { flex: 1 1 100%; } }

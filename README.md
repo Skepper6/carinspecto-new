@@ -8,9 +8,9 @@
 ```bash
 # 1. backend  (http://localhost:5000)
 cd backend
-cp .env.example .env        # then fill in MONGODB_URI and JWT_SECRET (see below)
+cp .env.example .env        # then fill in JWT_SECRET (and MONGODB_URI for the live Atlas database, see below)
 npm install
-npm run seed                # loads the demo data into MongoDB (wipes the app collections first)
+npm run seed                # loads the demo data into your LOCAL MongoDB (wipes the app collections first; refuses to run in production)
 npm run dev
 
 # 2. frontend (http://localhost:5173)
@@ -27,7 +27,8 @@ The seed is for development: **change or remove these accounts before going live
 
 | Variable | Purpose |
 |---|---|
-| `MONGODB_URI` | MongoDB Atlas connection string (keep `/carinspecto` as the database name) |
+| `MONGODB_URI` | **Live** MongoDB Atlas connection string (keep `/carinspecto` as the database name). Only used when `NODE_ENV=production` |
+| `MONGODB_URI_LOCAL` | Optional. Database used on your own computer. Default: local MongoDB `mongodb://127.0.0.1:27017/carinspecto_dev`. Never shares data with the live database |
 | `JWT_SECRET` | 32+ random characters – signs login tokens. `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `CLIENT_ORIGIN` | Allowed website origin(s), comma separated |
 | `CLIENT_URL` | Public address of the website, used in email links (defaults to the first `CLIENT_ORIGIN`) |

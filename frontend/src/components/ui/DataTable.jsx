@@ -3,6 +3,19 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUp, ArrowD
 import { Skeleton } from './kit';
 
 const HEAD_H = 44;
+const PHONE = '(max-width: 640px)';
+const CARD_PAGE = 6;   // on phones rows become stacked cards and the page scrolls, so the page size is fixed
+
+function usePhone() {
+  const [on, setOn] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE);
+    const fn = () => setOn(mq.matches);
+    mq.addEventListener('change', fn);
+    return () => mq.removeEventListener('change', fn);
+  }, []);
+  return on;
+}
 
 /**
  * Viewport-fitted table. The page size is derived from the height available to the table card, so rows
@@ -14,6 +27,7 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
   const [height, setHeight] = useState(0);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState(null);
+  const phone = usePhone();
 
   useLayoutEffect(() => {
     const el = cardRef.current;
@@ -24,7 +38,7 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
     return () => ro.disconnect();
   }, []);
 
-  const pageSize = Math.max(3, Math.floor((height - HEAD_H - 6) / rowHeight));
+  const pageSize = phone ? CARD_PAGE : Math.max(3, Math.floor((height - HEAD_H - 6) / rowHeight));
 
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -76,11 +90,11 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
             <tbody key={page + (sort?.key ?? '') + (sort?.dir ?? '')}>
               {loading
                 ? Array.from({ length: pageSize }).map((_, i) => (
-                  <tr key={i}>{columns.map((c) => <td key={c.key} className={c.hide ? 'hide-' + c.hide : ''}><Skeleton h={14} w={c.skel ?? '70%'} /></td>)}</tr>
+                  <tr key={i}>{columns.map((c) => <td key={c.key} data-label={c.label} className={c.hide ? 'hide-' + c.hide : ''}><Skeleton h={14} w={c.skel ?? '70%'} /></td>)}</tr>
                 ))
                 : slice.map((r, i) => (
                   <tr key={rowKey(r)} className={`${onRowClick ? 'clickable' : ''} ${rowClass?.(r) ?? ''}`} style={{ animationDelay: `${i * 22}ms` }} onClick={() => onRowClick?.(r)}>
-                    {columns.map((c) => <td key={c.key} className={c.hide ? 'hide-' + c.hide : ''} style={{ textAlign: c.align }}>{c.render ? c.render(r) : r[c.key]}</td>)}
+                    {columns.map((c) => <td key={c.key} data-label={c.label} className={c.hide ? 'hide-' + c.hide : ''} style={{ textAlign: c.align }}>{c.render ? c.render(r) : r[c.key]}</td>)}
                   </tr>
                 ))}
             </tbody>

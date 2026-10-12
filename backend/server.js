@@ -21,6 +21,10 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   console.error('JWT_SECRET is missing or too short (use 32+ random characters). See backend/.env.example.');
   process.exit(1);
 }
+if (process.env.NODE_ENV === 'production' && !process.env.STRIPE_SECRET_KEY && process.env.ALLOW_DEMO_PAYMENTS !== 'true') {
+  console.error('Live mode needs STRIPE_SECRET_KEY. Without it anyone could create a booking marked as paid. (Set ALLOW_DEMO_PAYMENTS=true only for a cash-only launch.)');
+  process.exit(1);
+}
 if (!(await connectDB())) {
   console.error('Cannot start without the database. Check MONGODB_URI in backend/.env.');
   process.exit(1);
