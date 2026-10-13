@@ -28,8 +28,8 @@ const taken = (date, slot, bookings) => {
   return bookings.filter((b) => b.date === date && b.time === slot && b.status !== 'cancelled').length >= 2;
 };
 
-// On the live site without a Stripe key there is no way to take a card, so only cash is offered (demo cards exist for local testing only)
-const CARDS_AVAILABLE = stripeEnabled || !import.meta.env.PROD;
+// Until Stripe is configured, cards are accepted as a demo: the card number is only length-checked and nothing is charged
+const CARDS_AVAILABLE = true;
 
 export default function NewBooking() {
   const { user } = useAuth();
@@ -272,7 +272,7 @@ export default function NewBooking() {
                 </Field>
                 {method === 'stripe' && <StripeCheckout amount={price.total} email={user.email} register={(fn) => { confirmRef.current = fn; }} />}
                 {!CARDS_AVAILABLE && <p className="muted small mt-s">Card payments are coming soon – please choose cash on arrival for now.</p>}
-                {CARDS_AVAILABLE && !stripeEnabled && <p className="muted small mt-s">Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</p>}
+                {!stripeEnabled && <p className="muted small mt-s">{import.meta.env.PROD ? 'Online card charging is not switched on yet – your card is not charged now. Your booking is confirmed and our team will contact you to collect payment.' : <>Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</>}</p>}
                 {method === 'newcard' && (
                   <div className="form-grid three">
                     <Input label="Card number" value={nc.number} onChange={(e) => { const number = formatCardNumber(e.target.value); setNc({ ...nc, number, cvv: formatCvv(nc.cvv, number) }); setErrors({}); }} placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" maxLength={19} error={errors.number} />
