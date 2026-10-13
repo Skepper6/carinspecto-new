@@ -13,18 +13,17 @@ import { googleEnabled } from '../services/auth';
 //  - on your own computer (npm run dev) they use the seeded demo accounts
 //  - on the live site they only exist when VITE_SHOW_DEMO_LOGINS=true, and the accounts come from VITE_DEMO_* settings, so no
 //    password is written into the website code unless you switch this on. Remove the settings (and redeploy) to hide it.
-const env = import.meta.env;
-const DEMO = env.DEV
+const DEMO = import.meta.env.DEV   // written as import.meta.env.DEV (not via a variable) so the build removes this branch from the live site
   ? {
     customer: { email: 'omar@example.com', pw: 'demo123' },
     inspector: { email: 'khalid@carinspecto.com', pw: 'demo123' },
     admin: { email: 'admin@carinspecto.com', pw: 'admin123' },
   }
-  : env.VITE_SHOW_DEMO_LOGINS === 'true'
+  : import.meta.env.VITE_SHOW_DEMO_LOGINS === 'true'
     ? {
-      customer: { email: env.VITE_DEMO_CUSTOMER_EMAIL, pw: env.VITE_DEMO_CUSTOMER_PW },
-      inspector: { email: env.VITE_DEMO_INSPECTOR_EMAIL, pw: env.VITE_DEMO_INSPECTOR_PW },
-      admin: { email: env.VITE_DEMO_ADMIN_EMAIL, pw: env.VITE_DEMO_ADMIN_PW },
+      customer: { email: import.meta.env.VITE_DEMO_CUSTOMER_EMAIL, pw: import.meta.env.VITE_DEMO_CUSTOMER_PW },
+      inspector: { email: import.meta.env.VITE_DEMO_INSPECTOR_EMAIL, pw: import.meta.env.VITE_DEMO_INSPECTOR_PW },
+      admin: { email: import.meta.env.VITE_DEMO_ADMIN_EMAIL, pw: import.meta.env.VITE_DEMO_ADMIN_PW },
     }
     : null;
 const COPY = {
