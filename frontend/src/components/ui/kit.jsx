@@ -86,7 +86,7 @@ export const SearchInput = ({ value, onChange, placeholder = 'Search' }) => {
   return (
     <label className="search">
       <Search size={16} />
-      <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+      <input ref={ref} type="search" name="table-search" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />   {/* never auto-filled by the browser: a filled-in email would hide every row */}
       <kbd className="search-kbd">Ctrl + J</kbd>
     </label>
   );

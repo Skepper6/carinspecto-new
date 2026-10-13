@@ -1082,3 +1082,5 @@ select.input { border-radius: var(--radius-md); }
 .success-detail b { font-size: 15px; line-height: 1.4; color: var(--text); }
 .success-detail span { white-space: nowrap; color: var(--muted); font-weight: 600; }
 .success-detail p { margin-top: var(--s2); max-width: 36ch; line-height: 1.5; }
+
+.search input[type='search'] { -webkit-appearance: none; appearance: none; } .search input[type='search']::-webkit-search-cancel-button, .search input[type='search']::-webkit-search-decoration { -webkit-appearance: none; display: none; }

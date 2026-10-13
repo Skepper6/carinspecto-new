@@ -51,6 +51,7 @@ export default function Inspectors() {
     if (Object.keys(e).length) return;
     if (!await guard(createUser({ ...f, name: f.name.trim() }), `${f.name.trim()} added as an inspector.`, 'Inspector created')) return;
     setAdd(false); setF(EMPTY);
+    setQ(''); setTab('all'); flt.reset();   // show the whole list, so the new inspector is visible straight away
   };
   const toggle = async (u) => {
     const suspend = u.status === 'active';
@@ -91,11 +92,11 @@ export default function Inspectors() {
         footer={<><Button variant="ghost" onClick={() => setAdd(false)}>Cancel</Button><Button icon={UserPlus} onClick={create}>Create inspector</Button></>}>
         <div className="form-grid">
           <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={err.name} />
-          <Input label="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={err.email} />
+          <Input label="Email" type="email" autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={err.email} />
           <PhoneInput label="Phone" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErr({ ...err, phone: undefined }); }} error={err.phone} />
           <Select label="Base city" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} options={CITIES} placeholder="Select" error={err.city} />
           <Input label="Specialisation" value={f.specialization} onChange={(e) => setF({ ...f, specialization: e.target.value })} placeholder="e.g. Luxury & EV" />
-          <Input label="Temporary password" type="text" value={f.pw} onChange={(e) => setF({ ...f, pw: e.target.value })} error={err.pw} />
+          <Input label="Temporary password" type="text" autoComplete="off" value={f.pw} onChange={(e) => setF({ ...f, pw: e.target.value })} error={err.pw} />
         </div>
       </Modal>
 
