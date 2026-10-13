@@ -7,6 +7,7 @@ import { useDB, updateUser } from '../../lib/db';
 import { Card, EmptyState, StatCard, StatusBadge, useLoading, Skeleton } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import { addDays, carName, fmtDate, fmtTime, isoDate } from '../../lib/format';
+import { ratingOf } from '../../lib/stats';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const me = useDB((s) => s.users.find((u) => u.id === user.id));
   const mine = useDB((s) => s.bookings.filter((b) => b.inspectorId === user.id));
   const plans = useDB((s) => s.plans);
+  const myRating = ratingOf(mine, user.id);
   const loading = useLoading();
   const today = isoDate();
 
@@ -42,7 +44,7 @@ export default function Dashboard() {
         <StatCard icon={ClipboardCheck} label="In my queue" value={queue.length} tone="indigo" />
         <StatCard icon={CalendarDays} label="Due today" value={todays.length} tone="orange" />
         <StatCard icon={CheckCircle2} label="Completed this month" value={month.length} tone="teal" />
-        <StatCard icon={Star} label="Average rating" value={me.rating ?? 0} format={(n) => n.toFixed(1)} tone="violet" />
+        <StatCard icon={Star} label={myRating.reviews ? `Average rating · ${myRating.reviews} review${myRating.reviews > 1 ? 's' : ''}` : 'Average rating'} value={myRating.rating ?? 0} format={(n) => (myRating.rating == null ? '—' : n.toFixed(1))} tone="violet" />
       </div>
 
       <div className="grid-2-1 mt">

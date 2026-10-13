@@ -30,6 +30,12 @@ export function packagePerformance(bookings, plans) {
   });
 }
 
+// -> { rating: average of the customers' stars (1 decimal) or null when nobody has rated yet, reviews: how many ratings }
+export function ratingOf(bookings, inspectorId) {
+  const rated = bookings.filter((b) => b.inspectorId === inspectorId && b.status === 'completed' && b.rating);
+  return { rating: rated.length ? +(rated.reduce((a, b) => a + b.rating, 0) / rated.length).toFixed(1) : null, reviews: rated.length };
+}
+
 export function inspectorPerformance(state) {
   return state.users.filter((u) => u.role === 'inspector').map((u) => {
     const mine = state.bookings.filter((b) => b.inspectorId === u.id);
@@ -44,7 +50,8 @@ export function inspectorPerformance(state) {
       id: u.id, name: u.name, status: u.status, city: u.city, completed: done.length,
       active: mine.filter((b) => ['assigned', 'ongoing'].includes(b.status)).length,
       avgScore: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
-      rating: rated.length ? +(rated.reduce((a, b) => a + b.rating, 0) / rated.length).toFixed(1) : u.rating ?? 0,
+      rating: rated.length ? +(rated.reduce((a, b) => a + b.rating, 0) / rated.length).toFixed(1) : null,   // no ratings yet = no number
+      reviews: rated.length,
     };
   });
 }

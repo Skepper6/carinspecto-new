@@ -3,6 +3,7 @@ import { Save, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, updateUser } from '../../lib/db';
+import { ratingOf } from '../../lib/stats';
 import { Avatar, Card, Input, PageHeader, Select, Stars, PhoneInput } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
@@ -13,6 +14,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { guard } = useUI();
   const me = useDB((s) => s.users.find((u) => u.id === user.id));
+  const mine = useDB((s) => ratingOf(s.bookings, user.id));
   const done = useDB((s) => s.bookings.filter((b) => b.inspectorId === user.id && b.status === 'completed').length);
   const [f, setF] = useState({ name: me.name, phone: me.phone ?? '', city: me.city ?? '', specialization: me.specialization ?? '' });
   const [err, setErr] = useState({});
@@ -44,10 +46,10 @@ export default function Profile() {
         <Card title="Performance">
           <div className="perf">
             <div><b>{done}</b><span>Inspections done</span></div>
-            <div><b>{me.rating?.toFixed(1) ?? '—'}</b><span>Average rating</span></div>
+            <div><b>{mine.rating?.toFixed(1) ?? '—'}</b><span>Average rating{mine.reviews ? ` · ${mine.reviews} review${mine.reviews > 1 ? 's' : ''}` : ''}</span></div>
           </div>
-          <Stars value={Math.round(me.rating ?? 0)} size={22} />
-          <p className="muted small mt-s">Ratings come from customers after each completed inspection.</p>
+          <Stars value={Math.round(mine.rating ?? 0)} size={22} />
+          <p className="muted small mt-s">Ratings come from customers after each completed inspection. The number is the average of all of them.</p>
         </Card>
       </div>
       <div className="mt"><ChangePasswordCard /></div>

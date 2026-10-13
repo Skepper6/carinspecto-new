@@ -68,13 +68,13 @@ export default function Inspectors() {
     { key: 'city', hide: 'md', label: 'City', width: 130 },
     { key: 'active', hide: 'md', label: 'Active jobs', width: 140 },
     { key: 'completed', hide: 'lg', label: 'Completed', width: 150 },
-    { key: 'rating', hide: 'lg', label: 'Rating', width: 120, render: (u) => <span className="rate"><Star size={14} fill="currentColor" /> {u.rating}</span> },
+    { key: 'rating', hide: 'lg', label: 'Rating', width: 120, render: (u) => (u.rating ? <span className="rate"><Star size={14} fill="currentColor" /> {u.rating} <span className="muted small">({u.reviews})</span></span> : <span className="muted">No ratings yet</span>) },
     { key: 'status', label: 'Status', width: 140, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
   ];
 
   const actions = (
     <>
-      <Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-inspectors.csv', rows.map((u) => ({ Name: u.name, Email: u.email, City: u.city, Completed: u.completed, Active: u.active, Rating: u.rating, Status: u.status }))); toast.success('Inspectors exported.'); }}>Export</Button>
+      <Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-inspectors.csv', rows.map((u) => ({ Name: u.name, Email: u.email, City: u.city, Completed: u.completed, Active: u.active, Rating: u.rating ?? '', Reviews: u.reviews, Status: u.status }))); toast.success('Inspectors exported.'); }}>Export</Button>
       <Button icon={UserPlus} onClick={() => setAdd(true)}>Add inspector</Button>
     </>
   );

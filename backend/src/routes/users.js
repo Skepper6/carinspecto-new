@@ -24,7 +24,7 @@ router.post('/', requireRole('admin'), async (req, res) => {
   if (await User.exists({ email: d.email })) fail(409, 'This email is already in use.');
   const user = await User.create({
     role: 'inspector', name: d.name, email: d.email, phone: d.phone, city: d.city, specialization: d.specialization,
-    rating: 4.5, available: true, emailVerified: true, passwordHash: await bcrypt.hash(d.pw, 12),
+    rating: null, available: true, emailVerified: true, passwordHash: await bcrypt.hash(d.pw, 12),
   });
   await send(res, { users: [user.toJSON()] }, { status: 201 });
 });

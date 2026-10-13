@@ -34,7 +34,7 @@ export default function AssignModal({ booking, onClose }) {
             <Avatar name={p.name} size={40} />
             <div>
               <b>{p.name} {best?.id === p.id && <Badge tone="violet"><Sparkles size={11} /> Best match</Badge>}</b>
-              <span className="muted small">{p.city}{p.city === booking?.location.city ? ' (same city)' : ''} · {p.active} active · ★ {p.rating}</span>
+              <span className="muted small">{p.city}{p.city === booking?.location.city ? ' (same city)' : ''} · {p.active} active · {p.rating ? `★ ${p.rating} (${p.reviews})` : 'no ratings yet'}</span>
             </div>
             <i className="radio" />
           </button>
