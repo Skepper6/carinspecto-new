@@ -99,9 +99,13 @@ export const Field = ({ label, hint, error, children, className = '', htmlFor })
     {error ? <span className="field-error">{error}</span> : hint ? <span className="field-hint">{hint}</span> : null}
   </div>
 );
-export const Input = ({ label, hint, error, className, id, ...p }) => {
+export const Input = ({ label, hint, error, className, id, end, ...p }) => {
   const uid = useId(); const i = id ?? uid;
-  return <Field label={label} hint={hint} error={error} className={className} htmlFor={i}><input id={i} className="input" {...p} /></Field>;
+  return (
+    <Field label={label} hint={hint} error={error} className={className} htmlFor={i}>
+      {end ? <div className="input-wrap"><input id={i} className="input" {...p} />{end}</div> : <input id={i} className="input" {...p} />}
+    </Field>
+  );
 };
 export const Select = ({ label, hint, error, options, placeholder, className, id, ...p }) => {
   const uid = useId(); const i = id ?? uid;

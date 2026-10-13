@@ -28,6 +28,9 @@ const taken = (date, slot, bookings) => {
   return bookings.filter((b) => b.date === date && b.time === slot && b.status !== 'cancelled').length >= 2;
 };
 
+// On the live site without a Stripe key there is no way to take a card, so only cash is offered (demo cards exist for local testing only)
+const CARDS_AVAILABLE = stripeEnabled || !import.meta.env.PROD;
+
 export default function NewBooking() {
   const { user } = useAuth();
   const { toast } = useUI();
@@ -50,7 +53,7 @@ export default function NewBooking() {
   const [purpose, setPurpose] = useState(INSPECTION_REASONS[0]);
   const [other, setOther] = useState({ reason: '', fuel: '', type: '' });
   const setOtherField = (k) => (e) => { setOther((o) => ({ ...o, [k]: e.target.value })); setErrors((x) => ({ ...x, [`${k}Other`]: undefined })); };
-  const [method, setMethod] = useState(me.paymentMethods?.[0] ? 'card:' + me.paymentMethods[0].id : stripeEnabled ? 'stripe' : 'newcard');
+  const [method, setMethod] = useState(!CARDS_AVAILABLE ? 'cash' : me.paymentMethods?.[0] ? 'card:' + me.paymentMethods[0].id : stripeEnabled ? 'stripe' : 'newcard');
   const [nc, setNc] = useState({ number: '', exp: '', cvv: '' });
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(null);
@@ -253,7 +256,7 @@ export default function NewBooking() {
 
                 <Field label="Payment method">
                   <div className="pay-methods">
-                    {stripeEnabled ? (
+                    {!CARDS_AVAILABLE ? null : stripeEnabled ? (
                       <button type="button" className={method === 'stripe' ? 'on' : ''} onClick={() => setMethod('stripe')}><CreditCard size={18} />Card · Apple Pay · Google Pay</button>
                     ) : (
                       <>
@@ -268,7 +271,8 @@ export default function NewBooking() {
                   </div>
                 </Field>
                 {method === 'stripe' && <StripeCheckout amount={price.total} email={user.email} register={(fn) => { confirmRef.current = fn; }} />}
-                {!stripeEnabled && <p className="muted small mt-s">Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</p>}
+                {!CARDS_AVAILABLE && <p className="muted small mt-s">Card payments are coming soon – please choose cash on arrival for now.</p>}
+                {CARDS_AVAILABLE && !stripeEnabled && <p className="muted small mt-s">Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</p>}
                 {method === 'newcard' && (
                   <div className="form-grid three">
                     <Input label="Card number" value={nc.number} onChange={(e) => { const number = formatCardNumber(e.target.value); setNc({ ...nc, number, cvv: formatCvv(nc.cvv, number) }); setErrors({}); }} placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" maxLength={19} error={errors.number} />

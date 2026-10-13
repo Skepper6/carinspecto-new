@@ -119,10 +119,8 @@ export default function Login({ signup: signupMode = false }) {
           {isSignup && <Input label="Full name" value={f.name} onChange={set('name')} error={errors.name} placeholder="Aarav Sharma" autoComplete="name" />}
           <Input label="Email" type="email" value={f.email} onChange={set('email')} error={errors.email} placeholder="you@example.com" autoComplete="email" />
           {isSignup && <PhoneInput label="Phone (optional)" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErrors({ ...errors, phone: undefined }); }} error={errors.phone} />}
-          <div className="pw-wrap">
-            <Input label="Password" type={showPw ? 'text' : 'password'} value={f.pw} onChange={set('pw')} error={errors.pw} placeholder="••••••••" autoComplete={isSignup ? 'new-password' : 'current-password'} />
-            <button type="button" className="pw-eye" onClick={() => setShowPw((s) => !s)} aria-label="Toggle password">{showPw ? <EyeOff size={17} /> : <Eye size={17} />}</button>
-          </div>
+          <Input label="Password" type={showPw ? 'text' : 'password'} value={f.pw} onChange={set('pw')} error={errors.pw} placeholder="••••••••" autoComplete={isSignup ? 'new-password' : 'current-password'}
+            end={<button type="button" className="input-end" onClick={() => setShowPw((s) => !s)} aria-label={showPw ? 'Hide password' : 'Show password'}>{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>} />
 
           {!isSignup && <div className="forgot-row"><Link to="/forgot-password" className="link-btn">Forgot password?</Link></div>}
           {isSignup && (

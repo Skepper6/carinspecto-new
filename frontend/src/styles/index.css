@@ -1069,3 +1069,10 @@ select.input { border-radius: var(--radius-md); }
 /* period picker inside the revenue card (drives the chart and the donut) */
 .rev-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); }
 .rev-filter .input { min-width: 150px; }
+
+/* icon / button at the right end of an input: centred on the input box, whatever the label or error text above and below */
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .input { width: 100%; padding-right: 48px; }
+.input-end { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; border-radius: 8px; color: var(--muted); cursor: pointer; }
+.input-end:hover { color: var(--primary); background: var(--primary-50); }
+.input-end svg { display: block; }

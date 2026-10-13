@@ -63,10 +63,8 @@ export default function ResetPassword() {
     <AuthShell>
       <form onSubmit={submit} noValidate>
         <div className="auth-title"><h2>Choose a new password</h2><p className="muted">Use at least {MIN_PASSWORD} characters. You will be signed out everywhere else.</p></div>
-        <div className="pw-wrap">
-          <Input label="New password" type={show ? 'text' : 'password'} value={f.pw} onChange={(e) => { setF({ ...f, pw: e.target.value }); setErrs({ ...errs, pw: undefined }); }} error={errs.pw} autoComplete="new-password" autoFocus />
-          <button type="button" className="pw-eye" onClick={() => setShow((s) => !s)} aria-label="Toggle password">{show ? <EyeOff size={17} /> : <Eye size={17} />}</button>
-        </div>
+        <Input label="New password" type={show ? 'text' : 'password'} value={f.pw} onChange={(e) => { setF({ ...f, pw: e.target.value }); setErrs({ ...errs, pw: undefined }); }} error={errs.pw} autoComplete="new-password" autoFocus
+          end={<button type="button" className="input-end" onClick={() => setShow((s) => !s)} aria-label={show ? 'Hide password' : 'Show password'}>{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>} />
         <Input label="Repeat new password" type={show ? 'text' : 'password'} value={f.again} onChange={(e) => { setF({ ...f, again: e.target.value }); setErrs({ ...errs, again: undefined }); }} error={errs.again} autoComplete="new-password" />
         <Button type="submit" loading={busy} className="w-full" size="lg">Update password</Button>
       </form>
