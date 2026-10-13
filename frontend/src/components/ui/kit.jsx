@@ -128,7 +128,7 @@ export const Tabs = ({ tabs, value, onChange }) => (
     {tabs.map((t) => {
       const o = typeof t === 'string' ? { value: t, label: t } : t;
       return (
-        <button key={o.value} role="tab" aria-selected={value === o.value} className={value === o.value ? 'active' : ''} onClick={() => onChange(o.value)}>
+        <button key={o.value} type="button" role="tab" aria-selected={value === o.value} className={value === o.value ? 'active' : ''} onClick={() => onChange(o.value)}>
           {o.label}{o.count != null && <em>{o.count}</em>}
         </button>
       );
