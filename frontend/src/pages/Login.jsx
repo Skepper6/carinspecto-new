@@ -9,11 +9,24 @@ import Button from '../components/ui/Button';
 import { PORTALS } from '../lib/constants';
 import { googleEnabled } from '../services/auth';
 
-const DEMO = {
-  customer: { email: 'omar@example.com', pw: 'demo123' },
-  inspector: { email: 'khalid@carinspecto.com', pw: 'demo123' },
-  admin: { email: 'admin@carinspecto.com', pw: 'admin123' },
-};
+// One-click test logins.
+//  - on your own computer (npm run dev) they use the seeded demo accounts
+//  - on the live site they only exist when VITE_SHOW_DEMO_LOGINS=true, and the accounts come from VITE_DEMO_* settings, so no
+//    password is written into the website code unless you switch this on. Remove the settings (and redeploy) to hide it.
+const env = import.meta.env;
+const DEMO = env.DEV
+  ? {
+    customer: { email: 'omar@example.com', pw: 'demo123' },
+    inspector: { email: 'khalid@carinspecto.com', pw: 'demo123' },
+    admin: { email: 'admin@carinspecto.com', pw: 'admin123' },
+  }
+  : env.VITE_SHOW_DEMO_LOGINS === 'true'
+    ? {
+      customer: { email: env.VITE_DEMO_CUSTOMER_EMAIL, pw: env.VITE_DEMO_CUSTOMER_PW },
+      inspector: { email: env.VITE_DEMO_INSPECTOR_EMAIL, pw: env.VITE_DEMO_INSPECTOR_PW },
+      admin: { email: env.VITE_DEMO_ADMIN_EMAIL, pw: env.VITE_DEMO_ADMIN_PW },
+    }
+    : null;
 const COPY = {
   customer: ['Welcome back', 'Book inspections, track them live and download reports.'],
   inspector: ['Inspector workspace', 'Open your assigned inspections and file digital reports.'],
@@ -82,7 +95,15 @@ export default function Login({ signup: signupMode = false }) {
     finally { setBusy(false); }
   };
 
-  const fillDemo = () => { setF({ ...f, ...DEMO[role] }); setErrors({}); toast.info('Demo credentials filled in – press Sign in.'); };
+  // click = fill the test account and sign straight in
+  const demoLogin = async () => {
+    const d = DEMO?.[role];
+    if (!d?.email || !d?.pw) return;
+    setF((x) => ({ ...x, ...d })); setErrors({}); setBusy(true);
+    try { await login(d.email, d.pw, role); toast.success('Signed in with the test account.'); go(PORTALS[role].home); }
+    catch (err) { toast.error(err.message || 'Could not sign in with the test account', 'Sign in failed'); }
+    finally { setBusy(false); }
+  };
   const [title, sub] = isSignup ? ['Create your account', "Know your car's true condition with a certified inspector."] : COPY[role];
 
   return (
@@ -139,10 +160,10 @@ export default function Login({ signup: signupMode = false }) {
             </p>
           )}
 
-          {import.meta.env.DEV && !isSignup && (
-            <button type="button" className="demo-box" onClick={fillDemo}>
+          {DEMO?.[role]?.email && !isSignup && (
+            <button type="button" className="demo-box" onClick={demoLogin} disabled={busy}>
               <Sparkles size={16} />
-              <span><b>Demo logins</b> (development only) – click to fill {PORTALS[role].label.toLowerCase()} credentials<br /><em>{DEMO[role].email} · {DEMO[role].pw}</em></span>
+              <span><b>Test login</b> – click to sign in as the {PORTALS[role].label.toLowerCase()} test account<br /><em>{DEMO[role].email}</em></span>
             </button>
           )}
         </form>
