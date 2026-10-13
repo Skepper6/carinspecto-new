@@ -318,7 +318,11 @@ export default function NewBooking() {
           <div className="success">
             <span className="success-icon"><PartyPopper size={34} /></span>
             <h3>{done.id}</h3>
-            <p className="muted">{carName(done.car)} · {fmtDate(done.date)} at {fmtTime(done.time)}.<br />We will assign an inspector shortly and notify you.</p>
+            <div className="success-detail">
+              <b>{carName(done.car)}</b>
+              <span>{fmtDate(done.date)} · {fmtTime(done.time)}</span>
+              <p className="muted">We will assign an inspector shortly and notify you.</p>
+            </div>
             <div className="success-actions">
               <Link to="/app/bookings"><Button>View my bookings</Button></Link>
               <Link to="/app"><Button variant="ghost">Go to dashboard</Button></Link>

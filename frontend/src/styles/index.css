@@ -1076,3 +1076,9 @@ select.input { border-radius: var(--radius-md); }
 .input-end { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; border-radius: 8px; color: var(--muted); cursor: pointer; }
 .input-end:hover { color: var(--primary); background: var(--primary-50); }
 .input-end svg { display: block; }
+
+/* booking confirmed popup: car, then date and time on their own line, then the note – all centred, nothing split mid-line */
+.success-detail { display: flex; flex-direction: column; align-items: center; gap: var(--s2); text-align: center; }
+.success-detail b { font-size: 15px; line-height: 1.4; color: var(--text); }
+.success-detail span { white-space: nowrap; color: var(--muted); font-weight: 600; }
+.success-detail p { margin-top: var(--s2); max-width: 36ch; line-height: 1.5; }
