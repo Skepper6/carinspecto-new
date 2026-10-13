@@ -64,11 +64,11 @@ export default function Inspectors() {
 
   const cols = [
     { key: 'name', label: 'Inspector', render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.specialization || u.email}</span></span></span> },
-    { key: 'city', hide: 'md', label: 'City', width: 110 },
-    { key: 'active', hide: 'md', label: 'Active', width: 80 },
-    { key: 'completed', hide: 'lg', label: 'Completed', width: 100 },
-    { key: 'rating', hide: 'lg', label: 'Rating', width: 90, render: (u) => <span className="rate"><Star size={14} fill="currentColor" /> {u.rating}</span> },
-    { key: 'status', label: 'Status', width: 130, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
+    { key: 'city', hide: 'md', label: 'City', width: 130 },
+    { key: 'active', hide: 'md', label: 'Active jobs', width: 140 },
+    { key: 'completed', hide: 'lg', label: 'Completed', width: 150 },
+    { key: 'rating', hide: 'lg', label: 'Rating', width: 120, render: (u) => <span className="rate"><Star size={14} fill="currentColor" /> {u.rating}</span> },
+    { key: 'status', label: 'Status', width: 140, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
   ];
 
   const actions = (

@@ -27,12 +27,12 @@ export function FileAttach({ value, onChange, onError, compact }) {
   return (
     <div className="attach">
       {compact ? (
-        <button type="button" className="icon-btn" aria-label="Attach files" title="Attach files (JPG, PNG, PDF, DOC · max 5 MB)" onClick={() => ref.current.click()}><Paperclip size={18} /></button>
+        <button type="button" className="icon-btn" aria-label="Attach files" title="Attach files (JPG, PNG, PDF · max 5 MB)" onClick={() => ref.current.click()}><Paperclip size={18} /></button>
       ) : (
         <div className={`attach-drop ${drag ? 'drag' : ''}`} role="button" tabIndex={0} onClick={() => ref.current.click()} onKeyDown={(e) => e.key === 'Enter' && ref.current.click()}
           onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); add(e.dataTransfer.files); }}>
           <Paperclip size={18} />
-          <span><b>Attach files</b> or drag them here<em>JPG, PNG, PDF, DOC · max 5 MB each · up to {MAX_FILES} files</em></span>
+          <span><b>Attach files</b> or drag them here<em>JPG, PNG, PDF · max 5 MB each · up to {MAX_FILES} files</em></span>
         </div>
       )}
       <input ref={ref} type="file" hidden multiple accept={ACCEPT} onChange={(e) => { add(e.target.files); e.target.value = ''; }} />

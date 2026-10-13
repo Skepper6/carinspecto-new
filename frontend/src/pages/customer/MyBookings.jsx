@@ -11,7 +11,7 @@ import Modal from '../../components/ui/Modal';
 import Calendar from '../../components/ui/Calendar';
 import BookingModal from '../../components/shared/BookingModal';
 import ReportModal from '../../components/shared/ReportModal';
-import { addDays, carName, fmtDate, fmtTime, isoDate, money } from '../../lib/format';
+import { carName, fmtDate, fmtTime, isoDate, money } from '../../lib/format';
 import { TIME_SLOTS, INSPECTION_REASONS } from '../../lib/constants';
 
 export default function MyBookings() {
@@ -90,7 +90,7 @@ export default function MyBookings() {
           {canChange(b) && <Button variant="outline" icon={CalendarClock} onClick={() => { setRd({ date: '', time: '' }); setResched(b); }}>Reschedule</Button>}
           {b.status === 'completed' && (
             <>
-              <span className="rate-inline"><span className="muted small">{b.rating ? 'Your rating' : 'Rate your inspector'}</span><Stars value={b.rating ?? 0} onChange={(n) => guard(rateBooking(b.id, n), 'Thanks for your feedback!')} /></span>
+              <span className="rate-inline"><span className="muted small">{b.rating ? 'Your rating' : 'Rate your inspector'}</span><Stars size={28} value={b.rating ?? 0} onChange={(n) => guard(rateBooking(b.id, n), 'Thanks for your feedback!')} /></span>
               <Button icon={FileText} onClick={() => setReport(b.id)}>View report</Button>
             </>
           )}
@@ -101,10 +101,10 @@ export default function MyBookings() {
       <Modal open={!!resched} onClose={() => setResched(null)} size="md" title="Reschedule inspection" subtitle={resched && `${resched.id} · ${carName(resched.car)}`}
         footer={<><Button variant="ghost" onClick={() => setResched(null)}>Close</Button><Button onClick={saveResched}>Confirm new slot</Button></>}>
         <div className="cal-wrap">
-          <Calendar value={rd.date} min={isoDate(addDays(new Date(), 1))} onChange={(d) => setRd({ date: d, time: '' })} />
+          <Calendar value={rd.date} min={isoDate()} onChange={(d) => setRd({ date: d, time: '' })} />
           <div className="slots">
             <h4>{rd.date ? fmtDate(rd.date, { weekday: 'long', day: 'numeric', month: 'short' }) : 'Select a date'}</h4>
-            <div className="slot-grid">{TIME_SLOTS.map((t) => <button key={t} type="button" disabled={!rd.date} className={rd.time === t ? 'on' : ''} onClick={() => setRd({ ...rd, time: t })}><Tm t={t} /></button>)}</div>
+            <div className="slot-grid">{TIME_SLOTS.map((t) => <button key={t} type="button" disabled={!rd.date || new Date(`${rd.date}T${t}:00`) <= new Date()} className={rd.time === t ? 'on' : ''} onClick={() => setRd({ ...rd, time: t })}><Tm t={t} /></button>)}</div>
           </div>
         </div>
       </Modal>

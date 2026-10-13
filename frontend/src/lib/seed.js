@@ -66,10 +66,11 @@ export function makeInspectionData(plan, r, quality) {
   SECTIONS.filter((s) => plan.sections.includes(s.id)).forEach((s) => {
     data[s.id] = {};
     s.items.forEach((it) => {
+      if (it.type === 'files') return;   // uploaded reports are added by the inspector
       const cell = {};
       if (it.type === 'pf') {
         cell.v = r() < quality ? 'pass' : 'fail';
-        if (cell.v === 'fail') cell.note = pickOf(NOTES);
+        if (cell.v === 'fail') { if (it.defects?.length) { const d = pickOf(it.defects); cell.defects = [typeof d === 'string' ? d : d.label]; } cell.note = pickOf(NOTES); }
         else if (r() < 0.03) cell.v = 'na';
       } else if (it.type === 'panel') {
         const bad = r() > quality;
@@ -185,8 +186,8 @@ export function buildSeed() {
       inspections[id] = {
         bookingId: id, status: done ? 'completed' : 'draft', data,
         photos: done ? [
-          { id: `${id}_c`, category: 'Cover', src: carCoverArt(200 + (i % 6) * 25) },
-          ...['Exterior', 'Exterior', 'Interior', 'Interior', 'Engine Bay & Undercarriage', 'Engine Bay & Undercarriage'].map((c, k) => ({ id: `${id}_${k}`, category: c, src: placeholderPhoto(c, 200 + k * 30 + (i % 5) * 12) })),
+          { id: `${id}_c`, category: 'Cover', plateChecked: true, src: carCoverArt(200 + (i % 6) * 25) },
+          ...['Exterior', 'Exterior', 'Interior', 'Interior', 'Engine Bay & Undercarriage', 'Engine Bay & Undercarriage'].map((c, k) => ({ id: `${id}_${k}`, category: c, plateChecked: true, src: placeholderPhoto(c, 200 + k * 30 + (i % 5) * 12) })),
         ] : [],
         comment: done ? pick([
           'Vehicle is in good overall condition for its age. Minor wear on front tyres and some paint touch-ups on the rear bumper. Recommend negotiating on tyre replacement.',

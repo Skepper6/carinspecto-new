@@ -63,3 +63,60 @@ export function suggestInspector(state, booking) {
     .map((u) => ({ u, load: perf.find((p) => p.id === u.id).active, same: u.city === booking.location.city }))
     .sort((a, b) => Number(b.same) - Number(a.same) || a.load - b.load)[0]?.u ?? null;
 }
+
+// ---- revenue over any period -------------------------------------------------------------------------------------
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const addD = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+export const PERIODS = [
+  { value: 'month', label: 'This month' }, { value: 'lastmonth', label: 'Last month' }, { value: '3m', label: 'Last 3 months' },
+  { value: '6m', label: 'Last 6 months' }, { value: 'year', label: 'This year' }, { value: 'lastyear', label: 'Last year' },
+  { value: '2y', label: 'Last 2 years' }, { value: 'all', label: 'All time' }, { value: 'custom', label: 'Custom dates' },
+];
+
+// -> { from, to, label } as ISO dates (null = unbounded)
+export function periodRange(period, custom = {}) {
+  const t = new Date(); const y = t.getFullYear(); const m = t.getMonth();
+  switch (period) {
+    case 'month': return { from: ymd(new Date(y, m, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'this month' };
+    case 'lastmonth': return { from: ymd(new Date(y, m - 1, 1)), to: ymd(new Date(y, m, 0)), label: 'last month' };
+    case '3m': return { from: ymd(new Date(y, m - 2, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'last 3 months' };
+    case '6m': return { from: ymd(new Date(y, m - 5, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'last 6 months' };
+    case 'year': return { from: `${y}-01-01`, to: `${y}-12-31`, label: String(y) };
+    case 'lastyear': return { from: `${y - 1}-01-01`, to: `${y - 1}-12-31`, label: String(y - 1) };
+    case '2y': return { from: `${y - 1}-01-01`, to: `${y}-12-31`, label: `${y - 1} – ${y}` };
+    case 'custom': return { from: custom.from || null, to: custom.to || null, label: custom.from || custom.to ? `${custom.from || '…'} to ${custom.to || '…'}` : 'all time' };
+    default: return { from: null, to: null, label: 'all time' };
+  }
+}
+
+// the equal-length period just before this one (for "vs previous period"); null when the period is open-ended
+export function previousRange({ from, to }) {
+  if (!from || !to) return null;
+  const a = new Date(`${from}T00:00:00`); const b = new Date(`${to}T00:00:00`);
+  const days = Math.round((b - a) / 86400000) + 1;
+  return { from: ymd(addD(a, -days)), to: ymd(addD(a, -1)) };
+}
+
+// revenue per day (period up to ~2 months) or per month, across the whole period
+export function revenueSeries(bookings, { from, to }) {
+  const live = bookings.filter((b) => b.status !== 'cancelled');
+  const dates = live.map((b) => b.date).sort();
+  const start = new Date(`${from || dates[0] || ymd(new Date())}T00:00:00`);
+  const end = new Date(`${to || ymd(new Date())}T00:00:00`);
+  const days = Math.max(1, Math.round((end - start) / 86400000) + 1);
+  const total = (list) => list.filter(paid).reduce((a, b) => a + b.pricing.total, 0);
+  if (days <= 62) {
+    return Array.from({ length: days }, (_, i) => {
+      const d = ymd(addD(start, i)); const day = live.filter((b) => b.date === d);
+      return { month: new Date(`${d}T00:00:00`).toLocaleString('en-GB', { day: 'numeric', month: 'short' }), key: d, orders: day.length, revenue: total(day) };
+    });
+  }
+  const out = []; const longSpan = days > 400;
+  for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= end && out.length < 120; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+    const k = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; const inMonth = live.filter((b) => monthKey(b.date) === k);
+    out.push({ month: d.toLocaleString('en-GB', longSpan ? { month: 'short', year: '2-digit' } : { month: 'short' }), key: k, orders: inMonth.length, revenue: total(inMonth) });
+  }
+  return out;
+}

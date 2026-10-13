@@ -8,7 +8,7 @@ import { Card, StatCard, StatusBadge, useLoading, Skeleton, Avatar, EmptyState, 
 import Button from '../../components/ui/Button';
 import BookingModal from '../../components/shared/BookingModal';
 import AssignModal from '../../components/shared/AssignModal';
-import { packagePerformance, salesTrend, suggestInspector } from '../../lib/stats';
+import { packagePerformance, revenueSeries, periodRange, PERIODS, suggestInspector } from '../../lib/stats';
 import { addDays, carName, fmtDate, isoDate, money } from '../../lib/format';
 import { CITIES } from '../../lib/constants';
 
@@ -49,8 +49,13 @@ export default function Overview() {
     };
   }, [s, bookings]);
 
-  const trend = useMemo(() => salesTrend(bookings, 6), [bookings]);
-  const pkg = useMemo(() => packagePerformance(bookings, s.plans), [bookings, s.plans]);
+  // the period picked inside the revenue card drives the revenue chart and the "by package" donut together
+  const [period, setPeriod] = useState('6m');
+  const [custom, setCustom] = useState({ from: '', to: '' });
+  const range = useMemo(() => periodRange(period, custom), [period, custom]);
+  const revBookings = useMemo(() => bookings.filter((b) => (!range.from || b.date >= range.from) && (!range.to || b.date <= range.to)), [bookings, range]);
+  const trend = useMemo(() => revenueSeries(revBookings, range), [revBookings, range]);
+  const pkg = useMemo(() => packagePerformance(revBookings, s.plans), [revBookings, s.plans]);
   const unassigned = bookings.filter((b) => b.status === 'pending').sort((a, b) => a.date.localeCompare(b.date));
   const recent = [...bookings].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6);
 
@@ -77,21 +82,31 @@ export default function Overview() {
       </div>
 
       <div className="grid-2-1 mt">
-        <Card title="Revenue – last 6 months">
+        <Card title={`Revenue – ${range.label}`} action={
+          <div className="rev-filter">
+            <select className="input sm" aria-label="Revenue period" value={period} onChange={(e) => setPeriod(e.target.value)}>{PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select>
+            {period === 'custom' && (
+              <>
+                <input type="date" className="input sm" aria-label="From date" value={custom.from} max={custom.to || undefined} onChange={(e) => setCustom({ ...custom, from: e.target.value })} />
+                <input type="date" className="input sm" aria-label="To date" value={custom.to} min={custom.from || undefined} onChange={(e) => setCustom({ ...custom, to: e.target.value })} />
+              </>
+            )}
+          </div>
+        }>
           <div className="chart">
             <ResponsiveContainer>
               <AreaChart data={trend} margin={{ left: 0, right: 8, top: 8 }}>
                 <defs><linearGradient id="rev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a2a8c" stopOpacity={0.35} /><stop offset="1" stopColor="#3a2a8c" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} width={52} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+                <YAxis tickLine={false} axisLine={false} width={52} tickFormatter={(v) => (v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v))} />
                 <Tooltip content={<ChartTip money />} />
                 <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3a2a8c" strokeWidth={2.5} fill="url(#rev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card title="Revenue by package">
+        <Card title={`Revenue by package – ${range.label}`}>
           <div className="chart sm">
             <ResponsiveContainer>
               <PieChart>

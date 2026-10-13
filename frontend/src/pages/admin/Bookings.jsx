@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Download, FileText, UserPlus, FileDown, ClipboardList, XCircle } from 'lucide-react';
+import { Download, FileText, UserPlus, ClipboardList, XCircle } from 'lucide-react';
 import { useUI } from '../../context/UIContext';
-import { useDB, cancelBooking, fullInspection } from '../../lib/db';
+import { useDB, cancelBooking } from '../../lib/db';
 import { Avatar, PageHeader, PayBadge, SearchInput, StatusBadge, Tabs, useLoading, FilterBar, useFilters, inRange } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import BookingModal from '../../components/shared/BookingModal';
 import AssignModal from '../../components/shared/AssignModal';
 import ReportModal from '../../components/shared/ReportModal';
-import { downloadReport } from '../../lib/pdf';
+import DownloadReportButton from '../../components/shared/DownloadReportButton';
 import { CITIES } from '../../lib/constants';
 import { carName, downloadCSV, fmtDate, fmtTime, money } from '../../lib/format';
 
@@ -22,7 +22,6 @@ export default function Bookings() {
   const [view, setView] = useState(null);
   const [assign, setAssign] = useState(null);
   const [report, setReport] = useState(null);
-  const [busy, setBusy] = useState(null);
 
   const user = (id) => s.users.find((u) => u.id === id);
   const base = useMemo(() => s.bookings.map((b) => ({ ...b, customer: user(b.customerId), inspector: user(b.inspectorId), planName: s.plans.find((p) => p.id === b.planId)?.name })), [s]); // eslint-disable-line
@@ -39,13 +38,6 @@ export default function Bookings() {
     { key: 'pay', label: 'All payments', options: ['paid', 'pending', 'refunded'] },
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
-  const dl = async (b) => {
-    if (s.inspections[b.id]?.status !== 'completed') return toast.warn('No completed report for this booking yet.');
-    setBusy(b.id);
-    try { const ins = await fullInspection(b.id); await downloadReport({ booking: b, inspection: ins, plan: s.plans.find((p) => p.id === b.planId), customer: b.customer, inspector: b.inspector }); toast.success('Report downloaded.'); }
-    catch { toast.error('Could not generate the PDF.'); }
-    setBusy(null);
-  };
   const cancel = async (b) => {
     if (!await confirm({ title: 'Cancel this booking?', message: `${b.id} will be cancelled and the customer refunded ${money(b.pricing.total)}.`, confirmText: 'Cancel booking', cancelText: 'Keep', danger: true })) return;
     if (await guard(cancelBooking(b.id), b.payment.status === 'paid' ? 'Booking cancelled and refund initiated.' : 'Booking cancelled.')) setView(null);
@@ -57,16 +49,17 @@ export default function Bookings() {
   const count = (st) => base.filter((b) => b.status === st).length;
 
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Order', width: 110, render: (b) => <b className="mono">{b.id}</b> },
-    { key: 'customer', hide: 'md', label: 'Customer', width: 170, sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
-    { key: 'car', label: 'Vehicle', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.planName} · {b.location.city}</span></div> },
-    { key: 'date', hide: 'lg', label: 'Slot', width: 130, render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
-    { key: 'inspector', hide: 'md', label: 'Inspector', sortValue: (b) => b.inspector?.name ?? '', render: (b) => (b.inspector ? b.inspector.name : <Button size="sm" variant="outline" icon={UserPlus} onClick={(e) => { e.stopPropagation(); setAssign(b); }} disabled={['cancelled', 'completed'].includes(b.status)}>Assign</Button>) },
-    { key: 'status', label: 'Status', width: 140, render: (b) => <StatusBadge status={b.status} /> },
-    { key: 'pay', hide: 'sm', label: 'Total', width: 120, sortValue: (b) => b.pricing.total, render: (b) => <div className="cell-2"><b>{money(b.pricing.total)}</b><PayBadge status={b.payment.status} /></div> },
+    { key: 'id', hide: 'sm', label: 'Order', width: '8%', render: (b) => <b className="mono">{b.id}</b> },
+    { key: 'customer', hide: 'md', label: 'Customer', width: '14%', sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
+    { key: 'car', label: 'Vehicle', width: '14%', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.planName}</span></div> },
+    { key: 'date', hide: 'lg', label: 'Slot', width: '11%', render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
+    { key: 'inspector', hide: 'md', label: 'Inspector', width: '13%', sortValue: (b) => b.inspector?.name ?? '', render: (b) => (b.inspector ? b.inspector.name : <Button size="sm" variant="outline" icon={UserPlus} onClick={(e) => { e.stopPropagation(); setAssign(b); }} disabled={['cancelled', 'completed'].includes(b.status)}>Assign</Button>) },
+    { key: 'status', label: 'Status', width: '15%', render: (b) => <StatusBadge status={b.status} /> },
+    { key: 'total', hide: 'sm', label: 'Total', width: '8%', sortValue: (b) => b.pricing.total, render: (b) => <b>{money(b.pricing.total)}</b> },
+    { key: 'pay', hide: 'sm', label: 'Payment', width: '9%', sortValue: (b) => b.payment.status, render: (b) => <PayBadge status={b.payment.status} /> },
     {
-      key: 'a', label: '', width: 76, sortable: false, align: 'right',
-      render: (b) => b.status === 'completed' ? <button className="icon-btn sm" title="Download report" aria-label="Download report" disabled={busy === b.id} onClick={(e) => { e.stopPropagation(); dl(b); }}><FileDown size={17} /></button> : null,
+      key: 'a', label: 'Report', width: '8%', sortable: false, align: 'right',
+      render: (b) => b.status === 'completed' ? <DownloadReportButton bookingId={b.id} /> : null,
     },
   ];
 

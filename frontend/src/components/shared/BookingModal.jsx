@@ -37,7 +37,7 @@ export default function BookingModal({ bookingId, onClose, footer }) {
           </div>
           <div>
             <h4 className="mb">Activity</h4>
-            <Timeline items={d.b.timeline} />
+            <Timeline items={d.b.timeline} status={d.b.status} />
           </div>
         </div>
       )}

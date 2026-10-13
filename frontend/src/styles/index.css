@@ -940,3 +940,132 @@ select.input { border-radius: var(--radius-md); }
 .auth-panel { grid-template-columns: minmax(0, 1fr); } .auth-card { min-width: 0; }
 @media (max-width: 360px) { .auth-panel { padding: 16px 12px; } .auth-card { padding: 20px 16px; } .auth-card .tabs button { padding-left: 8px; padding-right: 8px; } }
 @media (max-width: 640px) { .row-actions .btn.keep-label > span { display: inline; } .row-actions .btn.keep-label { padding: 0 14px; } }
+
+/* notification badge and unread dots are red with white text (all three portals share PortalLayout) */
+.notif-dot { background: #d92d20; color: #fff; }
+.notif-item.unread::before { background: #d92d20; }
+
+/* the top bar (and the notification panel inside it) must stack above the page content, otherwise cards and
+   inputs paint over the panel. Kept below the mobile sidebar (40) and its scrim (39). */
+.topbar { position: relative; z-index: 35; }
+.notif .notif-dot { background: #d92d20; color: #fff; }
+.notif-item.unread::before { background: #d92d20; }
+.popover-list { overflow-y: auto; overscroll-behavior: contain; }
+
+/* inspector "Next 7 days": bar chart, bar height follows the number of inspections that day */
+.wk-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; } .wk-head b { font-size: 30px; line-height: 1; color: var(--text); } .wk-head span { color: var(--muted); font-size: 13px; }
+.wk-chart { display: flex; gap: 8px; }
+.wk-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; color: var(--muted); }
+.wk-col b { font-size: 14px; color: var(--text); }
+.wk-plot { position: relative; width: 100%; height: 150px; display: flex; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--border); margin-bottom: 6px;
+  background: repeating-linear-gradient(to top, transparent 0, transparent 37px, var(--border) 37px, var(--border) 38px); }
+.wk-plot i { display: block; width: 70%; max-width: 34px; border-radius: 8px 8px 0 0; background: var(--primary); opacity: .85; transition: height .6s var(--ease); }
+.wk-col.today .wk-plot i { background: var(--accent); opacity: 1; }
+.wk-plot em { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-style: normal; font-weight: 700; font-size: 12px; color: var(--muted); }
+.wk-col.has .wk-plot em { position: static; order: -1; }
+.wk-col.has .wk-plot { flex-direction: column; justify-content: flex-end; align-items: center; }
+.wk-col.has .wk-plot em { color: var(--text); margin-bottom: 4px; }
+.wk-col.today > span { color: var(--accent-ink); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .wk-plot i { transition: none; } }
+
+/* uploaded PDF in a report slot */
+.doc-chip { display: grid; place-items: center; width: 100%; height: 100%; font-size: 11px; font-weight: 800; color: var(--primary); background: var(--primary-50); border-radius: 8px; }
+
+/* a failed checkpoint is a tinted card with the same padding on every side (the tint used to overshoot the text on the left) */
+.q.q-fail { padding: 16px; margin: 4px -16px; }
+.q.q-fail:first-child { margin-top: 0; }
+
+/* score ring: the number and label scale with the ring, sit centred and never touch the arc */
+.ring-text { padding: 0 14%; gap: 3px; text-align: center; }
+.ring-text b { font-size: calc(var(--ring, 112px) * .27); line-height: 1; }
+.ring-text span { font-size: max(8px, calc(var(--ring, 112px) * .072)); line-height: 1.15; max-width: 100%; white-space: nowrap; letter-spacing: .03em; }
+.center .ring { display: block; margin-left: auto; margin-right: auto; }
+
+/* month + year pickers */
+.month-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 96px); gap: 8px; }
+
+/* rating stars: empty stars are clearly visible, filled ones are gold, and the row shows what a click will give */
+.stars button { color: #8d8aa6; padding: 3px; border-radius: 8px; } :root[data-theme='dark'] .stars button { color: #a39fc4; }
+.stars button.on { color: #f5a623; }
+.stars button:disabled { opacity: 1; }
+.stars.rate button { cursor: pointer; } .stars.rate button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.rate-inline { gap: 12px; } .rate-inline > .muted { font-weight: 600; color: var(--text); }
+
+/* activity timeline: the design's primary blue for every step, green only for the completed step, red for a cancelled booking */
+.timeline li > i, .timeline li.last > i { background: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); }
+.timeline li.last.done > i { background: var(--green); box-shadow: 0 0 0 4px var(--green-50); }
+.timeline li.last.cancelled > i { background: var(--red); box-shadow: 0 0 0 4px var(--red-50); }
+
+/* badges and buttons inside table cells are never clipped with an ellipsis */
+.table td:has(> .badge), .table td:has(> .btn) { overflow: visible; text-overflow: clip; }
+
+/* =====================================================================================================================
+   Breathing room – one consistent spacing scale for the customer, inspector and admin dashboards
+   (4 / 8 / 12 / 16 / 20 / 24 / 32 px from the --s tokens). Text blocks get a readable line height and headings are
+   separated from the lines under them; cards, lists, forms and tables get even padding.
+   ===================================================================================================================== */
+.page h1 { line-height: 1.2; } .page h1 + p, .page-head h1 + p, .hello h1 + p { margin-top: var(--s2); line-height: 1.5; }
+.card p, .card-body p { line-height: 1.55; } .card p + p { margin-top: var(--s2); }
+.card h3, .card-body h3 { line-height: 1.3; margin-bottom: var(--s3); } .card h4 { margin-bottom: var(--s2); }
+.card-body > * + * { margin-top: var(--s4); } .card-body > .form-grid + *, .card-body > .grid-2 + * { margin-top: var(--s5); }
+.card-head { padding: var(--s5) var(--card-pad); }
+.row-between { gap: var(--s4); } .mb { margin-bottom: var(--s5); } .mt-s { margin-top: var(--s4); }
+
+/* inspector: header, score panel and checklist */
+.insp-head { margin-bottom: var(--s6); } .back-link { margin-bottom: var(--s3); }
+.insp-title { gap: var(--s5); } .insp-title h1 { margin-bottom: 0; } .insp-title p { margin-top: var(--s2); line-height: 1.5; }
+.insp-actions { gap: var(--s3); }
+.insp-nav { padding: var(--s6); }
+.insp-score { gap: var(--s5); margin-bottom: var(--s5); } .insp-score > div:last-child { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s3); }
+.insp-score p { margin: 0; line-height: 1.5; }
+.insp-nav .progress { margin: 0 0 var(--s2); } .insp-nav > p { margin-bottom: var(--s2); }
+.insp-nav ul { margin-top: var(--s5); gap: var(--s1); } .insp-nav li button { padding: var(--s3); }
+.q { padding: var(--s5) 0; } .q-extra { margin-top: var(--s4); gap: var(--s3); } .q-panel { margin-top: var(--s4); gap: var(--s3); }
+.q-sub { margin: var(--s7) 0 var(--s2); } .q-group { margin: var(--s5) 0 var(--s1); padding: var(--s2) var(--s3); }
+.chips, .chips.tight { gap: var(--s2); }
+.q.q-fail { padding: var(--s4); }
+
+/* forms */
+.form-grid { gap: var(--s5); } .field-label { margin-bottom: var(--s2); } .field-error { margin-top: var(--s2); }
+.check { gap: var(--s3); }
+
+/* lists, rows and badges */
+.list li { padding: var(--s4) var(--card-pad); } .item-row { padding: var(--s4) 0; gap: var(--s4); }
+.cell-2 { gap: 2px; line-height: 1.4; } .with-av { gap: var(--s3); }
+.badge { padding: 3px var(--s3); }
+
+/* toolbars, filters and tables */
+.toolbar { margin-bottom: var(--s5); gap: var(--s4); } .filters { gap: var(--s3); }
+.table th { height: 48px; } .table td { padding-top: var(--s4); padding-bottom: var(--s4); line-height: 1.45; }
+
+/* stat tiles, modals, wizards */
+.stat-value { line-height: 1.15; } .stat-label { margin-top: var(--s2); } .stat-hint { margin-top: var(--s1); }
+.modal-head { padding: var(--s5) var(--s6); } .modal-body { padding: var(--s5) var(--s6); } .modal-body > * + * { margin-top: var(--s4); } .modal-foot { padding: var(--s4) var(--s6); gap: var(--s3); }
+.wizard-foot { padding: var(--s5) var(--card-pad); gap: var(--s3); }
+.center > * + * { margin-top: var(--s3); }
+.price-box > div { padding: var(--s2) 0; } .review-box > div { padding: var(--s3) 0; }
+
+/* page headers (title + sub-line) on every dashboard page: clear space above, between the lines and before the first card */
+.page-head, .hello, .insp-head { margin-bottom: var(--s7); }
+.page-head h1, .hello h1, .insp-title h1 { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -.01em; }
+.page-head h1 + p, .hello h1 + p, .insp-title p { margin-top: var(--s3); line-height: 1.55; }
+.insp-head .back-link { margin-bottom: var(--s4); }
+.insp-title > div:first-child { display: flex; flex-direction: column; gap: 0; }
+.content { padding-top: var(--s8); }
+@media (max-width: 640px) { .page-head, .hello, .insp-head { margin-bottom: var(--s6); } .content { padding-top: var(--s6); } }
+
+/* sub-line under every page title – the values chosen in the browser tools, applied to all three dashboards */
+.page h1 + p, .page .page-head h1 + p, .page .hello h1 + p, .page .insp-title p {
+  margin-top: 10px; line-height: 1.5; font-size: 11px; font-weight: 500; color: var(--text);
+}
+
+/* admin portal: the sub-line under every page title is 12px */
+.portal-admin .page h1 + p, .portal-admin .page .page-head h1 + p, .portal-admin .page .hello h1 + p, .portal-admin .page .insp-title p { font-size: 12px; }
+
+/* table headers are always shown in full – no "…" */
+.table th { overflow: visible; text-overflow: clip; white-space: nowrap; }
+.table th > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+
+/* period picker inside the revenue card (drives the chart and the donut) */
+.rev-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); }
+.rev-filter .input { min-width: 150px; }

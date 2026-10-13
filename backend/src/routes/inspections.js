@@ -59,6 +59,7 @@ router.post('/:code/complete', requireRole('inspector'), async (req, res) => {
   if (b.status === 'completed') return send(res, { bookings: [b.toJSON()], inspections: [lightInspection(ins)] }, { changed: false });
   if (b.status !== 'ongoing') fail(409, 'Start the inspection before completing it.');
   if (!ins.photos.some((p) => p.category === COVER) || ins.photos.length < 3) fail(400, 'Add a cover photo and at least 3 photos before finishing.');
+  if (ins.photos.some((p) => ['Cover', 'Exterior'].includes(p.category) && !p.plateChecked)) fail(400, 'Cover the number plate with the logo (or confirm that no plate is visible) on every cover and exterior photo before finishing.');
   ins.status = 'completed'; ins.completedAt = now(); ins.updatedAt = now();
   b.status = 'completed';
   b.timeline.push({ at: now(), label: 'Inspection completed & report generated', by: req.user.name });

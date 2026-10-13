@@ -3,8 +3,8 @@ import { downloadBlob, uploadFile } from './api';
 
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILES = 5;
-export const ACCEPT = '.jpg,.jpeg,.png,.pdf,.doc,.docx';
-const OK_EXT = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+export const ACCEPT = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
+const OK_EXT = ['jpg', 'jpeg', 'png', 'pdf'];
 
 export const fmtSize = (b) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
 export const fileKind = (name = '') => {
@@ -14,7 +14,7 @@ export const fileKind = (name = '') => {
 
 export function validateFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
-  if (!OK_EXT.includes(ext)) return `${file.name}: only JPG, PNG, PDF and DOC files are allowed.`;
+  if (!OK_EXT.includes(ext)) return `${file.name}: only JPG, PNG or PDF files are allowed.`;
   if (file.size > MAX_FILE_BYTES) return `${file.name} is ${fmtSize(file.size)} – the limit is 5 MB.`;
   if (file.size === 0) return `${file.name} is empty.`;
   return null;

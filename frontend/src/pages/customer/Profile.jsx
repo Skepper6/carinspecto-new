@@ -9,7 +9,9 @@ import Modal from '../../components/ui/Modal';
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
 import { resendVerification } from '../../services/auth';
+import { stripeEnabled } from '../../services/stripe';
 import { CITIES } from '../../lib/constants';
+import { formatCardNumber, formatExpiry, validateCardNumber, validateExpiry, cardBrand } from '../../lib/card';
 import { fmtDate, uid, isValidPhone } from '../../lib/format';
 
 export default function Profile() {
@@ -46,8 +48,9 @@ export default function Profile() {
   const addCard = async () => {
     const digits = c.number.replace(/\s/g, '');
     const e = {};
-    if (!/^\d{16}$/.test(digits)) e.number = 'Enter a 16-digit card number';
-    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(c.exp)) e.exp = 'Use MM/YY';
+    const en = validateCardNumber(digits, stripeEnabled), ee = validateExpiry(c.exp);
+    if (en) e.number = en;
+    if (ee) e.exp = ee;
     setCe(e);
     if (Object.keys(e).length) return;
     if (!await guard(updateUser(me.id, { paymentMethods: [...(me.paymentMethods ?? []), { id: uid('p'), type: 'card', brand: c.brand, last4: digits.slice(-4), exp: c.exp, isDefault: !(me.paymentMethods?.length) }] }), 'Payment method added.')) return;
@@ -117,8 +120,8 @@ export default function Profile() {
       <Modal open={cardModal} onClose={() => setCardModal(false)} title="Add card" footer={<><Button variant="ghost" onClick={() => setCardModal(false)}>Cancel</Button><Button onClick={addCard}>Save card</Button></>}>
         <div className="form-grid">
           <Select label="Network" value={c.brand} onChange={(e) => setC({ ...c, brand: e.target.value })} options={['Visa', 'Mastercard', 'Amex']} />
-          <Input label="Expiry" value={c.exp} onChange={(e) => setC({ ...c, exp: e.target.value })} placeholder="MM/YY" error={ce.exp} />
-          <Input className="span-2" label="Card number" value={c.number} onChange={(e) => setC({ ...c, number: e.target.value })} placeholder="1234 5678 9012 3456" error={ce.number} inputMode="numeric" />
+          <Input label="Expiry" value={c.exp} onChange={(e) => { setC({ ...c, exp: formatExpiry(e.target.value, c.exp) }); setCe({}); }} placeholder="MM/YY" inputMode="numeric" maxLength={5} error={ce.exp} />
+          <Input className="span-2" label="Card number" value={c.number} onChange={(e) => { const number = formatCardNumber(e.target.value); const b = cardBrand(number.replace(/\D/g, '')); setC({ ...c, number, ...(b ? { brand: b } : {}) }); setCe({}); }} placeholder="1234 5678 9012 3456" error={ce.number} inputMode="numeric" maxLength={19} />
         </div>
         <p className="muted small mt-s">Demo only – card details are never sent anywhere. Only the last 4 digits are stored.</p>
       </Modal>

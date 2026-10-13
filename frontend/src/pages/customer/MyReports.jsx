@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Download, Eye, FileText } from 'lucide-react';
+import { Eye, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { useDB, fullInspection } from '../../lib/db';
+import { useDB } from '../../lib/db';
+import DownloadReportButton from '../../components/shared/DownloadReportButton';
 import { PageHeader, SearchInput, useLoading, Badge, FilterBar, useFilters, inRange } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import ReportModal from '../../components/shared/ReportModal';
-import { downloadReport } from '../../lib/pdf';
 import { itemTotals, verdict } from '../../lib/inspectionSchema';
 import { carName, fmtDate } from '../../lib/format';
 
@@ -21,7 +21,6 @@ export default function MyReports() {
   const flt = useFilters();
   const [params, setParams] = useSearchParams();
   const [open, setOpen] = useState(() => params.get('report'));   // a shared link opens that report straight away
-  const [busy, setBusy] = useState(null);
 
   const rows = useMemo(() => state.bookings
     .filter((b) => b.customerId === user.id && b.status === 'completed' && state.inspections[b.id]?.status === 'completed')
@@ -39,12 +38,6 @@ export default function MyReports() {
     { key: 'verdict', label: 'All scores', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
-  const dl = async (r) => {
-    setBusy(r.id);
-    try { const ins = await fullInspection(r.id); await downloadReport({ booking: r, inspection: ins ?? r.ins, plan: r.plan, customer: user, inspector: r.inspector }); toast.success('Report downloaded.'); }
-    catch { toast.error('Could not generate the PDF.'); }
-    finally { setBusy(null); }
-  };
 
   const cols = [
     { key: 'id', label: 'Report', width: 115, render: (r) => <b className="mono">{r.id}</b> },
@@ -57,7 +50,7 @@ export default function MyReports() {
       render: (r) => (
         <span className="row-actions">
           <Button size="sm" variant="ghost" icon={Eye} onClick={(e) => { e.stopPropagation(); setOpen(r.id); }}>View</Button>
-          <Button size="sm" variant="outline" icon={Download} loading={busy === r.id} onClick={(e) => { e.stopPropagation(); dl(r); }}>PDF</Button>
+          <DownloadReportButton bookingId={r.id} />
         </span>
       ),
     },

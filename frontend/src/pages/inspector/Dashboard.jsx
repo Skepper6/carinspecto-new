@@ -24,6 +24,8 @@ export default function Dashboard() {
   const done = mine.filter((b) => b.status === 'completed');
   const month = done.filter((b) => b.date.slice(0, 7) === today.slice(0, 7));
   const week = Array.from({ length: 7 }, (_, i) => { const d = isoDate(addDays(new Date(), i)); return { d, n: queue.filter((b) => b.date === d).length }; });
+  const weekTotal = week.reduce((s, w) => s + w.n, 0);
+  const weekMax = Math.max(4, ...week.map((w) => w.n));   // the scale grows once a day has more than 4
 
   if (loading) return <div className="page"><Skeleton h={34} w={260} /><div className="grid-4 mt"><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /><Skeleton h={92} r={16} /></div><Skeleton h={260} r={16} className="mt" /></div>;
 
@@ -60,11 +62,15 @@ export default function Dashboard() {
         </Card>
 
         <Card title="Next 7 days">
-          <div className="week">
+          <div className="wk-head"><b>{weekTotal}</b><span>inspection{weekTotal === 1 ? '' : 's'} in the next 7 days</span></div>
+          <div className="wk-chart" role="img" aria-label={`Inspections per day: ${week.map((w) => `${fmtDate(w.d, { weekday: 'long' })} ${w.n}`).join(', ')}`}>
             {week.map((w, i) => (
-              <div key={w.d} className={i === 0 ? 'today' : ''}>
+              <div key={w.d} className={`wk-col ${i === 0 ? 'today' : ''} ${w.n ? 'has' : ''}`}>
+                <div className="wk-plot">
+                  <em>{w.n}</em>
+                  <i style={{ height: `${w.n ? Math.max(14, (w.n / weekMax) * 82) : 0}%` }} />
+                </div>
                 <span>{fmtDate(w.d, { weekday: 'short' })}</span><b>{fmtDate(w.d, { day: 'numeric' })}</b>
-                <i style={{ height: 10 + w.n * 22 }} className={w.n ? 'has' : ''} /><em>{w.n}</em>
               </div>
             ))}
           </div>

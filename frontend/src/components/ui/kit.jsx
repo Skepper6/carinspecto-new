@@ -145,15 +145,21 @@ export const Skeleton = ({ h = 16, w = '100%', r = 8, className = '' }) => (
   <i className={`skeleton ${className}`} style={{ height: h, width: w, borderRadius: r }} />
 );
 
-export const Stars = ({ value = 0, onChange, size = 18 }) => (
-  <span className="stars">
-    {[1, 2, 3, 4, 5].map((n) => (
-      <button key={n} type="button" disabled={!onChange} onClick={() => onChange?.(n)} aria-label={`${n} stars`} className={n <= value ? 'on' : ''}>
-        <Star size={size} fill={n <= value ? 'currentColor' : 'none'} />
-      </button>
-    ))}
-  </span>
-);
+// Clickable when onChange is given: the stars up to the pointer light up before you click, so it is clear what you will give.
+export const Stars = ({ value = 0, onChange, size = 18 }) => {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+  return (
+    <span className={`stars ${onChange ? 'rate' : ''}`} role={onChange ? 'radiogroup' : 'img'} aria-label={onChange ? 'Rate from 1 to 5 stars' : `${value} out of 5 stars`} onMouseLeave={() => setHover(0)}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button key={n} type="button" disabled={!onChange} onClick={() => onChange?.(n)} onMouseEnter={() => onChange && setHover(n)} onFocus={() => onChange && setHover(n)} onBlur={() => setHover(0)}
+          aria-label={`${n} star${n > 1 ? 's' : ''}`} title={onChange ? `${n} / 5` : undefined} className={n <= shown ? 'on' : ''}>
+          <Star size={size} fill={n <= shown ? 'currentColor' : 'none'} strokeWidth={1.8} />
+        </button>
+      ))}
+    </span>
+  );
+};
 
 export const ScoreRing = ({ score, size = 112, label }) => {
   const r = 44;
@@ -161,7 +167,7 @@ export const ScoreRing = ({ score, size = 112, label }) => {
   const color = score >= 90 ? '#16945a' : score >= 78 ? '#3a2a8c' : score >= 62 ? '#f58220' : '#d23434';
   const v = useCountUp(score, 900);
   return (
-    <div className="ring" style={{ width: size, height: size }}>
+    <div className="ring" style={{ width: size, height: size, '--ring': `${size}px` }}>
       <svg viewBox="0 0 100 100">
         <circle cx="50" cy="50" r={r} className="ring-bg" />
         <circle cx="50" cy="50" r={r} stroke={color} className="ring-fg" strokeDasharray={c} strokeDashoffset={c * (1 - v / 100)} />
@@ -171,10 +177,11 @@ export const ScoreRing = ({ score, size = 112, label }) => {
   );
 };
 
-export const Timeline = ({ items }) => (
+// Every step is blue; only the final step of a completed booking is green (a cancelled booking ends red).
+export const Timeline = ({ items, status }) => (
   <ol className="timeline">
     {items.map((t, i) => (
-      <li key={i} className={i === items.length - 1 ? 'last' : ''}>
+      <li key={i} className={i === items.length - 1 ? `last ${status === 'completed' ? 'done' : status === 'cancelled' ? 'cancelled' : ''}` : ''}>
         <i />
         <div>
           <strong>{t.label}</strong>

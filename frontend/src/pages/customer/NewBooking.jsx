@@ -8,7 +8,7 @@ import { useUI } from '../../context/UIContext';
 import { useDB, createBooking, updateUser } from '../../lib/db';
 import { priceFor } from '../../lib/pricing';
 import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
-import { addDays, carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
+import { carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
 import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import Calendar from '../../components/ui/Calendar';
@@ -18,14 +18,14 @@ import { CAR_DB, ALL_YEARS, makesForYear, modelsFor, findModel, productionRange,
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import StripeCheckout from '../../components/shared/StripeCheckout';
 import { stripeEnabled } from '../../services/stripe';
+import { formatCardNumber, formatExpiry, formatCvv, validateCardNumber, validateExpiry, validateCvv } from '../../lib/card';
 
 const STEPS = [['Plan & price', Layers], ['Vehicle', Car], ['Location', MapPin], ['Date & time', CalendarClock], ['Review & pay', CreditCard]];
 
-// deterministic "already booked" slots so the picker feels real
+// a slot is closed when its time has already passed today, or two real bookings already hold it
 const taken = (date, slot, bookings) => {
-  const real = bookings.filter((b) => b.date === date && b.time === slot && b.status !== 'cancelled').length >= 2;
-  const seed = [...(date + slot)].reduce((a, c) => a + c.charCodeAt(0), 0);
-  return real || seed % 7 === 0;
+  if (new Date(`${date}T${slot}:00`) <= new Date()) return true;
+  return bookings.filter((b) => b.date === date && b.time === slot && b.status !== 'cancelled').length >= 2;
 };
 
 export default function NewBooking() {
@@ -91,9 +91,10 @@ export default function NewBooking() {
       if (!time) e.time = 'Pick a time slot';
     }
     if (step === 4 && method === 'newcard') {
-      if (!/^\d{16}$/.test(nc.number.replace(/\s/g, ''))) e.number = 'Enter a 16-digit card number';
-      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(nc.exp)) e.exp = 'Use MM/YY';
-      if (!/^\d{3,4}$/.test(nc.cvv)) e.cvv = '3-4 digits';
+      const en = validateCardNumber(nc.number, stripeEnabled), ee = validateExpiry(nc.exp), ec = validateCvv(nc.cvv, nc.number);
+      if (en) e.number = en;
+      if (ee) e.exp = ee;
+      if (ec) e.cvv = ec;
     }
     setErrors(e);
     if (Object.keys(e).length) toast.warn('Please complete the highlighted fields.');
@@ -222,7 +223,7 @@ export default function NewBooking() {
                 <h3>Pick a date and time</h3>
                 <div className="cal-wrap">
                   <div>
-                    <Calendar value={date} onChange={(d) => { setDate(d); setTime(''); setErrors({ ...errors, date: undefined }); }} min={isoDate(addDays(new Date(), 1))} marks={marks} />
+                    <Calendar value={date} onChange={(d) => { setDate(d); setTime(''); setErrors({ ...errors, date: undefined }); }} min={isoDate()} marks={marks} />
                     {errors.date && <p className="field-error mt-s">{errors.date}</p>}
                   </div>
                   <div className="slots">
@@ -234,7 +235,7 @@ export default function NewBooking() {
                       })}
                     </div>
                     {errors.time && <p className="field-error">{errors.time}</p>}
-                    <p className="muted small">Greyed-out slots are fully booked.</p>
+                    <p className="muted small">Greyed-out slots have passed or are fully booked.</p>
                   </div>
                 </div>
               </>
@@ -270,9 +271,9 @@ export default function NewBooking() {
                 {!stripeEnabled && <p className="muted small mt-s">Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</p>}
                 {method === 'newcard' && (
                   <div className="form-grid three">
-                    <Input label="Card number" value={nc.number} onChange={(e) => { setNc({ ...nc, number: e.target.value }); setErrors({}); }} placeholder="1234 5678 9012 3456" inputMode="numeric" error={errors.number} />
-                    <Input label="Expiry" value={nc.exp} onChange={(e) => { setNc({ ...nc, exp: e.target.value }); setErrors({}); }} placeholder="MM/YY" error={errors.exp} />
-                    <Input label="CVV" value={nc.cvv} onChange={(e) => { setNc({ ...nc, cvv: e.target.value }); setErrors({}); }} placeholder="123" inputMode="numeric" error={errors.cvv} />
+                    <Input label="Card number" value={nc.number} onChange={(e) => { const number = formatCardNumber(e.target.value); setNc({ ...nc, number, cvv: formatCvv(nc.cvv, number) }); setErrors({}); }} placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" maxLength={19} error={errors.number} />
+                    <Input label="Expiry" value={nc.exp} onChange={(e) => { setNc({ ...nc, exp: formatExpiry(e.target.value, nc.exp) }); setErrors({}); }} placeholder="MM/YY" inputMode="numeric" autoComplete="cc-exp" maxLength={5} error={errors.exp} />
+                    <Input label="CVV" value={nc.cvv} onChange={(e) => { setNc({ ...nc, cvv: formatCvv(e.target.value, nc.number) }); setErrors({}); }} placeholder="123" inputMode="numeric" autoComplete="cc-csc" maxLength={4} error={errors.cvv} />
                   </div>
                 )}
                 {method === 'cash' && <p className="muted small mt-s">Pay the inspector in cash (or by card machine) when they arrive. Total due: {money(price.total)}.</p>}

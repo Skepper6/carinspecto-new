@@ -31,7 +31,8 @@ export function AuthProvider({ children }) {
       <div className="boot" style={{ flexDirection: 'column', gap: 12, textAlign: 'center', padding: 24 }}>
         <b>We can’t reach Car InspectO right now</b>
         <span className="muted">{status.error}</span>
-        <Button onClick={boot}>Try again</Button>
+        <span className="muted small">Trying again automatically – this page will open as soon as the server is back.</span>
+        <Button onClick={() => boot()}>Try again now</Button>
       </div>
     ) : <div className="boot"><i className="spinner" /></div>;
   }

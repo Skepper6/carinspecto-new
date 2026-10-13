@@ -103,7 +103,7 @@ const started = await call('POST', `/inspections/${bk.id}/start`, { token: khali
 ok(started.json?.bookings?.[0]?.status === 'ongoing', 'assigned inspector starts -> ongoing');
 ok((await call('POST', `/bookings/${bk.id}/reschedule`, { token: omar, body: { date: tomorrow, time: '15:30' } })).status === 409, 'cannot reschedule once ongoing');
 ok((await call('POST', `/bookings/${bk.id}/cancel`, { token: omar })).status === 409, 'customer cannot cancel once ongoing');
-const photo = (category, i) => ({ id: `ph${i}`, category, src: 'data:image/jpeg;base64,/9j/AAAA' });
+const photo = (category, i) => ({ id: `ph${i}`, category, src: 'data:image/jpeg;base64,/9j/AAAA', plateChecked: true });
 ok((await call('PUT', `/inspections/${bk.id}`, { token: khalid, body: { data: { summary: { vin: { v: 'WDB123' } } }, photos: [photo('Exterior', 1)], comment: 'draft' } })).status === 200, 'inspector saves a draft');
 ok((await call('POST', `/inspections/${bk.id}/complete`, { token: khalid })).status === 400, 'cannot complete without cover photo + 3 photos');
 ok((await call('GET', `/inspections/${bk.id}`, { token: omar })).status === 403, 'customer cannot see an unfinished report');

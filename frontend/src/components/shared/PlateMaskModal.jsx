@@ -5,7 +5,7 @@ import Button from '../ui/Button';
 import { maskPlate } from '../../lib/image';
 
 // Drag a box over the number plate – on apply it is replaced with the Car InspectO logo.
-export default function PlateMaskModal({ photo, onClose, onApply }) {
+export default function PlateMaskModal({ photo, onClose, onApply, onSkip }) {
   const box = useRef(null);
   const [rect, setRect] = useState(null);
   const [start, setStart] = useState(null);
@@ -31,7 +31,7 @@ export default function PlateMaskModal({ photo, onClose, onApply }) {
 
   return (
     <Modal open={!!photo} onClose={onClose} size="lg" title="Cover the number plate" subtitle="Drag a box over the plate. The Car InspectO logo replaces the registration in the report."
-      footer={<><Button variant="ghost" icon={RotateCcw} onClick={() => setRect(null)} disabled={!rect}>Reset</Button><Button variant="ghost" onClick={onClose}>Cancel</Button><Button icon={ShieldCheck} disabled={!valid} loading={busy} onClick={apply}>Apply logo</Button></>}>
+      footer={<>{onSkip && <Button variant="ghost" onClick={onSkip}>No plate visible</Button>}<Button variant="ghost" icon={RotateCcw} onClick={() => setRect(null)} disabled={!rect}>Reset</Button><Button variant="ghost" onClick={onClose}>Cancel</Button><Button icon={ShieldCheck} disabled={!valid} loading={busy} onClick={apply}>Apply logo</Button></>}>
       {photo && (
         <div className="mask-box" ref={box} onPointerDown={down} onPointerMove={move} onPointerUp={up}>
           <img src={photo.src} alt="Vehicle" draggable={false} />

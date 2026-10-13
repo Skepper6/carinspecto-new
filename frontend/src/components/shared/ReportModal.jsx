@@ -3,10 +3,9 @@ import { Download, Check, X as XIcon, ChevronDown, Share2, FileSearch, Camera } 
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { Badge, ScoreRing, EmptyState } from '../ui/kit';
-import { useDB, fullInspection } from '../../lib/db';
+import { useDB, fullInspection, downloadReportById } from '../../lib/db';
 import { useUI } from '../../context/UIContext';
 import { sectionsForPlan, itemTotals, verdict, gradeItem, isAnswered, DEFECTS } from '../../lib/inspectionSchema';
-import { downloadReport } from '../../lib/pdf';
 import { carName, fmtDate, fmtTime } from '../../lib/format';
 
 export function ValueCell({ item, cell }) {
@@ -41,7 +40,7 @@ export default function ReportModal({ bookingId, onClose }) {
 
   const download = async () => {
     setBusy(true);
-    try { const inspection = await fullInspection(bookingId); await downloadReport({ ...data, inspection: inspection ?? data.inspection }); toast.success('Report downloaded.', 'PDF ready'); }
+    try { await downloadReportById(bookingId); toast.success('Report downloaded.', 'PDF ready'); }
     catch (e) { console.error(e); toast.error('Could not generate the PDF.'); }
     finally { setBusy(false); }
   };

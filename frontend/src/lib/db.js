@@ -89,17 +89,31 @@ setExpiredHandler(() => {
   refresh().catch(() => {}).finally(() => { expiring = false; });
 });
 
-export async function boot() {
-  setStatus({ ready: false, error: null });
+// When the server cannot be reached (restarting, database down, network blip) the first load keeps retrying by itself,
+// so the "can't reach" screen clears as soon as the server is back – nobody has to press Try again.
+let retryTimer = null;
+let retryDelay = 1500;
+const failBoot = (message) => {
+  setStatus({ ready: false, error: message });
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => boot({ auto: true }), retryDelay);
+  retryDelay = Math.min(Math.round(retryDelay * 1.5), 6000);
+};
+const bootDone = () => { retryDelay = 1500; setStatus({ ready: true, error: null }); };
+
+export async function boot(opts) {
+  const auto = opts?.auto === true;                   // the button passes a click event, not options
+  clearTimeout(retryTimer);
+  if (!auto) { retryDelay = 1500; setStatus({ ready: false, error: null }); }   // automatic retries keep the message on screen instead of flashing a spinner
   try {
     await refresh();
-    setStatus({ ready: true, error: null });
+    bootDone();
   } catch (e) {
     // the saved session is no longer valid (expired, or the account was suspended): fall back to the public data
     if (e.status === 401 || e.status === 403 || (!getToken() && e.status !== 0)) {
       clearSession();
-      try { await refresh(); setStatus({ ready: true, error: null }); } catch (err) { setStatus({ ready: false, error: err.message }); }
-    } else setStatus({ ready: false, error: e.message });
+      try { await refresh(); bootDone(); } catch (err) { failBoot(err.message); }
+    } else failBoot(e.message);
   }
 }
 boot();
@@ -182,6 +196,20 @@ export async function fullInspection(bookingId) {
     if (e.status === 404) return null;               // not started yet
     throw e;
   }
+}
+
+// The one way any dashboard (customer, inspector, admin) downloads a report. It always reads the same record and builds
+// the same inputs, so the PDF is identical whoever opens it.
+export async function downloadReportById(bookingId) {
+  const booking = state.bookings.find((b) => b.id === bookingId);
+  if (!booking) throw new Error('Booking not found.');
+  const inspection = await fullInspection(bookingId);
+  if (!inspection) throw new Error('No report for this booking yet.');
+  const { downloadReport } = await import('./pdf');
+  await downloadReport({
+    booking, inspection, plan: state.plans.find((p) => p.id === booking.planId),
+    customer: state.users.find((u) => u.id === booking.customerId), inspector: state.users.find((u) => u.id === booking.inspectorId),
+  });
 }
 export function useFullInspection(bookingId) {
   const [st, setSt] = useState({ ready: false, error: null });

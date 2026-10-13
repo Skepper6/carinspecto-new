@@ -7,6 +7,22 @@ const loadImg = (src) => new Promise((resolve, reject) => {
   img.src = src;
 });
 
+// Allowed uploads. Asking the picker for JPEG / PNG makes an iPhone hand over a JPEG instead of a HEIC file.
+export const PHOTO_ACCEPT = '.jpg,.jpeg,.png,image/jpeg,image/png';
+export const DOC_ACCEPT = `${PHOTO_ACCEPT},.pdf,application/pdf`;
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;   // a phone photo is 2-6 MB; it is shrunk before it is saved
+export const MAX_PDF_BYTES = 3 * 1024 * 1024;
+export function checkUpload(file, { pdf = false } = {}) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const isPdf = file.type === 'application/pdf' || ext === 'pdf';
+  const isImg = ['image/jpeg', 'image/png'].includes(file.type) || ['jpg', 'jpeg', 'png'].includes(ext);
+  if (!(isImg || (pdf && isPdf))) return `${file.name}: only ${pdf ? 'JPG, PNG or PDF' : 'JPG or PNG'} files are allowed.`;
+  if (file.size === 0) return `${file.name} is empty.`;
+  if (isPdf && file.size > MAX_PDF_BYTES) return `${file.name} is larger than 3 MB.`;
+  if (isImg && file.size > MAX_PHOTO_BYTES) return `${file.name} is larger than 10 MB.`;
+  return null;
+}
+
 export function compressImage(file, max = 640, quality = 0.55) {
   const url = URL.createObjectURL(file);
   return loadImg(url).then((img) => {

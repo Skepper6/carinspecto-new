@@ -98,7 +98,7 @@ export default function PortalLayout({ role }) {
   };
 
   return (
-    <div className={`shell ${collapsed ? 'collapsed' : ''}`}>
+    <div className={`shell portal-${role} ${collapsed ? 'collapsed' : ''}`}>
       <div className={`scrim ${open ? 'show' : ''}`} onClick={() => setOpen(false)} />
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="side-top">

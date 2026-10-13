@@ -63,6 +63,19 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
     setPage(1);
   };
 
+  // Every column gets a share of the table width (shares add up to 100%): proportional to the width the page asked for,
+  // never less than its header needs, so headers are always shown in full and the gaps between columns stay even.
+  const shares = useMemo(() => {
+    const given = columns.map((c) => (typeof c.width === 'number' ? c.width : typeof c.width === 'string' && c.width.endsWith('%') ? parseFloat(c.width) * 12 : null));
+    const known = given.filter((g) => g != null);
+    const avg = known.length ? known.reduce((a, b) => a + b, 0) / known.length : 140;
+    // a column with no set width is the page's main text column (customer, vehicle, subject…): it takes the extra room
+    const flex = Math.max(avg * 2.4, 280);
+    const weights = columns.map((c, i) => Math.max(given[i] ?? flex, String(c.label ?? '').length * 9 + 48));
+    const total = weights.reduce((a, b) => a + b, 0);
+    return weights.map((w) => `${((w / total) * 100).toFixed(2)}%`);
+  }, [columns]);
+
   const nums = useMemo(() => {
     const out = [];
     const add = (n) => out.push(n);
@@ -81,7 +94,7 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
             <thead>
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} style={{ width: c.width, textAlign: c.align }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''}`} onClick={() => toggleSort(c)}>
+                  <th key={c.key} style={{ width: shares[columns.indexOf(c)], textAlign: c.align }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''}`} onClick={() => toggleSort(c)}>
                     <span>{c.label}{sort?.key === c.key && (sort.dir === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</span>
                   </th>
                 ))}

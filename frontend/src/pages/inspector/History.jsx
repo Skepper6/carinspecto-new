@@ -7,6 +7,7 @@ import { PageHeader, SearchInput, useLoading, Badge, FilterBar, useFilters, inRa
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import ReportModal from '../../components/shared/ReportModal';
+import DownloadReportButton from '../../components/shared/DownloadReportButton';
 import { itemTotals, verdict } from '../../lib/inspectionSchema';
 import { carName, fmtDate } from '../../lib/format';
 
@@ -45,6 +46,7 @@ export default function History() {
         <span className="row-actions">
           <Button size="sm" variant="ghost" icon={Eye} onClick={(e) => { e.stopPropagation(); setOpen(r.id); }}>View</Button>
           <Button size="sm" variant="outline" icon={Pencil} onClick={(e) => { e.stopPropagation(); nav(`/inspector/inspect/${r.id}`); }}>Edit</Button>
+          <DownloadReportButton bookingId={r.id} />
         </span>
       ),
     },
