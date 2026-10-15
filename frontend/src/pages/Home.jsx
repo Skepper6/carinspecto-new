@@ -65,7 +65,7 @@ export default function Home() {
     <div className="home">
       <header className={`home-nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="wrap row">
-          <Link to="/" className="logo-chip"><Logo height={40} /></Link>
+          <Link to="/" className="logo-chip"><Logo height={58} /></Link>
           <nav className={menu ? 'open' : ''}>
             {links.map(([id, l]) => <button key={id} onClick={() => scrollTo(id)}>{l}</button>)}
           </nav>
@@ -243,7 +243,7 @@ export default function Home() {
 
       <footer className="home-foot">
         <div className="wrap foot-grid">
-          <div><span className="logo-chip"><Logo height={36} /></span><p>Certified digital vehicle inspections across Dubai and the UAE.</p></div>
+          <div><span className="logo-chip"><Logo height={52} /></span><p>Certified digital vehicle inspections across Dubai and the UAE.</p></div>
           <div><h5>Portals</h5>{Object.entries(PORTALS).map(([r, p]) => <Link key={r} to={`/login?role=${r}`}>{p.label}</Link>)}</div>
           <div><h5>Company</h5><button onClick={() => scrollTo('how')}>How it works</button><button onClick={() => scrollTo('plans')}>Plans</button><button onClick={() => scrollTo('faq')}>FAQ</button><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div>
           <div><h5>Contact</h5><span><Phone size={14} /> +971 4 123 4567</span><span><Mail size={14} /> hello@carinspecto.ae</span></div>

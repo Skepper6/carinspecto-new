@@ -16,7 +16,7 @@ export default function Legal({ kind }) {
   return (
     <div className="legal">
       <header className="legal-bar">
-        <Link to="/" className="logo-chip"><Logo height={34} /></Link>
+        <Link to="/" className="logo-chip"><Logo height={50} /></Link>
         <Link to="/" className="back-link"><ArrowLeft size={16} /> Back to website</Link>
       </header>
       <main className="legal-body">

@@ -102,7 +102,7 @@ export default function PortalLayout({ role }) {
       <div className={`scrim ${open ? 'show' : ''}`} onClick={() => setOpen(false)} />
       <aside className={`sidebar ${open ? 'open' : ''}`}>
         <div className="side-top">
-          <Link to="/" className="side-logo"><span className="logo-chip"><Logo height={34} /></span></Link>
+          <Link to="/" className="side-logo"><span className="logo-chip"><Logo height={56} /></span></Link>
           <span className={`role-pill role-${role}`}>{ROLE_LABEL[role]} portal</span>
         </div>
         <nav>

@@ -93,12 +93,12 @@ export async function generateReportPDF({ booking, inspection, plan, customer, i
 
   /* ---------- page furniture ---------- */
   const header = () => {
-    if (logo) doc.addImage(logo.data, 'PNG', M, 14, 34 * logo.ratio, 34);
+    if (logo) doc.addImage(logo.data, 'PNG', M, 10, 54 * logo.ratio, 54);
     else { textColor(doc, INDIGO); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text(COMPANY.name, M, 38); }
-    textColor(doc, INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-    doc.text('Pre-Purchase', W - M, 28, { align: 'right' });
-    doc.text('Inspection Report', W - M, 39, { align: 'right' });
-    y = 66;
+    textColor(doc, INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text('Pre-Purchase', W - M, 30, { align: 'right' });
+    doc.text('Inspection Report', W - M, 46, { align: 'right' });
+    y = 80;
   };
   const newPage = () => { doc.addPage(); header(); };
   const ensure = (h) => { if (y + h > H - 46) newPage(); };
@@ -163,10 +163,16 @@ export async function generateReportPDF({ booking, inspection, plan, customer, i
     if (link) { const w2 = doc.getTextWidth(val); doc.setLineWidth(0.6); doc.line(tx - w2 / 2, cy0 + 130, tx + w2 / 2, cy0 + 130); }
   });
   doc.setLineWidth(1); doc.line(cx0 + 18, cy0 + 155, cx0 + cw - 18, cy0 + 155);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
-  const pbw = doc.getTextWidth('Powered by ') + (logo ? 15 * logo.ratio + 3 : doc.getTextWidth(COMPANY.name));
-  doc.text('Powered by ', W / 2 - pbw / 2, cy0 + 181);
-  if (logo) doc.addImage(logo.data, 'PNG', W / 2 - pbw / 2 + doc.getTextWidth('Powered by ') + 3, cy0 + 170, 15 * logo.ratio, 15);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5);
+  const LOGO_H = 22;
+  const pbw = doc.getTextWidth('Powered by ') + (logo ? LOGO_H * logo.ratio + 15 : doc.getTextWidth(COMPANY.name));
+  const lx = W / 2 - pbw / 2 + doc.getTextWidth('Powered by ') + 9;
+  doc.text('Powered by ', W / 2 - pbw / 2, cy0 + 183);
+  if (logo) {
+    // white badge behind the logo so the orange/navy wordmark stays readable on the orange card
+    fill(doc, [255, 255, 255]); doc.roundedRect(lx - 6, cy0 + 168, LOGO_H * logo.ratio + 12, LOGO_H, 6, 6, 'F');
+    doc.addImage(logo.data, 'PNG', lx, cy0 + 168, LOGO_H * logo.ratio, LOGO_H);
+  }
   else doc.text(COMPANY.name, W / 2 - pbw / 2 + doc.getTextWidth('Powered by '), cy0 + 181);
 
   /* ---------- 2. vehicle summary ---------- */
@@ -557,6 +563,48 @@ export async function generateReportPDF({ booking, inspection, plan, customer, i
       }
       y += 8;
     }
+  }
+
+  /* ---------- summary of findings: verdict + every failed check ---------- */
+  startSection('Summary of Findings', 160);
+  {
+    const TONE = { green: GREEN, blue: [46, 110, 200], amber: [245, 160, 0], red: RED };
+    const vt = TONE[v.tone] ?? GREY;
+    const vl = wrapTxt(v.text, CW - 40, 9.5);
+    ensure(70);
+    fill(doc, CARD); doc.roundedRect(M, y, CW, 58, 6, 6, 'F');
+    fill(doc, vt); doc.roundedRect(M, y, 5, 58, 2, 2, 'F');
+    textColor(doc, vt); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text(`Verdict: ${v.label}`, M + 16, y + 22);
+    textColor(doc, SLATE); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); vl.forEach((l, i) => doc.text(l, M + 16, y + 38 + i * 12));
+    y += 58 + 12;
+
+    const issues = [];
+    for (const s of sections) {
+      if (s.id === 'summary') continue;
+      for (const it of s.items) {
+        const c = data[s.id]?.[it.id];
+        if (gradeOf(it, c) !== 'fail') continue;
+        const detail = fmtCell(it, c).map((l) => l.t).filter(Boolean);
+        issues.push(`${s.title}: ${it.group ? `${it.group} – ` : ''}${it.label}${detail.length ? ` (${detail.join('; ')})` : ''}`);
+      }
+    }
+    if (!issues.length) {
+      ensure(20); textColor(doc, GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text('No defects found.', M + 6, y + 10); y += 24;
+    } else {
+      sub(`Key findings (${issues.length} defect${issues.length > 1 ? 's' : ''})`);
+      const SHOW = 20;
+      issues.slice(0, SHOW).forEach((t) => {
+        const ls = wrapTxt(`•  ${t}`, CW - 28, 9);
+        ls.forEach((l, i) => {
+          ensure(14);
+          textColor(doc, SLATE); doc.setFont('helvetica', i ? 'normal' : 'bold'); doc.setFontSize(9); doc.text(l, M + 14 + (i ? 9 : 0), y + 8);
+          y += 12;
+        });
+        y += 3;
+      });
+      if (issues.length > SHOW) { ensure(16); textColor(doc, GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(`+ ${issues.length - SHOW} more defects – see the sections above.`, M + 14, y + 8); y += 16; }
+    }
+    y += 10;
   }
 
   /* ---------- inspector comment ---------- */
