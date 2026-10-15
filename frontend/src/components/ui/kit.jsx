@@ -123,18 +123,25 @@ export const Textarea = ({ label, hint, error, className, id, ...p }) => {
   return <Field label={label} hint={hint} error={error} className={className} htmlFor={i}><textarea id={i} className="input" rows={4} {...p} /></Field>;
 };
 
-export const Tabs = ({ tabs, value, onChange }) => (
-  <div className="tabs" role="tablist">
-    {tabs.map((t) => {
-      const o = typeof t === 'string' ? { value: t, label: t } : t;
-      return (
-        <button key={o.value} type="button" role="tab" aria-selected={value === o.value} className={value === o.value ? 'active' : ''} onClick={() => onChange(o.value)}>
-          {o.label}{o.count != null && <em>{o.count}</em>}
-        </button>
-      );
-    })}
-  </div>
-);
+export const Tabs = ({ tabs, value, onChange }) => {
+  const opts = tabs.map((t) => (typeof t === 'string' ? { value: t, label: t } : t));
+  return (
+    <>
+      <div className="tabs" role="tablist">
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="tab" aria-selected={value === o.value} className={value === o.value ? 'active' : ''} onClick={() => onChange(o.value)}>
+            {o.label}{o.count != null && <em>{o.count}</em>}
+          </button>
+        ))}
+      </div>
+      <select className="input tabs-select" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Choose a view">
+        {opts.map((o) => (
+          <option key={o.value} value={o.value}>{o.count != null ? `${o.label} (${o.count})` : o.label}</option>
+        ))}
+      </select>
+    </>
+  );
+};
 
 export const EmptyState = ({ icon: Icon = Inbox, title, text, action }) => (
   <div className="empty">

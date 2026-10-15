@@ -88,6 +88,21 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
 
   return (
     <div className="dt">
+      {phone && (
+        <div className="dt-sort">
+          <select className="input sm" aria-label="Sort by" value={sort ? `${sort.key}:${sort.dir}` : ''} onChange={(e) => {
+            const [key, dir] = e.target.value ? e.target.value.split(':') : [null, null];
+            setSort(key ? { key, dir } : null);
+            setPage(1);
+          }}>
+            <option value="">Sort by…</option>
+            {columns.filter((c) => c.sortable !== false).flatMap((c) => [
+              <option key={`${c.key}:asc`} value={`${c.key}:asc`}>{c.label} ↑</option>,
+              <option key={`${c.key}:desc`} value={`${c.key}:desc`}>{c.label} ↓</option>,
+            ])}
+          </select>
+        </div>
+      )}
       <div className="dt-card" ref={cardRef} style={{ '--row-h': `${rowHeight}px`, minHeight: HEAD_H + rowHeight * 3 + 6 }}>
         <div className="dt-scroll">
           <table className="table">
