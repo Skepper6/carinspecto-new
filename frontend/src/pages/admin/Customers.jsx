@@ -44,9 +44,9 @@ export default function Customers() {
   };
 
   const cols = [
-    { key: 'name', label: 'Customer', render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.email}</span></span></span> },
+    { key: 'name', label: 'Customer', phoneMinWidth: 320, render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.email}</span></span></span> },
     { key: 'phone', hide: 'lg', label: 'Phone', width: 150 },
-    { key: 'city', hide: 'md', label: 'City', width: 110 },
+    { key: 'city', hide: 'md', phoneHide: true, label: 'City', width: 110 },
     { key: 'orders', hide: 'md', label: 'Orders', width: 90 },
     { key: 'spent', hide: 'sm', label: 'Total spent', width: 120, render: (u) => money(u.spent) },
     { key: 'joinedAt', hide: 'md', label: 'Joined', width: 120, render: (u) => fmtDate(u.joinedAt) },

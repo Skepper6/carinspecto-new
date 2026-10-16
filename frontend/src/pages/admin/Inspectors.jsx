@@ -64,8 +64,8 @@ export default function Inspectors() {
   };
 
   const cols = [
-    { key: 'name', label: 'Inspector', render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.specialization || u.email}</span></span></span> },
-    { key: 'city', hide: 'md', label: 'City', width: 130 },
+    { key: 'name', label: 'Inspector', phoneMinWidth: 260, render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.specialization || u.email}</span></span></span> },
+    { key: 'city', hide: 'md', phoneHide: true, label: 'City', width: 130 },
     { key: 'active', hide: 'md', label: 'Active jobs', width: 140 },
     { key: 'completed', hide: 'lg', label: 'Completed', width: 150 },
     { key: 'rating', hide: 'lg', label: 'Rating', width: 120, render: (u) => (u.rating ? <span className="rate"><Star size={14} fill="currentColor" /> {u.rating} <span className="muted small">({u.reviews})</span></span> : <span className="muted">No ratings yet</span>) },

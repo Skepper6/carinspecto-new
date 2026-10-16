@@ -23,6 +23,25 @@ export function salesTrend(bookings, months) {
   });
 }
 
+// sales trend for a date range: one point per month from `from` to `to`.
+// A missing start uses the earliest booking; a missing end uses today.
+export function salesTrendRange(bookings, from, to) {
+  const earliest = bookings.reduce((m, b) => (!m || b.date < m ? b.date : m), null);
+  const start = new Date(`${from || earliest || ymd(new Date())}T00:00:00`);
+  const end = new Date(`${to || ymd(new Date())}T00:00:00`);
+  const keys = [];
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const stop = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cur <= stop && keys.length < 120) {
+    keys.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`);
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return keys.map((k) => {
+    const inMonth = bookings.filter((b) => monthKey(b.date) === k && b.status !== 'cancelled');
+    return { month: monthLabel(k), key: k, orders: inMonth.length, revenue: inMonth.filter(paid).reduce((a, b) => a + b.pricing.total, 0) };
+  });
+}
+
 export function packagePerformance(bookings, plans) {
   return plans.map((p) => {
     const bs = bookings.filter((b) => b.planId === p.id && b.status !== 'cancelled');
@@ -89,6 +108,7 @@ export function periodRange(period, custom = {}) {
     case 'month': return { from: ymd(new Date(y, m, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'this month' };
     case 'lastmonth': return { from: ymd(new Date(y, m - 1, 1)), to: ymd(new Date(y, m, 0)), label: 'last month' };
     case '3m': return { from: ymd(new Date(y, m - 2, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'last 3 months' };
+    case '12m': return { from: ymd(new Date(y, m - 11, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'last 12 months' };
     case '6m': return { from: ymd(new Date(y, m - 5, 1)), to: ymd(new Date(y, m + 1, 0)), label: 'last 6 months' };
     case 'year': return { from: `${y}-01-01`, to: `${y}-12-31`, label: String(y) };
     case 'lastyear': return { from: `${y - 1}-01-01`, to: `${y - 1}-12-31`, label: String(y - 1) };

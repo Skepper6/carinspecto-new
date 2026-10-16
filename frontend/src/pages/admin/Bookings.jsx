@@ -49,14 +49,14 @@ export default function Bookings() {
   const count = (st) => base.filter((b) => b.status === st).length;
 
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Order', width: '8%', render: (b) => <b className="mono">{b.id}</b> },
-    { key: 'customer', hide: 'md', label: 'Customer', width: '14%', sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
-    { key: 'car', label: 'Vehicle', width: '14%', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.planName}</span></div> },
+    { key: 'id', hide: 'sm', label: 'Order', phoneMinWidth: 110, width: '8%', render: (b) => <b className="mono">{b.id}</b> },
+    { key: 'customer', hide: 'md', label: 'Customer', phoneMinWidth: 220, width: '14%', sortValue: (b) => b.customer?.name, render: (b) => <span className="with-av"><Avatar name={b.customer?.name} size={28} />{b.customer?.name}</span> },
+    { key: 'car', label: 'Vehicle', phoneMinWidth: 200, width: '14%', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.planName}</span></div> },
     { key: 'date', hide: 'lg', label: 'Slot', width: '11%', render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
     { key: 'inspector', hide: 'md', label: 'Inspector', width: '13%', sortValue: (b) => b.inspector?.name ?? '', render: (b) => (b.inspector ? b.inspector.name : <Button size="sm" variant="outline" icon={UserPlus} onClick={(e) => { e.stopPropagation(); setAssign(b); }} disabled={['cancelled', 'completed'].includes(b.status)}>Assign</Button>) },
     { key: 'status', label: 'Status', width: '15%', render: (b) => <StatusBadge status={b.status} /> },
     { key: 'total', hide: 'sm', label: 'Total', width: '8%', sortValue: (b) => b.pricing.total, render: (b) => <b>{money(b.pricing.total)}</b> },
-    { key: 'pay', hide: 'sm', label: 'Payment', width: '9%', sortValue: (b) => b.payment.status, render: (b) => <PayBadge status={b.payment.status} /> },
+    { key: 'pay', hide: 'sm', label: 'Payment', phoneMinWidth: 100, width: '9%', sortValue: (b) => b.payment.status, render: (b) => <PayBadge status={b.payment.status} /> },
     {
       key: 'a', label: 'Report', width: '8%', sortable: false, align: 'right',
       render: (b) => b.status === 'completed' ? <DownloadReportButton bookingId={b.id} /> : null,

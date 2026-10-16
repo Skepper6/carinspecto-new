@@ -4,7 +4,7 @@ import { Skeleton } from './kit';
 
 const HEAD_H = 44;
 const PHONE = '(max-width: 640px)';
-const CARD_PAGE = 6;   // on phones rows become stacked cards and the page scrolls, so the page size is fixed
+const CARD_PAGE = 6;   // on phones the card scrolls inside its own box, so the page size is fixed
 
 function usePhone() {
   const [on, setOn] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
@@ -88,28 +88,13 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
 
   return (
     <div className="dt">
-      {phone && (
-        <div className="dt-sort">
-          <select className="input sm" aria-label="Sort by" value={sort ? `${sort.key}:${sort.dir}` : ''} onChange={(e) => {
-            const [key, dir] = e.target.value ? e.target.value.split(':') : [null, null];
-            setSort(key ? { key, dir } : null);
-            setPage(1);
-          }}>
-            <option value="">Sort by…</option>
-            {columns.filter((c) => c.sortable !== false).flatMap((c) => [
-              <option key={`${c.key}:asc`} value={`${c.key}:asc`}>{c.label} ↑</option>,
-              <option key={`${c.key}:desc`} value={`${c.key}:desc`}>{c.label} ↓</option>,
-            ])}
-          </select>
-        </div>
-      )}
       <div className="dt-card" ref={cardRef} style={{ '--row-h': `${rowHeight}px`, minHeight: HEAD_H + rowHeight * 3 + 6 }}>
         <div className="dt-scroll">
           <table className="table">
             <thead>
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} style={{ width: shares[columns.indexOf(c)], textAlign: c.align }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''}`} onClick={() => toggleSort(c)}>
+                  <th key={c.key} style={{ width: shares[columns.indexOf(c)], textAlign: c.align, '--pmin': c.phoneMinWidth ? `${c.phoneMinWidth}px` : undefined }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''} ${c.phoneHide ? 'phone-hide' : ''}`} onClick={() => toggleSort(c)}>
                     <span>{c.label}{sort?.key === c.key && (sort.dir === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</span>
                   </th>
                 ))}
@@ -118,18 +103,18 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
             <tbody key={page + (sort?.key ?? '') + (sort?.dir ?? '')}>
               {loading
                 ? Array.from({ length: pageSize }).map((_, i) => (
-                  <tr key={i}>{columns.map((c) => <td key={c.key} data-label={c.label} className={c.hide ? 'hide-' + c.hide : ''}><Skeleton h={14} w={c.skel ?? '70%'} /></td>)}</tr>
+                  <tr key={i}>{columns.map((c) => <td key={c.key} data-label={c.label} className={`${c.hide ? 'hide-' + c.hide : ''} ${c.phoneHide ? 'phone-hide' : ''}`}><Skeleton h={14} w={c.skel ?? '70%'} /></td>)}</tr>
                 ))
                 : slice.map((r, i) => (
                   <tr key={rowKey(r)} className={`${onRowClick ? 'clickable' : ''} ${rowClass?.(r) ?? ''}`} style={{ animationDelay: `${i * 22}ms` }} onClick={() => onRowClick?.(r)}>
-                    {columns.map((c) => <td key={c.key} data-label={c.label} className={c.hide ? 'hide-' + c.hide : ''} style={{ textAlign: c.align }}>{c.render ? c.render(r) : r[c.key]}</td>)}
+                    {columns.map((c) => <td key={c.key} data-label={c.label} className={`${c.hide ? 'hide-' + c.hide : ''} ${c.phoneHide ? 'phone-hide' : ''}`} style={{ textAlign: c.align, '--pmin': c.phoneMinWidth ? `${c.phoneMinWidth}px` : undefined }}>{c.render ? c.render(r) : r[c.key]}</td>)}
                   </tr>
                 ))}
             </tbody>
           </table>
           {!loading && slice.length === 0 && (
             <div className="dt-empty">
-              {empty ?? (<><SearchX size={30} /><b>No results</b><span className="muted">Try changing your search or filters.</span></>)}
+              {empty ?? (<><SearchX size={20} /><span className="muted small">No records found</span></>)}
             </div>
           )}
         </div>

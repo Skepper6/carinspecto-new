@@ -51,7 +51,7 @@ export default function MyBookings() {
 
   const cols = [
     { key: 'id', hide: 'sm', label: 'Booking ID', width: 135, render: (b) => <b className="mono">{b.id}</b> },
-    { key: 'car', label: 'Vehicle', sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.car.fuel} · {b.car.reg}</span></div> },
+    { key: 'car', label: 'Vehicle', phoneMinWidth: 200, sortValue: (b) => carName(b.car), render: (b) => <div className="cell-2"><b>{carName(b.car)}</b><span className="muted small">{b.car.fuel} · {b.car.reg}</span></div> },
     { key: 'planId', hide: 'lg', label: 'Plan', width: 110, render: (b) => planName(b.planId) },
     { key: 'date', hide: 'sm', label: 'Date & time', width: 170, render: (b) => <div className="cell-2"><b>{fmtDate(b.date)}</b><span className="muted small">{fmtTime(b.time)}</span></div> },
     { key: 'status', label: 'Status', width: 140, render: (b) => <StatusBadge status={b.status} /> },

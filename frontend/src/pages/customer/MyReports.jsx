@@ -41,7 +41,7 @@ export default function MyReports() {
 
   const cols = [
     { key: 'id', label: 'Report', width: 115, render: (r) => <b className="mono">{r.id}</b> },
-    { key: 'car', label: 'Vehicle', sortValue: (r) => carName(r.car), render: (r) => <div className="cell-2"><b>{carName(r.car)}</b><span className="muted small">{r.car.reg}</span></div> },
+    { key: 'car', label: 'Vehicle', phoneMinWidth: 200, sortValue: (r) => carName(r.car), render: (r) => <div className="cell-2"><b>{carName(r.car)}</b><span className="muted small">{r.car.reg}</span></div> },
     { key: 'date', hide: 'lg', label: 'Inspected', width: 130, render: (r) => fmtDate(r.date) },
     { key: 'plan', hide: 'md', label: 'Plan', width: 110, sortValue: (r) => r.plan.name, render: (r) => r.plan.name },
     { key: 'score', hide: 'sm', label: 'Health score', width: 170, render: (r) => { const v = verdict(r.score); return <span className="score-cell"><b>{r.score}</b><Badge tone={v.tone}>{v.label}</Badge></span>; } },

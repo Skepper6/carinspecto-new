@@ -82,7 +82,7 @@ export default function Overview() {
       </div>
 
       <div className="grid-2-1 mt">
-        <Card title={`Revenue – ${range.label}`} action={
+        <Card title={<>Revenue<span className="ttl-range"> – {range.label}</span></>} action={
           <div className="rev-filter">
             <select className="input sm" aria-label="Revenue period" value={period} onChange={(e) => setPeriod(e.target.value)}>{PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select>
             {period === 'custom' && (
@@ -99,14 +99,14 @@ export default function Overview() {
                 <defs><linearGradient id="rev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a2a8c" stopOpacity={0.35} /><stop offset="1" stopColor="#3a2a8c" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} width={52} tickFormatter={(v) => (v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v))} />
+                <YAxis tickLine={false} axisLine={false} width={36} tickFormatter={(v) => (v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v))} />
                 <Tooltip content={<ChartTip money />} />
                 <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3a2a8c" strokeWidth={2.5} fill="url(#rev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card title={`Revenue by package – ${range.label}`}>
+        <Card title={<>Revenue by package<span className="ttl-range"> – {range.label}</span></>}>
           <div className="chart sm">
             <ResponsiveContainer>
               <PieChart>

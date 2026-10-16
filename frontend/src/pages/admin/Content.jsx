@@ -51,7 +51,7 @@ export default function Content() {
           {content.faqs.length === 0 ? <EmptyState title="No FAQs yet" text="Add the first question." /> : (
             <ul className="list static">
               {content.faqs.filter((f) => `${f.q} ${f.a}`.toLowerCase().includes(fq.toLowerCase())).map((f) => (
-                <li key={f.id}>
+                <li key={f.id} className="faq-row">
                   <div className="li-main"><b>{f.q}</b><span className="muted small">{f.a}</span></div>
                   <button className="icon-btn sm" onClick={() => { setErr({}); setEdit(f); }} aria-label="Edit"><Pencil size={15} /></button>
                   <button className="icon-btn sm danger" onClick={() => delFaq(f)} aria-label="Delete"><Trash2 size={15} /></button>

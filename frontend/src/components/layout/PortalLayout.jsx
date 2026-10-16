@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarPlus, ClipboardList, FileText, UserCircle, LifeBuoy, ClipboardCheck, History, Users, UserCog,
-  Ticket, Wallet, BarChart3, FileCog, Bell, Menu, Moon, Sun, LogOut, CheckCheck, Home, ChevronsLeft,
+  Ticket, Wallet, BarChart3, FileCog, Bell, Menu, Moon, Sun, LogOut, CheckCheck, ChevronsLeft,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, markNotificationsRead, ticketState } from '../../lib/db';
-import { Logo, Avatar } from '../ui/kit';
+import { Avatar, Logo } from '../ui/kit';
 import { timeAgo } from '../../lib/format';
 
 const NAV = {
@@ -113,7 +113,7 @@ export default function PortalLayout({ role }) {
           ))}
         </nav>
         <div className="side-bottom">
-          <Link to="/" className="side-link"><Home size={18} /><span>Website</span></Link>
+          <button className="side-link" onClick={doLogout}><LogOut size={18} /><span>Logout</span></button>
           <button className="side-link" onClick={() => setCollapsed((c) => !c)}><ChevronsLeft size={18} /><span>Collapse</span></button>
         </div>
       </aside>
@@ -121,6 +121,7 @@ export default function PortalLayout({ role }) {
       <div className="main">
         <header className="topbar">
           <button className="icon-btn menu-btn" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={20} /></button>
+          <Link to="/" className="topbar-logo" aria-label="Car InspectO home"><Logo height={30} /></Link>
           <h2>{current?.[1] ?? 'Car InspectO'}</h2>
           <div className="top-actions">
             <button className="icon-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">
@@ -129,8 +130,7 @@ export default function PortalLayout({ role }) {
             <Notifications user={user} />
             <div className="user-chip">
               <Avatar name={user.name} size={34} />
-              <div className="user-meta"><b>{user.name}</b><span>{ROLE_LABEL[role]}</span></div>
-              <button className="icon-btn" onClick={doLogout} aria-label="Sign out" title="Sign out"><LogOut size={18} /></button>
+              <div className="user-meta"><b>{user.name}</b><span>{role === 'admin' ? 'Admin' : ROLE_LABEL[role]}</span></div>
             </div>
           </div>
         </header>

@@ -2,7 +2,7 @@
 :root {
   --bg: #f5f4fb; --surface: #fff; --surface-2: #faf9ff; --text: #1b1740; --muted: #67657f; --border: #e7e5f3;
   --primary: #33237f; --primary-600: #2a1d6b; --primary-50: #eeecfa; --accent: #f58220; --accent-ink: #b04f00; --accent-50: #fff1e3;
-  --green: #0d7142; --green-50: #e2f6ed; --red: #b92a2a; --red-50: #fce8e8; --amber: #9a5a05; --amber-50: #fff0dc;
+  --green: #16a34a; --green-50: #e2f6ed; --red: #b92a2a; --red-50: #fce8e8; --amber: #9a5a05; --amber-50: #fff0dc;
   --blue: #2f5fd0; --blue-50: #e8eefc; --violet: #6d28d9; --violet-50: #f0e9fd; --teal: #12706c; --teal-50: #e0f4f3;
   --shadow-sm: 0 1px 2px rgba(35, 25, 100, .06), 0 1px 3px rgba(35, 25, 100, .05);
   --shadow: 0 8px 28px -8px rgba(35, 25, 100, .18);
@@ -276,7 +276,7 @@ textarea.input { resize: vertical; min-height: 90px; }
   .grid-2, .grid-2-1, .book-grid, .detail-grid, .insp-layout, .cal-wrap, .auth-page { grid-template-columns: 1fr; } .summary, .insp-nav { position: static; }
   .insp-nav ul { flex-direction: row; overflow-x: auto; } .insp-nav li button { white-space: nowrap; }
   .plan-pick { grid-template-columns: 1fr; } .auth-hero { display: none; } .report-top { grid-template-columns: 1fr; justify-items: center; text-align: center; } .report-top .kv { grid-template-columns: repeat(3, 1fr); width: 100%; }
-  .home-nav nav { position: fixed; top: 88px; left: 0; right: 0; flex-direction: column; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; transform: translateY(-130%); transition: transform .35s var(--ease); z-index: -1; } .home-nav nav.open { transform: none; } .menu-toggle { display: inline-grid; } .home-nav .hide-sm { display: none; }
+  .home-nav nav { position: fixed; top: 88px; left: 0; right: 0; flex-direction: column; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; transform: translateY(-130%); visibility: hidden; opacity: 0; transition: transform .35s var(--ease), opacity .35s var(--ease), visibility .35s; z-index: -1; } .home-nav nav.open { transform: none; visibility: visible; opacity: 1; } .menu-toggle { display: inline-grid; } .home-nav .hide-sm { display: none; }
   .grid-3 { grid-template-columns: 1fr; } .section { padding: 56px 0; } .q-main { grid-template-columns: 1fr; } .pf { justify-self: start; }
 }
 @media (max-width: 640px) {
@@ -623,7 +623,7 @@ h4 { font-size: 14px; font-weight: 600; }
 }
 .pick .pick-total { display: block; margin-top: 2px; } .pick .pick-total b { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--text); }
 .pick b small { font-size: 12px; font-weight: 500; margin-left: 4px; }
-.grid-6 .stat-value { font-size: 22px; white-space: nowrap; } .grid-6 .stat-hint { line-height: 1.35; }
+.grid-6 .stat-value { font-size: 22px; white-space: nowrap; margin: 10px 0; } .grid-6 .stat-hint { line-height: 1.35; }
 .stat-value { white-space: nowrap; }
 @media (max-width: 520px) { .table td .cell-2 { max-width: 150px; } .table td { max-width: 170px; } }
 @media (max-width: 640px) { .hero-cta a, .hero-cta .btn { width: 100%; } .hero-cta .btn-ghost { justify-content: center; } }
@@ -843,7 +843,7 @@ select.input { border-radius: var(--radius-md); }
 .fbar-pop { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 300px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 16px; display: flex; flex-direction: column; gap: 14px; transform-origin: top right; animation: fbarPopIn .22s cubic-bezier(.22, 1, .36, 1); }
 @keyframes fbarPopIn { from { opacity: 0; transform: translateY(-6px) scale(.96); } }
 .fbar-pop-grid { display: flex; flex-direction: column; gap: 12px; }
-.fbar-pop-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.fbar-pop-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 12px; border-top: 0; }
 @media (max-width: 640px) {
   .fbar-pop { width: 280px; max-width: calc(100vw - 24px); }
   /* .fbar now only wraps the funnel trigger + its popover (the old inline
@@ -900,32 +900,25 @@ select.input { border-radius: var(--radius-md); }
 /* a modal that is opening or closing must never swallow clicks meant for the layer above or below it */
 .modal-root:not(.in) { pointer-events: none; }
 
-/* ---- phones: tables become stacked cards (every column stays visible, nothing is cut off) ---- */
+/* phones: tables keep the desktop table layout; the table scrolls sideways and the list scrolls up and down inside its card */
 @media (max-width: 640px) {
   .page.fill { height: auto; min-height: 0; }
   .dt { flex: none; }
-  .dt-card { flex: none; min-height: 0 !important; background: transparent; border: 0; box-shadow: none; overflow: visible; }
+  .dt-card { flex: none; min-height: 150px !important; max-height: calc(100dvh - 300px); overflow: auto; -webkit-overflow-scrolling: touch; }
   .dt-scroll { height: auto; overflow: visible; }
-  .table, .table tbody { display: block; width: 100%; }
-  .table thead { display: none; }
-  .table tbody tr { display: block; margin-bottom: 10px; padding: 6px 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: none; }
-  .table tbody tr:last-child { margin-bottom: 0; }
-  .table tbody tr.row-attn { box-shadow: inset 4px 0 0 var(--accent); }
-  .table tr.row-attn td:first-child { box-shadow: none; }
-  .table tbody td, .table tbody td.hide-sm, .table tbody td.hide-md, .table tbody td.hide-lg, .table tbody td.hide-xl {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px; height: auto; min-height: 40px; max-width: none; width: auto !important;
-    padding: 8px 14px; border-bottom: 1px solid var(--border); white-space: normal; overflow: visible; text-align: right !important;
-  }
-  .table tbody tr:last-child td { border-bottom: 1px solid var(--border); }
-  .table tbody tr td:last-child { border-bottom: 0; }
-  .table tbody td:empty { display: none; }
-  .table tbody td::before { content: attr(data-label); flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); text-align: left; }
-  .table tbody td[data-label=""]::before { display: none; }
-  .table tbody td[data-label=""] { justify-content: flex-end; }
-  .table tbody td .cell-2, .table td .cell-2, .cell-2.lm { max-width: none; min-width: 0; align-items: flex-end; text-align: right; }
-  .table tbody td .cell-2 > * { white-space: normal; }
-  .table .row-actions { flex-wrap: wrap; justify-content: flex-end; }
-  .dt-empty { position: static; padding: 32px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+  /* the table is only as wide as its visible columns need (left aligned, no stretching or squeezing); when there are too many columns for the card, the card scrolls sideways */
+  .table { width: auto; min-width: 0; }
+  .table th, .table td { width: auto !important; min-width: var(--pmin, 140px); }
+  .table th { white-space: nowrap; }
+  /* phones show the full text of every cell: no cut-off with "..." and no fixed row height; text wraps inside its column */
+  .table td, .table td .cell-2, .table td .cell-2 > *, .table td span, .table td b { max-width: none !important; overflow: visible !important; text-overflow: clip !important; white-space: normal !important; }
+  .table td { height: auto; min-height: var(--row-h, 56px); padding: 10px 12px; vertical-align: middle; }
+  /* phones show every column: the desktop rules that hide columns at narrower widths are switched off here */
+  .table .hide-sm, .table .hide-md, .table .hide-lg, .table .hide-xl,
+  .table th.hide-sm, .table th.hide-md, .table th.hide-lg, .table th.hide-xl,
+  .table td.hide-sm, .table td.hide-md, .table td.hide-lg, .table td.hide-xl { display: table-cell !important; }
+  /* a column marked phoneHide (the City/Location column in the inspector order table) stays hidden on phones */
+  .table th.phone-hide, .table td.phone-hide { display: none !important; }
 }
 @media (max-width: 640px) { .row-between.mb { flex-wrap: wrap; align-items: flex-start; } .row-between.mb > div { flex: 1 1 100%; } }
 /* phones: notifications appear under the top bar so they never cover the Next / Continue / Pay buttons */
@@ -1071,6 +1064,10 @@ select.input { border-radius: var(--radius-md); }
 /* period picker inside the revenue card (drives the chart and the donut) */
 .rev-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); }
 .rev-filter .input { min-width: 150px; }
+/* desktop: breathing room between the period dropdown, the From/To labels and their date fields */
+.rev-filter { gap: 14px; }
+.rev-date { display: inline-flex; align-items: center; gap: 8px; }
+.rev-date span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 
 /* icon / button at the right end of an input: centred on the input box, whatever the label or error text above and below */
 .input-wrap { position: relative; display: flex; align-items: center; }
@@ -1090,7 +1087,7 @@ select.input { border-radius: var(--radius-md); }
 /* mobile: page and top bar padding (kept last so it overrides the desktop and tablet rules above) */
 @media (max-width: 767px) {
   .content { padding: 28px 15px 44px; }
-  .topbar { padding: 32px 0px 32px; }
+  .topbar { padding: 32px 7px 32px; }
 }
 
 /* status tabs: a dropdown on phones instead of a horizontally scrolling bar */
@@ -1112,15 +1109,145 @@ select.input { border-radius: var(--radius-md); }
   .rev-date span { font-size: 12px; font-weight: 600; color: var(--muted); }
 }
 
+/* revenue cards on phones: the range after the title is hidden (the dropdown already shows it), the title is centred on the dropdown, and the chart uses the card width */
+@media (max-width: 767px) {
+  .ttl-range { display: none; }
+}
+@media (max-width: 640px) {
+  .card-head:has(> .rev-filter) { align-items: center; }
+  .card-body:has(> .chart) { padding: 14px 20px; }
+  .chart { margin: 0; }
+}
+
+/* phones: the page title in the top bar is hidden, because each page shows its own heading below (all three dashboards) */
+@media (max-width: 640px) {
+  .topbar h2 { visibility: hidden; }
+}
+
+/* phones: space between the page heading and its action buttons (Export, Add, etc.) on every page */
+@media (max-width: 640px) {
+  .page-actions { margin-top: 20px; }
+}
+
+/* phone popups that slide up from the bottom: rounded at the top only, square at the bottom */
+@media (max-width: 640px) {
+  .modal { border-radius: 20px 20px 0 0; }
+}
+
 /* phone notifications: the panel hangs straight off the top bar, edge to edge with no gap on the sides or top */
 @media (max-width: 640px) {
   .popover { position: fixed; top: 64px; left: 0; right: 0; width: auto; max-width: none; border-top: 0; border-radius: 0 0 16px 16px; }
 }
+/* charts: no focus box or border when a chart is clicked (all dashboards) */
+.recharts-wrapper, .recharts-wrapper:focus, .recharts-wrapper:focus-visible,
+.recharts-wrapper *:focus, .recharts-wrapper *:focus-visible, .recharts-surface:focus, .recharts-surface:focus-visible,
+.chart *:focus, .chart *:focus-visible { outline: none !important; box-shadow: none; }
 
-/* phone tables: a sort dropdown (the column headers are hidden on phones), and the list scrolls inside its own box */
-.dt-sort { display: none; }
+/* admin name under the user name in the top bar (desktop) */
+.user-meta span { font-size: 9.5px; color: #000; margin-top: 4px; }
+
+/* the page title in the top bar is hidden on every page (each page shows its own heading) */
+.topbar h2 { visibility: hidden; }
+
+/* top bar: more room between the theme, bell, user and sign-out items (desktop and phone) */
+.top-actions { gap: 14px; }
+.topbar { gap: 14px; }
+
+/* phones: the search box and the filter button sit on one row (all tables and lists) */
 @media (max-width: 640px) {
-  .dt-sort { display: block; margin-bottom: 10px; }
-  .dt-sort select { width: 100%; height: 44px; font-family: inherit; font-size: 13px; font-weight: 500; }
-  .dt-card { max-height: calc(100dvh - 300px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .toolbar .filters { flex-direction: row; flex-wrap: nowrap; align-items: center; width: 100%; }
+  .toolbar .filters .search { flex: 1 1 auto; width: auto; min-width: 0; max-width: none; }
+  .toolbar .filters .fbar { width: auto; flex: none; }
+}
+
+/* phones: Export and the status dropdown share one row; the search box and filter button share the row below (all dashboards) */
+@media (max-width: 640px) {
+  .page:has(> .page-head) { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; row-gap: 0; align-items: center; }
+  .page > .page-head { display: contents; }
+  .page > .page-head > div:first-child { grid-column: 1 / -1; margin-bottom: 0; }
+  .page > .page-head > .page-actions { grid-column: 2; grid-row: 2; display: flex; flex-direction: row; gap: 10px; justify-content: flex-end; margin-top: 20px; align-self: center; }
+  .page > .page-head > .page-actions .btn { width: auto; }
+  .page > .toolbar > .tabs-select { margin-top: 20px; }
+  .page > .toolbar > .filters { grid-column: 1 / -1; margin-top: 12px; }
+  .page > .page-head > .page-actions .btn-outline { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .page > .toolbar > .tabs-select { height: 44px; }
+  .toolbar .filters { gap: 10px; }
+  .toolbar .filters .search { height: 44px; }
+  .toolbar .filters .fbar-trigger { width: 44px; height: 44px; }
+  .page > .page-head > .page-actions .btn-outline > span { display: none; }
+  .page > .toolbar:not(:has(> .rev-filter)) { display: contents; }
+  .page > .toolbar > .tabs-select { grid-column: 1 / -1; border-radius: 11px; }
+  .page:has(> .page-head > .page-actions) > .toolbar > .tabs-select { grid-column: 1; grid-row: 2; }
+  .page > .toolbar > .filters { grid-column: 1 / -1; }
+  .page > :not(.page-head):not(.toolbar) { grid-column: 1 / -1; }
+  .page > .dt { margin-top: 20px; }
+}
+
+/* phones: a filter button that sits on its own in a toolbar goes to the right side (all dashboards) */
+@media (max-width: 640px) {
+  .toolbar > .fbar { align-self: flex-end; width: auto; }
+}
+
+/* phones: 20px between the filter button on the overview page and the cards below it */
+@media (max-width: 640px) {
+  .page > .toolbar > .fbar { margin-bottom: 20px; }
+}
+
+/* phones: 20px between the page description and the stat cards under it (Support tickets and similar pages) */
+@media (max-width: 640px) {
+  .page:has(> .page-head) > .grid-4, .page:has(> .page-head) > .grid-6 { margin-top: 20px; }
+}
+
+
+/* Analytics period row: dropdown and filter button on one row (vertically centred); custom dates From and To sit on the row below, with a wide gap */
+.an-toolbar { justify-content: flex-end; }
+.an-row { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-left: auto; }
+.an-period { width: 150px; }
+.an-dates { display: flex; align-items: center; gap: 14px; }
+.an-dates .rev-date { display: inline-flex; align-items: center; gap: 8px; }
+.an-dates .rev-date span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+@media (max-width: 640px) {
+  .page > .toolbar.an-toolbar { display: block !important; }
+  .page > .an-toolbar { grid-column: 1 / -1; }
+  .an-toolbar { margin-top: 20px; margin-bottom: 20px; }
+  .an-row { flex-wrap: wrap; justify-content: flex-start; gap: 10px; width: 100%; margin-left: 0; }
+  .an-period { order: 1; flex: 1 1 0; min-width: 0; width: auto; height: 44px; border-radius: 11px; }
+  .an-row > .fbar { order: 2; flex: none; width: auto; margin: 0; }
+  .an-row .fbar-trigger { width: 44px; height: 44px; }
+  .an-dates { order: 3; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  .an-dates .rev-date { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
+  .an-dates .rev-date .input { width: 100%; min-width: 0; height: 44px; box-sizing: border-box; }
+}
+
+/* phones: 20px between the page description and the first card under it (profile and similar pages) */
+@media (max-width: 640px) {
+  .page:has(> .page-head) > .card:first-of-type { margin-top: 20px; }
+}
+
+/* phones: 20px between the page heading and whatever comes first under it (profile card wrapper, stat cards, cards) */
+@media (max-width: 640px) {
+  .page > .page-head + *:not(.toolbar) { margin-top: 20px; }
+}
+
+/* phones: a filter button that is the only control in its toolbar (e.g. Operations overview) sits on the right, in its own grid column */
+@media (max-width: 640px) {
+  .page > .toolbar:not(:has(> .tabs-select)):not(:has(> .filters)) > .fbar { grid-column: 2; justify-self: end; }
+}
+
+/* phones: list rows (e.g. Latest orders) stack like the reference: avatar, car and details, then amount, then status */
+@media (max-width: 640px) {
+  .list li { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 8px; padding: 16px; }
+  .list li .li-main { width: 100%; }
+}
+/* phones: each list row is its own white card with a border; the text block does not stretch */
+@media (max-width: 640px) {
+  .list li { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin: 10px 12px; }
+  .list li:last-child { border-bottom: 1px solid var(--border); }
+  .list li .li-main { flex: none; }
+}
+/* phones: FAQ rows keep the text and the edit and delete buttons on one line, with space between them */
+@media (max-width: 640px) {
+  .list li.faq-row { flex-direction: row; align-items: center; gap: 12px; }
+  .list li.faq-row .li-main { flex: 1 1 auto; min-width: 0; }
+  .list li.faq-row .icon-btn { flex: none; }
 }

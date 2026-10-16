@@ -32,12 +32,12 @@ export default function Tickets() {
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
   const cols = [
-    { key: 'id', hide: 'sm', label: 'Ticket', width: 115, render: (t) => <span className="tk-id">{t.st.unseen && <i className="new-dot" />}<b className="mono">{t.id}</b></span> },
-    { key: 'subject', label: 'Subject', render: (t) => <div className="cell-2"><b className="tk-title"><span>{t.subject}</span>{t.st.unseen && <span className="new-tag">New</span>}</b><span className="muted small">{t.category}{t.category === 'Other' && t.categoryDetail ? ` · ${t.categoryDetail}` : ''}{t.bookingId ? ` · ${t.bookingId}` : ''}</span></div> },
-    { key: 'customer', hide: 'lg', label: 'Customer', width: 170, sortValue: (t) => t.customer?.name, render: (t) => <span className="with-av"><Avatar name={t.customer?.name} size={28} />{t.customer?.name}</span> },
-    { key: 'priority', hide: 'xl', label: 'Priority', width: 100, sortValue: (t) => ({ high: 0, medium: 1, low: 2 }[t.priority]), render: (t) => <Badge tone={PRIORITY_TONE[t.priority]}>{t.priority}</Badge> },
+    { key: 'id', hide: 'sm', label: 'Ticket', phoneMinWidth: 90, width: 115, render: (t) => <span className="tk-id">{t.st.unseen && <i className="new-dot" />}<b className="mono">{t.id}</b></span> },
+    { key: 'subject', label: 'Subject', phoneMinWidth: 260, render: (t) => <div className="cell-2"><b className="tk-title"><span>{t.subject}</span>{t.st.unseen && <span className="new-tag">New</span>}</b><span className="muted small">{t.category}{t.category === 'Other' && t.categoryDetail ? ` · ${t.categoryDetail}` : ''}{t.bookingId ? ` · ${t.bookingId}` : ''}</span></div> },
+    { key: 'customer', hide: 'lg', label: 'Customer', phoneMinWidth: 220, width: 170, sortValue: (t) => t.customer?.name, render: (t) => <span className="with-av"><Avatar name={t.customer?.name} size={28} />{t.customer?.name}</span> },
+    { key: 'priority', hide: 'xl', label: 'Priority', phoneMinWidth: 90, width: 100, sortValue: (t) => ({ high: 0, medium: 1, low: 2 }[t.priority]), render: (t) => <Badge tone={PRIORITY_TONE[t.priority]}>{t.priority}</Badge> },
     { key: 'status', label: 'Status', width: 175, render: (t) => (t.st.awaiting ? <Badge tone="red" dot>Awaiting reply</Badge> : <Badge tone={TICKET_TONE[t.status]} dot>{TICKET_LABEL[t.status]}</Badge>) },
-    { key: 'last', hide: 'md', label: 'Last message', width: 240, sortValue: (t) => t.st.last?.at ?? '', render: (t) => (
+    { key: 'last', hide: 'md', label: 'Last message', phoneMinWidth: 260, width: 240, sortValue: (t) => t.st.last?.at ?? '', render: (t) => (
       <div className="cell-2 lm"><span className={t.st.awaiting ? 'await' : ''}>{t.st.last?.text || (t.st.last?.attachments?.length ? '📎 Attachment' : '—')}</span><span className="muted small">{t.st.last?.from === 'admin' ? 'You' : 'Customer'} · {t.st.last ? timeAgo(t.st.last.at) : ''}</span></div>
     ) },
       ];
