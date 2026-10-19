@@ -1268,3 +1268,15 @@ select.input { border-radius: var(--radius-md); }
   .modal-foot:has(.resolve-btn) { flex-wrap: nowrap; justify-content: flex-end; padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .modal-foot .resolve-btn { flex: 0 0 auto; height: 34px; padding: 0 12px; font-size: 13px; }
 }
+
+/* home page, phones: the menu is a full-screen brand-coloured layer with the links centred both ways (no white panel, no page visible behind it) */
+.nav-signin { display: none; }
+@media (max-width: 900px) {
+  .home-nav nav { position: fixed; inset: 0; width: 100%; height: 100dvh; padding: 88px 24px 40px; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(145deg, #2a1c6e, #3a2a8c 55%, #5a3fc0); border: 0; overflow: hidden; transform: none; opacity: 0; visibility: hidden; transition: opacity .3s var(--ease), visibility .3s; }
+  .home-nav nav.open { opacity: 1; visibility: visible; }
+  .home-nav nav button, .home-nav nav .nav-signin { width: min(100%, 320px); padding: 14px 20px; border-radius: 14px; background: none; color: #fff; font: 700 21px/1.25 var(--font); text-align: center; text-decoration: none; }
+  .home-nav nav button:hover, .home-nav nav button:active, .home-nav nav .nav-signin:hover, .home-nav nav .nav-signin:active { background: rgba(255, 255, 255, .14); color: #ffb25e; }
+  .home-nav nav .nav-signin { display: block; margin-top: 14px; border: 1.5px solid rgba(255, 255, 255, .4); font-size: 18px; }
+  .home-nav.menu-open { background: none; backdrop-filter: none; border-bottom: 0; }
+  .home-nav.menu-open .icon-btn { color: #fff; }
+}

@@ -58,16 +58,31 @@ export default function Home() {
     return () => window.removeEventListener('scroll', on);
   }, []);
 
-  const links = [['how', 'How it works'], ['checks', 'What we check'], ['plans', 'Plans'], ['faq', 'FAQ']];
+  // the phone menu is a full-screen layer: lock the page behind it, close on Escape or a tap anywhere outside the links
+  useEffect(() => {
+    if (!menu) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && setMenu(false);
+    const onDown = (e) => { if (!e.target.closest('.home-nav nav button, .home-nav nav a, .menu-toggle')) setMenu(false); };
+    const onSize = () => window.innerWidth > 900 && setMenu(false);
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    window.addEventListener('resize', onSize);
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onDown); window.removeEventListener('resize', onSize); };
+  }, [menu]);
+
+  const links = [['how','How it works'], ['checks', 'What we check'], ['plans', 'Plans'], ['faq', 'FAQ']];
   const scrollTo = (id) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
   return (
     <div className="home">
-      <header className={`home-nav ${scrolled ? 'scrolled' : ''}`}>
+      <header className={`home-nav ${scrolled ? 'scrolled' : ''} ${menu ? 'menu-open' : ''}`}>
         <div className="wrap row">
           <Link to="/" className="logo-chip"><Logo height={58} /></Link>
           <nav className={menu ? 'open' : ''}>
             {links.map(([id, l]) => <button key={id} onClick={() => scrollTo(id)}>{l}</button>)}
+            {!user && <Link to="/login" className="nav-signin" onClick={() => setMenu(false)}>Sign in</Link>}
           </nav>
           <div className="nav-actions">
             <button className="icon-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</button>
