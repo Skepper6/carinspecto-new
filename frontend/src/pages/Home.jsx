@@ -58,18 +58,16 @@ export default function Home() {
     return () => window.removeEventListener('scroll', on);
   }, []);
 
-  // the phone menu is a full-screen layer: lock the page behind it, close on Escape or a tap anywhere outside the links
+  // the phone menu covers the page: lock the page behind it; it closes with the X, a link, or Escape
   useEffect(() => {
     if (!menu) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e) => e.key === 'Escape' && setMenu(false);
-    const onDown = (e) => { if (!e.target.closest('.home-nav nav button, .home-nav nav a, .menu-toggle')) setMenu(false); };
     const onSize = () => window.innerWidth > 900 && setMenu(false);
     document.addEventListener('keydown', onKey);
-    document.addEventListener('pointerdown', onDown);
     window.addEventListener('resize', onSize);
-    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onDown); window.removeEventListener('resize', onSize); };
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onSize); };
   }, [menu]);
 
   const links = [['how','How it works'], ['checks', 'What we check'], ['plans', 'Plans'], ['faq', 'FAQ']];
