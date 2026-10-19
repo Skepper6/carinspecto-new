@@ -122,8 +122,8 @@ export default function Login({ signup: signupMode = false }) {
 
       <section className="auth-panel">
         <form className="auth-card" onSubmit={submit} noValidate>
-          <Tabs tabs={Object.entries(PORTALS).map(([value, p]) => ({ value, label: p.label }))} value={role}
-            onChange={(r) => { setRole(r); setErrors({}); if (r !== 'customer') setMode('login'); }} />
+          <div className="login-role"><Tabs tabs={Object.entries(PORTALS).map(([value, p]) => ({ value, label: p.label }))} value={role}
+            onChange={(r) => { setRole(r); setErrors({}); if (r !== 'customer') setMode('login'); }} /></div>
           <div className="auth-title" key={title}>
             <h2>{title}</h2>
             <p className="muted">{sub}</p>

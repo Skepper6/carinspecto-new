@@ -1281,3 +1281,6 @@ select.input { border-radius: var(--radius-md); }
   .home-nav nav .nav-signin { display: inline-flex; align-items: center; justify-content: center; width: auto; margin-top: 16px; padding: 8px 26px; border-radius: 10px; border: 1.5px solid rgba(255, 255, 255, .45); color: #fff; font: 700 14px/1.2 var(--font); text-decoration: none; }
   .home-nav nav .nav-signin:hover, .home-nav nav .nav-signin:active { background: rgba(255, 255, 255, .14); color: #ffb25e; }
 }
+
+/* phones: the sign-in page shows only the form for the chosen portal; admin and inspector reach theirs from the home page links */
+@media (max-width: 640px) { .login-role { display: none; } }
