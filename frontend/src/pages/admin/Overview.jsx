@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, Users, ClipboardList, Hourglass, CheckCircle2, UserCog, ArrowRight, Sparkles, AlertTriangle } from 'lucide-react';
+import { Wallet, Users, ClipboardList, Hourglass, CheckCircle2, UserCog, ArrowRight, Sparkles, AlertTriangle, UserPlus } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useDB, assignInspector, getState } from '../../lib/db';
 import { useUI } from '../../context/UIContext';
@@ -139,7 +139,7 @@ export default function Overview() {
               {unassigned.slice(0, 4).map((b) => (
                 <li key={b.id}>
                   <div><b>{b.id} · {carName(b.car)}</b><span className="muted small">{fmtDate(b.date)} · {b.location.city}</span></div>
-                  <div className="row-actions"><Button size="sm" variant="ghost" icon={Sparkles} onClick={() => autoAssign(b)}>Auto</Button><Button size="sm" variant="outline" onClick={() => setAssign(b)}>Assign</Button></div>
+                  <div className="row-actions"><Button size="sm" variant="ghost" icon={Sparkles} onClick={() => autoAssign(b)}>Auto</Button><Button size="sm" variant="outline" icon={UserPlus} onClick={() => setAssign(b)}>Assign</Button></div>
                 </li>
               ))}
             </ul>

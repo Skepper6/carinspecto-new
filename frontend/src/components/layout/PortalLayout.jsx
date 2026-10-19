@@ -114,7 +114,7 @@ export default function PortalLayout({ role }) {
         </nav>
         <div className="side-bottom">
           <button className="side-link" onClick={doLogout}><LogOut size={18} /><span>Logout</span></button>
-          <button className="side-link" onClick={() => setCollapsed((c) => !c)}><ChevronsLeft size={18} /><span>Collapse</span></button>
+          <button className="side-link" onClick={() => (window.matchMedia('(max-width: 900px)').matches ? setOpen(false) : setCollapsed((c) => !c))}><ChevronsLeft size={18} /><span>Collapse</span></button>
         </div>
       </aside>
 

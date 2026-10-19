@@ -58,7 +58,7 @@ export default function Tickets() {
       <DataTable columns={cols} rows={rows} loading={loading} onRowClick={(t) => setOpen(t.id)} rowClass={(t) => (t.st.unseen ? 'row-attn' : '')} resetKey={tab + q + flt.key} empty={<><Ticket size={30} /><b>No tickets</b></>} />
 
       <Modal open={!!cur} onClose={() => setOpen(null)} size="md" title={cur?.subject} subtitle={cur && `${cur.id} · ${cur.customer?.name} · ${cur.category}`}
-        footer={cur && cur.status !== 'resolved' && <Button variant="outline" icon={CheckCheck} onClick={() => guard(setTicketStatus(cur.id, 'resolved'), `${cur.id} marked as resolved.`)}>Mark resolved</Button>}>
+        footer={cur && cur.status !== 'resolved' && <Button size="sm" variant="outline" className="resolve-btn" icon={CheckCheck} onClick={() => guard(setTicketStatus(cur.id, 'resolved'), `${cur.id} marked as resolved.`)}>Mark resolved</Button>}>
         {cur && (
           <>
             <div className="row-between mb"><Badge tone={TICKET_TONE[cur.status]} dot>{TICKET_LABEL[cur.status]}</Badge><Badge tone={PRIORITY_TONE[cur.priority]}>{cur.priority} priority</Badge></div>
