@@ -48,7 +48,7 @@ export default function NewBooking() {
   const [loc, setLoc] = useState(() => ({ ...EMPTY_ADDRESS, phone: me.phone ?? '', ...(me.addresses?.[0] ?? {}), lat: null, lng: null }));
   const [saveAddr, setSaveAddr] = useState(!me.addresses?.length);
   const confirmRef = useRef(null);
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(() => { const n = new Date(); return n.getHours() >= 17 ? isoDate(new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1)) : isoDate(); });
   const [time, setTime] = useState('');
   const [purpose, setPurpose] = useState(INSPECTION_REASONS[0]);
   const [other, setOther] = useState({ reason: '', fuel: '', type: '' });

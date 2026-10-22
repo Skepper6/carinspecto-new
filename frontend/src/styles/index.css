@@ -1284,3 +1284,40 @@ select.input { border-radius: var(--radius-md); }
 
 /* phones: the sign-in page shows only the form for the chosen portal; admin and inspector reach theirs from the home page links */
 @media (max-width: 640px) { .login-role { display: none; } }
+
+/* ---- layout polish (all browsers) ---- */
+/* the top-bar logo only shows when the sidebar (with its own logo) is hidden */
+.topbar-logo { display: none; }
+@media (max-width: 900px) { .topbar-logo { display: inline-flex; } }
+
+/* top bar side padding equals the page padding, and the menu icon lines up with the content's left edge */
+@media (max-width: 900px) {
+  .topbar { padding-left: var(--gutter); padding-right: var(--gutter); }
+  .menu-btn { margin-left: -9px; }
+  .top-actions { margin-left: auto; }
+}
+@media (max-width: 767px) { .topbar { padding-top: 0; padding-bottom: 0; height: 64px; } .content { padding-left: var(--gutter); padding-right: var(--gutter); } }
+
+/* score column: badge is never cut with "..." */
+.table td:has(> .score-cell) { overflow: visible; text-overflow: clip; }
+.score-cell { white-space: nowrap; }
+
+/* tablets: the table keeps a readable width and scrolls sideways inside its card instead of being clipped */
+@media (min-width: 641px) and (max-width: 1180px) {
+  .table { min-width: 820px; }
+  .dt-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+}
+
+/* date inputs look the same in Safari, iOS and Chrome/Edge */
+input[type='date'], input[type='time'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; box-sizing: border-box; font-family: inherit; color: var(--text); background-color: var(--surface); line-height: 1.2; }
+input[type='date'].input { width: 100%; min-height: var(--ctl-h, 42px); }
+input[type='date'].input.sm { min-height: 34px; }
+input[type='date']::-webkit-date-and-time-value { text-align: left; margin: 0; min-height: 1.2em; -webkit-min-logical-width: calc(100% - 8px); }
+input[type='date']::-webkit-datetime-edit { padding: 0; }
+input[type='date']::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .7; }
+.fdate { display: flex; flex-direction: column; gap: 4px; min-width: 0; } .fdate .input { width: 100%; }
+.rev-date .input[type='date'] { min-width: 140px; }
+
+/* home footer: copyright centred */
+.home-foot .foot-base { text-align: center; }
