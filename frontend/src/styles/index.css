@@ -1385,3 +1385,28 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .photo .selbtn, .photo-grid .selbtn { width: 100%; }
 .selbtn.tabs-select { display: none; }
 @media (max-width: 640px) { .selbtn.tabs-select { display: flex; } }
+
+/* dashboards (customer, inspector, admin): cards have no drop shadow, just the border */
+.shell .card, .shell .stat, .shell .stat:hover, .shell .dt-card { box-shadow: none; }
+
+/* tablets and desktop (portrait + landscape): status tabs on the left, search + filter on the right, always one row.
+   When the tabs do not fit they scroll sideways inside their own space instead of pushing the search to a second line */
+@media (min-width: 641px) {
+  .toolbar:not(.an-toolbar) { flex-wrap: nowrap; align-items: center; gap: 16px; }
+  .toolbar:not(.an-toolbar) > .tabs { flex: 1 1 auto; min-width: 0; width: auto; max-width: max-content; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; -ms-overflow-style: none; }
+  .toolbar:not(.an-toolbar) > .tabs::-webkit-scrollbar { display: none; }
+  .toolbar:not(.an-toolbar) > .tabs button { flex: none; white-space: nowrap; }
+  .toolbar:not(.an-toolbar) .filters { flex: 0 0 auto; width: auto; margin-left: auto; flex-wrap: nowrap; justify-content: flex-end; }
+  .toolbar:not(.an-toolbar) .filters .search { min-width: 150px; width: 260px; flex: 0 1 260px; max-width: none; }
+  .toolbar:not(.an-toolbar) .filters .fbar { flex: none; }
+}
+
+/* long tab sets (5 or more tabs, e.g. Orders, Support tickets) do not fit next to the search on tablets / small laptops:
+   there the tabs keep their own full row and search + filter go on the row below, left aligned. Short tab sets stay on one row. */
+@media (min-width: 641px) and (max-width: 1399px) {
+  .toolbar:not(.an-toolbar):has(> .tabs > button:nth-child(5)) { flex-wrap: wrap; row-gap: 12px; }
+  .toolbar:not(.an-toolbar):has(> .tabs > button:nth-child(5)) > .tabs { flex: 0 1 auto; max-width: 100%; }
+  .toolbar:not(.an-toolbar):has(> .tabs > button:nth-child(5)) .filters { flex: 1 1 100%; width: 100%; margin-left: 0; justify-content: flex-start; }
+  .toolbar:not(.an-toolbar):has(> .tabs > button:nth-child(5)) .filters .search { flex: 0 1 360px; width: 360px; }
+}
+.shell .pick, .shell .pick:hover, .shell .plan, .shell .plan:hover, .shell .plan.popular, .shell .cat, .shell .cat:hover, .shell .strip-item, .shell .report-card, .shell .report-cover, .shell .faq-item.open { box-shadow: none; }
