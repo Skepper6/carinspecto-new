@@ -13,7 +13,7 @@ import {
 import { PHOTO_CATEGORIES, COVER } from '../../lib/constants';
 import { compressImage, checkUpload, PHOTO_ACCEPT, DOC_ACCEPT } from '../../lib/image';
 import { carName, fmtDate, fmtTime, uid } from '../../lib/format';
-import { Badge, EmptyState, PassFail, ScoreRing, StatusBadge, Textarea } from '../../components/ui/kit';
+import { SelectBox, Badge, EmptyState, PassFail, ScoreRing, StatusBadge, Textarea } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import PlateMaskModal from '../../components/shared/PlateMaskModal';
@@ -71,12 +71,12 @@ function MonthPicker({ value, onChange }) {
   const pick = (nm, ny) => { setMm(nm); setYy(ny); if (nm && ny) onChange(`${nm}-${ny}`); };
   return (
     <div className="month-pick">
-      <select className="input" aria-label="Month" value={mm} onChange={(e) => pick(e.target.value, yy)}>
+      <SelectBox className="input" aria-label="Month" value={mm} onChange={(e) => pick(e.target.value, yy)}>
         <option value="">Month</option>{MONTH_NAMES.map((n, i) => <option key={n} value={String(i + 1).padStart(2, '0')}>{n}</option>)}
-      </select>
-      <select className="input" aria-label="Year" value={yy} onChange={(e) => pick(mm, e.target.value)}>
+      </SelectBox>
+      <SelectBox className="input" aria-label="Year" value={yy} onChange={(e) => pick(mm, e.target.value)}>
         <option value="">Year</option>{years.map((y) => <option key={y}>{y}</option>)}
-      </select>
+      </SelectBox>
     </div>
   );
 }
@@ -103,18 +103,18 @@ function ItemRow({ item, cell, onChange, toast }) {
         <span className="q-label">{item.no ? <em className="q-no">{item.no}</em> : null}{item.label}</span>
         {item.type === 'pf' && <PassFail value={cell?.v} onChange={(v) => set({ v })} />}
         {item.type === 'select' && (
-          <select className="input" value={cell?.v ?? ''} onChange={(e) => set({ v: e.target.value || undefined })}>
+          <SelectBox className="input" value={cell?.v ?? ''} onChange={(e) => set({ v: e.target.value || undefined })}>
             <option value="">Select</option>{item.options.map((o) => <option key={o}>{o}</option>)}
-          </select>
+          </SelectBox>
         )}
         {item.type === 'select' && cell?.v === 'Other' && <input className="input" autoFocus placeholder="Please specify" value={cell?.other ?? ''} onChange={(e) => set({ other: e.target.value })} style={{ gridColumn: '2' }} />}
         {item.type === 'number' && <input className="input" type="number" min="0" step="any" value={cell?.v ?? ''} onChange={(e) => set({ v: e.target.value === '' ? undefined : Number(e.target.value) })} />}
         {item.type === 'month' && <MonthPicker value={cell?.v} onChange={(v) => set({ v })} />}
         {item.type === 'text' && <input className="input" value={cell?.v ?? ''} placeholder={item.placeholder} onChange={(e) => set({ v: e.target.value })} />}
         {item.type === 'panel' && (
-          <select className="input" value={cell?.v ?? ''} onChange={(e) => set({ v: e.target.value || undefined, defects: cell?.defects ?? [] })}>
+          <SelectBox className="input" value={cell?.v ?? ''} onChange={(e) => set({ v: e.target.value || undefined, defects: cell?.defects ?? [] })}>
             <option value="">Select</option>{PAINT_STATES.map((o) => <option key={o}>{o}</option>)}
-          </select>
+          </SelectBox>
         )}
         {item.type === 'multi' && (
           <div className="chips tight">
@@ -373,7 +373,7 @@ function InspectionFormInner({ id }) {
                           {p.category !== COVER && <button title="Use as cover" aria-label="Use as cover" onClick={() => makeCover(p)}><Star size={14} /></button>}
                           <button className="danger" title="Delete" aria-label="Delete photo" onClick={() => { setPhotos(photos.filter((x) => x.id !== p.id)); setDirty(true); }}><Trash2 size={14} /></button>
                         </div>
-                        <select value={p.category} onChange={(e) => { const c = e.target.value; setPhotos(photos.map((x) => (x.id === p.id ? { ...x, category: c } : c === COVER && x.category === COVER ? { ...x, category: 'Exterior' } : x))); setDirty(true); if (PLATE_CATS.includes(c) && !p.plateChecked) setMaskFor(p); }}>{PHOTO_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
+                        <SelectBox value={p.category} onChange={(e) => { const c = e.target.value; setPhotos(photos.map((x) => (x.id === p.id ? { ...x, category: c } : c === COVER && x.category === COVER ? { ...x, category: 'Exterior' } : x))); setDirty(true); if (PLATE_CATS.includes(c) && !p.plateChecked) setMaskFor(p); }}>{PHOTO_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</SelectBox>
                       </figure>
                     ))}
                   </div>

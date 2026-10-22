@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Pie, PieChart } from 'recharts';
 import { useDB } from '../../lib/db';
-import { Card, PageHeader, useLoading, Skeleton, StatCard, FilterBar, useFilters, inRange } from '../../components/ui/kit';
+import { SelectBox, Card, PageHeader, useLoading, Skeleton, StatCard, FilterBar, useFilters, inRange , DateField } from '../../components/ui/kit';
 import { ChartTip } from './Overview';
 import { groupCount, inspectorPerformance, packagePerformance, periodRange, salesTrendRange } from '../../lib/stats';
 import { Target, Timer, ThumbsUp, Percent } from 'lucide-react';
@@ -59,16 +59,16 @@ export default function Analytics() {
       <PageHeader title="Analytics" subtitle="Sales trends, package performance and inspection quality." />
       <div className="toolbar an-toolbar">
         <div className="an-row">
-          <select className="input sm an-period" aria-label="Period" value={period} onChange={(e) => setPeriod(e.target.value)}>
+          <SelectBox className="input sm an-period" aria-label="Period" value={period} onChange={(e) => setPeriod(e.target.value)}>
             <option value="3m">Last 3 months</option>
             <option value="6m">Last 6 months</option>
             <option value="12m">Last 12 months</option>
             <option value="custom">Custom dates</option>
-          </select>
+          </SelectBox>
           {period === 'custom' && (
             <div className="an-dates">
-              <label className="rev-date"><span>From</span><input type="date" className="input sm" aria-label="From date" value={custom.from} max={custom.to || undefined} onChange={(e) => setCustom({ ...custom, from: e.target.value })} /></label>
-              <label className="rev-date"><span>To</span><input type="date" className="input sm" aria-label="To date" value={custom.to} min={custom.from || undefined} onChange={(e) => setCustom({ ...custom, to: e.target.value })} /></label>
+              <div className="rev-date"><span>From</span><DateField label="From date" className="sm" value={custom.from} max={custom.to || undefined} onChange={(v) => setCustom({ ...custom, from: v })} /></div>
+              <div className="rev-date"><span>To</span><DateField label="To date" className="sm" value={custom.to} min={custom.from || undefined} onChange={(v) => setCustom({ ...custom, to: v })} /></div>
             </div>
           )}
           <FilterBar flt={flt} defs={[{ key: 'city', label: 'All emirates', options: CITIES }, { key: 'plan', label: 'All plans', options: s.plans.map((p) => ({ value: p.id, label: p.name })) }]} />

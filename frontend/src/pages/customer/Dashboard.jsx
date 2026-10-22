@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { CalendarPlus, ClipboardList, FileText, Hourglass, Check, Car, UserCheck, ScanSearch, ArrowRight, Sparkles, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useDB } from '../../lib/db';
-import { Card, StatCard, StatusBadge, useLoading, Skeleton, EmptyState, Stars } from '../../components/ui/kit';
+import { SelectBox, Card, StatCard, StatusBadge, useLoading, Skeleton, EmptyState, Stars } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import BookingModal from '../../components/shared/BookingModal';
 import ReportModal from '../../components/shared/ReportModal';
@@ -89,7 +89,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card title="Recent bookings" className="mt" action={<div className="row-actions"><select className="input sm" aria-label="Filter by status" value={recentStatus} onChange={(e) => setRecentStatus(e.target.value)}><option value="">All statuses</option>{['pending', 'assigned', 'ongoing', 'completed', 'cancelled'].map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1)}</option>)}</select><Link to="/app/bookings" className="link-btn">View all <ArrowRight size={14} /></Link></div>} pad={false}>
+      <Card title="Recent bookings" className="mt" action={<div className="row-actions"><SelectBox className="input sm" aria-label="Filter by status" value={recentStatus} onChange={(e) => setRecentStatus(e.target.value)}><option value="">All statuses</option>{['pending', 'assigned', 'ongoing', 'completed', 'cancelled'].map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1)}</option>)}</SelectBox><Link to="/app/bookings" className="link-btn">View all <ArrowRight size={14} /></Link></div>} pad={false}>
         {recent.length === 0 ? <EmptyState title="No bookings yet" text="Your bookings will show up here." /> : (
           <ul className="list">
             {recent.map((b) => (

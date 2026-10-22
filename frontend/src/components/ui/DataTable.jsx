@@ -38,7 +38,7 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
     return () => ro.disconnect();
   }, []);
 
-  const pageSize = phone ? CARD_PAGE : Math.max(3, Math.floor((height - HEAD_H - 6) / rowHeight));
+  const pageSize = phone ? CARD_PAGE : Math.max(3, Math.floor((height - HEAD_H - 22) / rowHeight));
 
   const sorted = useMemo(() => {
     if (!sort) return rows;

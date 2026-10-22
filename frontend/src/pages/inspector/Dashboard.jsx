@@ -4,7 +4,7 @@ import { ClipboardCheck, CheckCircle2, CalendarDays, Star, Play, MapPin, ArrowRi
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, updateUser } from '../../lib/db';
-import { Card, EmptyState, StatCard, StatusBadge, useLoading, Skeleton } from '../../components/ui/kit';
+import { SelectBox, Card, EmptyState, StatCard, StatusBadge, useLoading, Skeleton } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import { addDays, carName, fmtDate, fmtTime, isoDate } from '../../lib/format';
 import { ratingOf } from '../../lib/stats';
@@ -48,7 +48,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid-2-1 mt">
-        <Card title="Today's schedule" action={<div className="row-actions"><select className="input sm" aria-label="Filter by status" value={schedStatus} onChange={(e) => setSchedStatus(e.target.value)}><option value="">All statuses</option><option value="assigned">Not started</option><option value="ongoing">In progress</option></select><Link to="/inspector/assignments" className="link-btn">All assignments <ArrowRight size={14} /></Link></div>} pad={false}>
+        <Card title="Today's schedule" action={<div className="row-actions"><SelectBox className="input sm" aria-label="Filter by status" value={schedStatus} onChange={(e) => setSchedStatus(e.target.value)}><option value="">All statuses</option><option value="assigned">Not started</option><option value="ongoing">In progress</option></SelectBox><Link to="/inspector/assignments" className="link-btn">All assignments <ArrowRight size={14} /></Link></div>} pad={false}>
           {todays.length === 0 ? <EmptyState icon={CalendarDays} title="Nothing scheduled today" text="Check upcoming assignments for what is next." /> : (
             <ul className="list">
               {todays.slice(0, 5).map((b) => (

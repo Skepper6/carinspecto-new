@@ -4,7 +4,7 @@ import { Wallet, Users, ClipboardList, Hourglass, CheckCircle2, UserCog, ArrowRi
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useDB, assignInspector, getState } from '../../lib/db';
 import { useUI } from '../../context/UIContext';
-import { Card, StatCard, StatusBadge, useLoading, Skeleton, Avatar, EmptyState, FilterBar, useFilters } from '../../components/ui/kit';
+import { SelectBox, Card, StatCard, StatusBadge, useLoading, Skeleton, Avatar, EmptyState, FilterBar, useFilters , DateField } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import BookingModal from '../../components/shared/BookingModal';
 import AssignModal from '../../components/shared/AssignModal';
@@ -29,7 +29,7 @@ export default function Overview() {
   const flt = useFilters();
   const bookings = useMemo(() => {
     const from = flt.f.period ? isoDate(addDays(new Date(), -Number(flt.f.period))) : null;
-    return s.bookings.filter((b) => (!flt.f.city || b.location.city === flt.f.city) && (!from || b.date >= from));
+    return s.bookings.filter((b) => (!flt.f.city || b.location.city === flt.f.city) && (!from || b.date >= from) && (!flt.f.from || b.date >= flt.f.from) && (!flt.f.to || b.date <= flt.f.to));
   }, [s.bookings, flt.key]); // eslint-disable-line
   const [view, setView] = useState(null);
   const [assign, setAssign] = useState(null);
@@ -71,7 +71,7 @@ export default function Overview() {
     <div className="page">
       <div className="hello"><div><h1>Operations overview</h1><p className="muted">Live snapshot of revenue, customers and inspections.</p></div></div>
 
-      <div className="toolbar"><span /><FilterBar flt={flt} defs={[{ key: 'period', label: 'All time', options: [{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: '365', label: 'Last 12 months' }] }, { key: 'city', label: 'All emirates', options: CITIES }]} /></div>
+      <div className="toolbar"><span /><FilterBar flt={flt} defs={[{ key: 'period', label: 'All time', options: [{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: '365', label: 'Last 12 months' }] }, { key: 'city', label: 'All emirates', options: CITIES }, { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }]} /></div>
       <div className="grid-6">
         <StatCard icon={Wallet} label="Total revenue" value={k.revenue} format={money} tone="indigo" hint="vs prior 30 days" trend={k.trend} />
         <StatCard icon={Users} label="Customers" value={k.customers} tone="teal" />
@@ -84,11 +84,11 @@ export default function Overview() {
       <div className="grid-2-1 mt">
         <Card title={<>Revenue<span className="ttl-range"> – {range.label}</span></>} action={
           <div className="rev-filter">
-            <select className="input sm" aria-label="Revenue period" value={period} onChange={(e) => setPeriod(e.target.value)}>{PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</select>
+            <SelectBox className="input sm" aria-label="Revenue period" value={period} onChange={(e) => setPeriod(e.target.value)}>{PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</SelectBox>
             {period === 'custom' && (
               <>
-                <label className="rev-date"><span>From</span><input type="date" className="input sm" aria-label="From date" value={custom.from} max={custom.to || undefined} onChange={(e) => setCustom({ ...custom, from: e.target.value })} /></label>
-                <label className="rev-date"><span>To</span><input type="date" className="input sm" aria-label="To date" value={custom.to} min={custom.from || undefined} onChange={(e) => setCustom({ ...custom, to: e.target.value })} /></label>
+                <div className="rev-date"><span>From</span><DateField label="From date" className="sm" value={custom.from} max={custom.to || undefined} onChange={(v) => setCustom({ ...custom, from: v })} /></div>
+                <div className="rev-date"><span>To</span><DateField label="To date" className="sm" value={custom.to} min={custom.from || undefined} onChange={(v) => setCustom({ ...custom, to: v })} /></div>
               </>
             )}
           </div>

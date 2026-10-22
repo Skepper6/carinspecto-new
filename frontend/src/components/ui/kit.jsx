@@ -1,7 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Search, Star, Inbox, Check, X as XIcon, Minus, Filter, ChevronDown } from 'lucide-react';
+import { Children, Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Search, Star, Inbox, Check, X as XIcon, Minus, Filter, ChevronDown, CalendarDays } from 'lucide-react';
+import Calendar from './Calendar';
 import { STATUS } from '../../lib/constants';
-import { initials, fmtPhone } from '../../lib/format';
+import { initials, fmtPhone, isoDate } from '../../lib/format';
 import Button from './Button';
 
 export const Logo = ({ height = 38 }) => <img src="/logo.png" alt="Car InspectO" className="logo-img" style={{ height }} />;
@@ -107,14 +109,83 @@ export const Input = ({ label, hint, error, className, id, end, ...p }) => {
     </Field>
   );
 };
+
+// Dropdown with the same look as DateField's calendar popup, in every browser (replaces native <select>).
+// Same API as <select>: value, onChange(e) with e.target.value, <option> children, className, disabled, id, aria-label.
+const flatOptions = (children) => {
+  const out = [];
+  const walk = (nodes) => Children.forEach(nodes, (c) => {
+    if (!c || typeof c !== 'object') return;
+    if (c.type === Fragment) walk(c.props.children);
+    else if (c.type === 'option') {
+      const label = Children.toArray(c.props.children).join('');
+      out.push({ value: String(c.props.value ?? label), label, disabled: !!c.props.disabled });
+    }
+  });
+  walk(children);
+  return out;
+};
+export const SelectBox = ({ value, onChange, children, className = 'input', disabled, id, name, ...rest }) => {
+  const [open, setOpen] = useState(false);
+  const [hi, setHi] = useState(-1);
+  const [pos, setPos] = useState({ left: 8, top: 8, w: 200 });
+  const btn = useRef(null);
+  const pop = useRef(null);
+  const opts = flatOptions(children);
+  const cur = opts.find((o) => o.value === String(value ?? ''));
+  const empty = !cur || cur.value === '';
+  const label = cur?.label ?? opts.find((o) => o.value === '')?.label ?? '';
+  const place = () => {
+    const r = btn.current.getBoundingClientRect();
+    const w = Math.min(Math.max(r.width, 180), window.innerWidth - 16);
+    const h = Math.min(opts.length * 40 + 12, 280);
+    const below = window.innerHeight - r.bottom;
+    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: below >= h + 12 || below >= r.top ? r.bottom + 6 : Math.max(8, r.top - h - 6), w });
+  };
+  const show = () => { if (disabled) return; place(); setHi(opts.findIndex((o) => o.value === String(value ?? ''))); setOpen(true); };
+  const choose = (o) => { if (o.disabled) return; onChange?.({ target: { value: o.value, name } }); setOpen(false); btn.current?.focus(); };
+  useEffect(() => {
+    if (!open) return undefined;
+    const out = (e) => { if (!pop.current?.contains(e.target) && !btn.current?.contains(e.target)) setOpen(false); };
+    const away = (e) => { if (!pop.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', out); document.addEventListener('touchstart', out);
+    window.addEventListener('scroll', away, true); window.addEventListener('resize', away);
+    return () => { document.removeEventListener('mousedown', out); document.removeEventListener('touchstart', out); window.removeEventListener('scroll', away, true); window.removeEventListener('resize', away); };
+  }, [open]);
+  useEffect(() => { if (open && hi >= 0) pop.current?.querySelector('[data-hi="true"]')?.scrollIntoView({ block: 'nearest' }); }, [open, hi]);
+  const key = (e) => {
+    if (e.key === 'Escape') { setOpen(false); return; }
+    if (!open && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); show(); return; }
+    if (!open) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(opts.length - 1, h + 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(0, h - 1)); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (opts[hi]) choose(opts[hi]); }
+  };
+  const stop = (e) => e.stopPropagation();
+  return (
+    <>
+      <button type="button" ref={btn} id={id} disabled={disabled} className={`${className} selbtn ${open ? 'open' : ''}`} aria-haspopup="listbox" aria-expanded={open} aria-label={rest['aria-label']} onClick={() => (open ? setOpen(false) : show())} onKeyDown={key}>
+        <span className={empty ? 'ph' : ''}>{label}</span><ChevronDown size={16} />
+      </button>
+      {open && createPortal(
+        <ul ref={pop} className="selbox-pop" role="listbox" style={{ left: pos.left, top: pos.top, width: pos.w }} onMouseDown={stop} onTouchStart={stop}>
+          {opts.map((o, i) => (
+            <li key={o.value + i} role="option" aria-selected={o.value === String(value ?? '')} aria-disabled={o.disabled || undefined} data-hi={i === hi} className={`${o.value === String(value ?? '') ? 'sel' : ''} ${i === hi ? 'hi' : ''} ${o.value === '' ? 'ph' : ''}`} onMouseEnter={() => setHi(i)} onClick={() => choose(o)}>
+              <span>{o.label}</span>{o.value === String(value ?? '') && <Check size={14} />}
+            </li>
+          ))}
+        </ul>, document.body)}
+    </>
+  );
+};
 export const Select = ({ label, hint, error, options, placeholder, className, id, ...p }) => {
   const uid = useId(); const i = id ?? uid;
   return (
     <Field label={label} hint={hint} error={error} className={className} htmlFor={i}>
-      <select id={i} className="input" {...p}>
+      <SelectBox id={i} className="input" {...p}>
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((o) => (typeof o === 'object' ? <option key={o.value} value={o.value}>{o.label}</option> : <option key={o} value={o}>{o}</option>))}
-      </select>
+      </SelectBox>
     </Field>
   );
 };
@@ -134,11 +205,11 @@ export const Tabs = ({ tabs, value, onChange }) => {
           </button>
         ))}
       </div>
-      <select className="input tabs-select" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Choose a view">
+      <SelectBox className="input tabs-select" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Choose a view">
         {opts.map((o) => (
           <option key={o.value} value={o.value}>{o.count != null ? `${o.label} (${o.count})` : o.label}</option>
         ))}
-      </select>
+      </SelectBox>
     </>
   );
 };
@@ -243,6 +314,51 @@ export const Tm = ({ t }) => {
   return <span className="tm">{`${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}`}<small>{h >= 12 ? 'PM' : 'AM'}</small></span>;
 };
 
+
+// Date field with our own calendar popup, so it looks and behaves the same in Chrome, Edge, Safari, iOS and Android
+// (native <input type="date"> renders blank or misaligned in Safari). Value is an ISO yyyy-mm-dd string.
+export const DateField = ({ value, onChange, min = '2000-01-01', max = '2100-12-31', placeholder = 'Select date', label, className = '' }) => {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ left: 8, top: 8 });
+  const btn = useRef(null);
+  const pop = useRef(null);
+  const toggle = () => {
+    if (!open && btn.current) {
+      const r = btn.current.getBoundingClientRect();
+      const w = Math.min(330, window.innerWidth - 16);
+      const below = window.innerHeight - r.bottom;
+      setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: below >= 400 || below >= r.top ? r.bottom + 6 : Math.max(8, r.top - 396), w });
+    }
+    setOpen((o) => !o);
+  };
+  useEffect(() => {
+    if (!open) return undefined;
+    const out = (e) => { if (!pop.current?.contains(e.target) && !btn.current?.contains(e.target)) setOpen(false); };
+    const esc = (e) => e.key === 'Escape' && setOpen(false);
+    const away = (e) => { if (!pop.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', out); document.addEventListener('touchstart', out); document.addEventListener('keydown', esc);
+    window.addEventListener('scroll', away, true); window.addEventListener('resize', away);
+    return () => { document.removeEventListener('mousedown', out); document.removeEventListener('touchstart', out); document.removeEventListener('keydown', esc); window.removeEventListener('scroll', away, true); window.removeEventListener('resize', away); };
+  }, [open]);
+  const shown = value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const stop = (e) => e.stopPropagation();
+  return (
+    <>
+      <button type="button" ref={btn} className={`input datef ${open ? 'open' : ''} ${className}`} aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={toggle}>
+        <CalendarDays size={16} /><span className={shown ? '' : 'ph'}>{shown || placeholder}</span>
+      </button>
+      {open && createPortal(
+        <div ref={pop} className="datef-pop" role="dialog" aria-label={label || 'Choose a date'} style={{ left: pos.left, top: pos.top, width: pos.w }} onMouseDown={stop} onTouchStart={stop}>
+          <Calendar value={value} min={min} max={max} onChange={(d) => { onChange(d); setOpen(false); }} />
+          <div className="datef-foot">
+            <button type="button" className="link-btn" onClick={() => { onChange(''); setOpen(false); }}>Clear</button>
+            <button type="button" className="link-btn" onClick={() => { const t = isoDate(); if (t >= min && t <= max) { onChange(t); setOpen(false); } }}>Today</button>
+          </div>
+        </div>, document.body)}
+    </>
+  );
+};
+
 // ---- list filters ----
 // Dropdowns/date pickers edit a local draft so picking a value never re-filters mid-click;
 // the draft is only committed (and the list actually filtered) once Apply is pressed.
@@ -295,7 +411,16 @@ const FilterSelect = ({ value, onChange, options, placeholder }) => {
 export const FilterBar = ({ defs, flt }) => {
   const active = defs.filter((d) => flt.f[d.key]).length;
   const [open, setOpen] = useState(false);
+  const [shift, setShift] = useState(0);
   const ref = useRef(null);
+  const popRef = useRef(null);
+  // keep the popover fully on screen whichever side of the page its funnel button sits
+  useLayoutEffect(() => {
+    if (!open) { setShift(0); return; }
+    const r = popRef.current?.getBoundingClientRect();
+    if (!r) return;
+    setShift(r.left < 8 ? 8 - r.left : r.right > window.innerWidth - 8 ? window.innerWidth - 8 - r.right : 0);
+  }, [open]);
   useEffect(() => {
     const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', close);
@@ -309,10 +434,10 @@ export const FilterBar = ({ defs, flt }) => {
         {active > 0 && <i className="nav-badge">{active}</i>}
       </button>
       {open && (
-        <div className="fbar-pop">
+        <div className="fbar-pop" ref={popRef} style={shift ? { right: -shift } : undefined}>
           <div className="fbar-pop-grid">
             {defs.map((d) => (d.type === 'date' ? (
-              <label key={d.key} className="fdate"><span>{d.label}</span><input type="date" className="input sm" value={flt.draft[d.key] || ''} onChange={(e) => flt.set(d.key, e.target.value)} onKeyDown={(e) => e.key === 'Enter' && apply()} /></label>
+              <div key={d.key} className="fdate"><span>{d.label}</span><DateField label={d.label} className="sm" value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} /></div>
             ) : (
               <FilterSelect key={d.key} value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} options={d.options} placeholder={d.label} />
             )))}

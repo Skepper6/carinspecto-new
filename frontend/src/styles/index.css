@@ -1303,10 +1303,6 @@ select.input { border-radius: var(--radius-md); }
 .score-cell { white-space: nowrap; }
 
 /* tablets: the table keeps a readable width and scrolls sideways inside its card instead of being clipped */
-@media (min-width: 641px) and (max-width: 1180px) {
-  .table { min-width: 820px; }
-  .dt-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
-}
 
 /* date inputs look the same in Safari, iOS and Chrome/Edge */
 input[type='date'], input[type='time'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; box-sizing: border-box; font-family: inherit; color: var(--text); background-color: var(--surface); line-height: 1.2; }
@@ -1321,3 +1317,71 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 
 /* home footer: copyright centred */
 .home-foot .foot-base { text-align: center; }
+
+/* ---- tables: every column is always shown (desktop, tablet portrait + landscape); nothing is cut with "..." ----
+   the table is as wide as its content needs and scrolls sideways inside its card; row height is fixed */
+@media (min-width: 641px) {
+  .dt-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+  .table { table-layout: auto; width: max-content; min-width: 100%; }
+  .table th, .table td { width: auto !important; max-width: none; white-space: nowrap; overflow: visible; text-overflow: clip; }
+  .table th { min-width: 96px; }
+  .table .hide-sm, .table .hide-md, .table .hide-lg, .table .hide-xl,
+  .table th.hide-sm, .table th.hide-md, .table th.hide-lg, .table th.hide-xl,
+  .table td.hide-sm, .table td.hide-md, .table td.hide-lg, .table td.hide-xl { display: table-cell; }
+  .table td { height: var(--row-h); padding-top: 0; padding-bottom: 0; }
+  .table td .cell-2, .table td .cell-2 > *, .table td span, .table td b { max-width: none; overflow: visible; text-overflow: clip; white-space: nowrap; }
+  .table td .cell-2 { display: flex; flex-direction: column; justify-content: center; }
+}
+
+/* stat cards: every card in a row has the same height; they only grow when the content really needs it */
+.grid-4, .grid-6 { grid-auto-rows: 1fr; }
+.grid-4 > .stat, .grid-6 > .stat { min-height: 112px; height: 100%; }
+
+/* date field with our own calendar (identical in every browser) */
+.datef { display: flex; align-items: center; gap: 8px; width: 100%; height: var(--ctl-h, 42px); padding: 0 12px; text-align: left; cursor: pointer; color: var(--text); font: inherit; font-size: 14px; white-space: nowrap; }
+.datef.sm { height: 34px; width: 100%; font-size: 13px; }
+.datef svg { flex: none; color: var(--muted); }
+.datef .ph { color: var(--muted); }
+.datef.open { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); }
+.rev-date .datef, .an-dates .datef { min-width: 150px; width: auto; }
+.datef-pop { position: fixed; z-index: 1000; max-width: calc(100vw - 16px); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 10px; animation: fbarPopIn .18s var(--ease); }
+.datef-pop .cal { padding: 12px; border: 0; background: transparent; }
+.datef-pop .cal-grid { gap: 3px; } .datef-pop .cal-grid button { height: 38px; font-size: 14px; }
+.datef-foot { display: flex; justify-content: space-between; padding: 6px 12px 4px; border-top: 1px solid var(--border); }
+
+/* table scrollbar: always visible (also on iPad / Safari, where scrollbars normally hide) so it is clear the table scrolls sideways */
+.dt-scroll { scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+.dt-scroll::-webkit-scrollbar { height: 10px; }
+.dt-scroll::-webkit-scrollbar-track { background: var(--surface-2); }
+.dt-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 55%, transparent); border-radius: 8px; border: 2px solid var(--surface-2); }
+
+/* calendar: month / year picker (click the title) */
+.cal header .cal-title { width: auto; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: transparent; box-shadow: none; border-radius: 10px; }
+.cal header .cal-title:hover, .cal header .cal-title.open { background: var(--primary-50); color: var(--primary); }
+.cal header .cal-title svg { transition: transform .2s; } .cal header .cal-title.open svg { transform: rotate(180deg); }
+.cal-pick { display: grid; grid-template-columns: 96px 1fr; gap: 12px; height: 288px; }
+.cal-years { list-style: none; margin: 0; padding: 0 4px 0 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--border); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.cal-years button { width: 100%; height: 38px; flex: none; border: 0; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
+.cal-years button:hover, .cal-months button:hover:not(:disabled) { background: var(--primary-50); color: var(--primary); }
+.cal-years button.on, .cal-months button.on { background: var(--primary); color: #fff; font-weight: 600; } :root[data-theme='dark'] .cal-years button.on, :root[data-theme='dark'] .cal-months button.on { color: #0e0c20; }
+.cal-months { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 6px; align-content: stretch; }
+.cal-months button { border: 0; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
+.cal-months button:disabled { opacity: .3; cursor: not-allowed; }
+
+/* dropdown (SelectBox): looks the same in every browser; popup matches the date popup */
+.selbtn { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; font: inherit; color: var(--text); white-space: nowrap; }
+.selbtn > span { overflow: hidden; text-overflow: ellipsis; min-width: 0; } .selbtn .ph { color: var(--muted); }
+.selbtn svg { flex: none; color: var(--muted); transition: transform .2s; }
+.selbtn.open { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); } .selbtn.open svg { transform: rotate(180deg); color: var(--primary); }
+.selbtn:disabled { cursor: not-allowed; background: var(--surface-2); color: var(--muted); }
+.input.sm.selbtn { display: flex; }
+.selbox-pop { position: fixed; z-index: 1000; list-style: none; margin: 0; padding: 6px; max-height: 280px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); animation: fbarPopIn .18s var(--ease); overscroll-behavior: contain; }
+.selbox-pop li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 38px; padding: 0 12px; border-radius: 9px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; }
+.selbox-pop li.ph { color: var(--muted); font-weight: 400; }
+.selbox-pop li.hi { background: var(--primary-50); color: var(--primary); }
+.selbox-pop li.sel { color: var(--primary); font-weight: 600; } .selbox-pop li svg { flex: none; }
+.selbox-pop li[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
+@media (max-width: 640px) { .selbtn.tabs-select { display: flex; } .rev-filter > .selbtn { flex: 0 0 auto; width: 128px; } }
+.photo .selbtn, .photo-grid .selbtn { width: 100%; }
+.selbtn.tabs-select { display: none; }
+@media (max-width: 640px) { .selbtn.tabs-select { display: flex; } }

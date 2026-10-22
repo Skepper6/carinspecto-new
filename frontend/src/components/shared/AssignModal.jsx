@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Sparkles, UserCheck } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { Avatar, Badge, SearchInput } from '../ui/kit';
+import { SelectBox, Avatar, Badge, SearchInput } from '../ui/kit';
 import { CITIES } from '../../lib/constants';
 import { useDB, assignInspector, getState } from '../../lib/db';
 import { useUI } from '../../context/UIContext';
@@ -27,7 +27,7 @@ export default function AssignModal({ booking, onClose }) {
   return (
     <Modal open={!!booking} onClose={onClose} title="Assign inspector" subtitle={booking && `${booking.id} · ${carName(booking.car)} · ${fmtDate(booking.date)} ${fmtTime(booking.time)} · ${booking.location.city}`}
       footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button icon={UserCheck} disabled={!sel} onClick={save}>Assign</Button></>}>
-      <div className="fbar assign-filters"><SearchInput value={q} onChange={setQ} placeholder="Search by inspector name or emirate…" /><select className="input sm" aria-label="Emirate" value={city} onChange={(e) => setCity(e.target.value)}><option value="">All emirates</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</select></div>
+      <div className="fbar assign-filters"><SearchInput value={q} onChange={setQ} placeholder="Search by inspector name or emirate…" /><SelectBox className="input sm" aria-label="Emirate" value={city} onChange={(e) => setCity(e.target.value)}><option value="">All emirates</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</SelectBox></div>
       <div className="assign-list">
         {list.map((p) => (
           <button key={p.id} className={sel === p.id ? 'on' : ''} onClick={() => setSel(p.id)}>
