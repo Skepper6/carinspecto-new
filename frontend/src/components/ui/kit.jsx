@@ -409,7 +409,8 @@ const FilterSelect = ({ value, onChange, options, placeholder }) => {
 // defs: { key, label, type?: 'select' | 'date', options: string[] | { value, label }[] }
 // Filters live behind a funnel-icon popover: picking values only edits a draft, Apply commits it.
 export const FilterBar = ({ defs, flt }) => {
-  const active = defs.filter((d) => flt.f[d.key]).length;
+  const shown = (d, v) => !d.showIf || d.showIf(v);
+  const active = defs.filter((d) => shown(d, flt.f) && flt.f[d.key]).length;
   const [open, setOpen] = useState(false);
   const [shift, setShift] = useState(0);
   const ref = useRef(null);
@@ -436,7 +437,7 @@ export const FilterBar = ({ defs, flt }) => {
       {open && (
         <div className="fbar-pop" ref={popRef} style={shift ? { right: -shift } : undefined}>
           <div className="fbar-pop-grid">
-            {defs.map((d) => (d.type === 'date' ? (
+            {defs.filter((d) => shown(d, flt.draft)).map((d) => (d.type === 'date' ? (
               <div key={d.key} className="fdate"><span>{d.label}</span><DateField label={d.label} className="sm" value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} /></div>
             ) : (
               <FilterSelect key={d.key} value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} options={d.options} placeholder={d.label} />
