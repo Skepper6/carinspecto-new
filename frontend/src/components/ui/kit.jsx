@@ -408,9 +408,21 @@ const FilterSelect = ({ value, onChange, options, placeholder }) => {
 
 // defs: { key, label, type?: 'select' | 'date', options: string[] | { value, label }[] }
 // Filters live behind a funnel-icon popover: picking values only edits a draft, Apply commits it.
-export const FilterBar = ({ defs, flt }) => {
+export const FilterBar = ({ defs: given, flt }) => {
+  // From / To dates only show once "Custom dates" is chosen (same behaviour on every page)
+  const defs = useMemo(() => {
+    const out = [];
+    let added = false;
+    given.forEach((d) => {
+      if (d.type === 'date' && !d.showIf) {
+        if (!added) { out.push({ key: 'range', label: 'Any date', options: [{ value: 'custom', label: 'Custom dates' }], isRange: true }); added = true; }
+        out.push({ ...d, auto: true, showIf: (v) => v.range === 'custom' });
+      } else out.push(d);
+    });
+    return out;
+  }, [given]);
   const shown = (d, v) => !d.showIf || d.showIf(v);
-  const active = defs.filter((d) => shown(d, flt.f) && flt.f[d.key]).length;
+  const active = defs.filter((d) => !d.auto && (d.isRange ? flt.f.range === 'custom' && (flt.f.from || flt.f.to) : shown(d, flt.f) && flt.f[d.key])).length;
   const [open, setOpen] = useState(false);
   const [shift, setShift] = useState(0);
   const ref = useRef(null);
@@ -440,7 +452,7 @@ export const FilterBar = ({ defs, flt }) => {
             {defs.filter((d) => shown(d, flt.draft)).map((d) => (d.type === 'date' ? (
               <div key={d.key} className="fdate"><span>{d.label}</span><DateField label={d.label} className="sm" value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} /></div>
             ) : (
-              <FilterSelect key={d.key} value={flt.draft[d.key] || ''} onChange={(v) => flt.set(d.key, v)} options={d.options} placeholder={d.label} />
+              <FilterSelect key={d.key} value={flt.draft[d.key] || ''} onChange={(v) => { flt.set(d.key, v); if (d.isRange && !v) { flt.set('from', ''); flt.set('to', ''); } }} options={d.options} placeholder={d.label} />
             )))}
           </div>
           <div className="fbar-pop-foot">
