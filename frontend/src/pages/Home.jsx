@@ -9,7 +9,7 @@ import Button from '../components/ui/Button';
 import { useDB } from '../lib/db';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
-import { PORTALS } from '../lib/constants';
+import { PORTALS, COUNTRY, SERVICE_AREA, COMPANY } from '../lib/constants';
 import { money } from '../lib/format';
 
 const Counter = ({ to, suffix = '' }) => {
@@ -102,9 +102,9 @@ export default function Home() {
         <i className="orb o1" /><i className="orb o2" />
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow"><BadgeCheck size={16} /> Certified car inspections across the UAE</span>
-            <h1>Know your car's <span className="grad">true condition</span> – anywhere in the UAE.</h1>
-            <p>Book a certified Car InspectO inspector, get a full multi-point check at your home, office or parking spot in Dubai and every emirate, then receive a photo-backed report in minutes.</p>
+            <span className="eyebrow"><BadgeCheck size={16} /> Certified car inspections across {COUNTRY}</span>
+            <h1>Know your car's <span className="grad">true condition</span> – anywhere in {COUNTRY}.</h1>
+            <p>Book a certified Car InspectO inspector, get a full multi-point check at your home, office or parking spot in {SERVICE_AREA}, then receive a photo-backed report in minutes.</p>
             <div className="hero-cta">
               <Link to={user?.role === 'customer' ? '/app/book' : '/signup'}><Button size="lg" icon={CalendarCheck}>Book an inspection</Button></Link>
               <button className="btn btn-ghost btn-lg" onClick={() => scrollTo('portals')}><span>Choose your portal</span><ArrowRight size={16} /></button>
@@ -140,7 +140,7 @@ export default function Home() {
 
       {/* STATS */}
       <section className="wrap stats-strip">
-        {[[12480, '+', 'Inspections done'], [150, '+', 'Checkpoints per car'], [8, '', 'Emirates & cities'], [98, '%', 'Customer satisfaction']].map(([n, s, l]) => (
+        {[[12480, '+', 'Inspections done'], [150, '+', 'Checkpoints per car'], [8, '', 'Service areas'], [98, '%', 'Customer satisfaction']].map(([n, s, l]) => (
           <Reveal key={l} className="strip-item"><b><Counter to={n} suffix={s} /></b><span>{l}</span></Reveal>
         ))}
       </section>
@@ -256,10 +256,10 @@ export default function Home() {
 
       <footer className="home-foot">
         <div className="wrap foot-grid">
-          <div><span className="logo-chip"><Logo height={52} /></span><p>Certified digital vehicle inspections across Dubai and the UAE.</p></div>
+          <div><span className="logo-chip"><Logo height={52} /></span><p>Certified digital vehicle inspections across {COUNTRY}.</p></div>
           <div><h5>Portals</h5>{Object.entries(PORTALS).map(([r, p]) => <Link key={r} to={`/login?role=${r}`}>{p.label}</Link>)}</div>
           <div><h5>Company</h5><button onClick={() => scrollTo('how')}>How it works</button><button onClick={() => scrollTo('plans')}>Plans</button><button onClick={() => scrollTo('faq')}>FAQ</button><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div>
-          <div><h5>Contact</h5><span><Phone size={14} /> +971 4 123 4567</span><span><Mail size={14} /> hello@carinspecto.ae</span></div>
+          <div><h5>Contact</h5><span><Phone size={14} /> {COMPANY.phone}</span><span><Mail size={14} /> {COMPANY.email}</span></div>
         </div>
         <div className="wrap foot-base">© {new Date().getFullYear()} Car InspectO. All rights reserved.</div>
       </footer>

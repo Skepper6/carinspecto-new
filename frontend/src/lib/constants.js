@@ -1,6 +1,9 @@
-export const CURRENCY = 'AED ';
-export const VAT_RATE = 0.05;
-export const BOOKING_FEE = 15;
+import { market } from './market';
+
+export const CURRENCY = market.currency;
+export const TAX_NAME = market.taxName;
+export const VAT_RATE = market.taxRate;
+export const BOOKING_FEE = market.bookingFee;
 
 export const CAR_TYPES = ['Sedan', 'SUV', 'Hatchback', 'Coupe', 'Pickup', 'Luxury'];
 export const FUELS = ['Petrol', 'Diesel', 'Hybrid', 'Electric'];
@@ -23,7 +26,11 @@ export const YEARS = Array.from({ length: 16 }, (_, i) => new Date().getFullYear
 
 export const TIME_SLOTS = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00'];
 
-export const CITIES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain', 'Al Ain'];
+export const CITIES = market.regions;
+export const COUNTRY = market.country;
+export const REGION_LABEL = market.regionLabel;
+export const ALL_REGIONS = `All ${market.regionPlural}`;
+export const SERVICE_AREA = market.serviceArea;
 
 export const STATUS = {
   pending: { label: 'Pending', tone: 'amber' },
@@ -35,7 +42,7 @@ export const STATUS = {
 
 export const COVER = 'Cover';
 export const PHOTO_CATEGORIES = ['Cover', 'Exterior', 'Interior', 'Engine Bay & Undercarriage', 'Diagnostics', 'Other'];
-export const COMPANY = { name: 'Car InspectO', phone: '+971 4 123 4567', email: 'hello@carinspecto.ae', web: 'www.carinspecto.ae' };
+export const COMPANY = market.company;
 
 export const ADDRESS_LABELS = ['Home', 'Work', 'Other'];
 export const PORTALS = {

@@ -6,7 +6,7 @@ import { ChartTip } from './Overview';
 import { groupCount, inspectorPerformance, packagePerformance, periodRange, salesTrendRange } from '../../lib/stats';
 import { Target, Timer, ThumbsUp, Percent } from 'lucide-react';
 import { money } from '../../lib/format';
-import { CITIES } from '../../lib/constants';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
 
 const PALETTE = ['#3a2a8c', '#f58220', '#2ea6a0', '#be185d', '#6d28d9', '#0e7490'];
 
@@ -71,7 +71,7 @@ export default function Analytics() {
               <div className="rev-date"><span>To</span><DateField label="To date" className="sm" value={custom.to} min={custom.from || undefined} onChange={(v) => setCustom({ ...custom, to: v })} /></div>
             </div>
           )}
-          <FilterBar flt={flt} defs={[{ key: 'city', label: 'All emirates', options: CITIES }, { key: 'plan', label: 'All plans', options: s.plans.map((p) => ({ value: p.id, label: p.name })) }]} />
+          <FilterBar flt={flt} defs={[{ key: 'city', label: ALL_REGIONS, options: CITIES }, { key: 'plan', label: 'All plans', options: s.plans.map((p) => ({ value: p.id, label: p.name })) }]} />
         </div>
       </div>
       <div className="grid-4">

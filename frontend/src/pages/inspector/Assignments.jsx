@@ -7,7 +7,7 @@ import { PageHeader, SearchInput, StatusBadge, Tabs, useLoading, FilterBar, useF
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import BookingModal from '../../components/shared/BookingModal';
-import { CITIES } from '../../lib/constants';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
 import { carName, fmtDate, fmtTime, isoDate } from '../../lib/format';
 
 export default function Assignments() {
@@ -30,7 +30,7 @@ export default function Assignments() {
 
   const fdefs = [
     { key: 'plan', label: 'All plans', options: plans.map((p) => ({ value: p.id, label: p.name })) },
-    { key: 'city', label: 'All emirates', options: CITIES },
+    { key: 'city', label: ALL_REGIONS, options: CITIES },
     { key: 'from', label: 'From', type: 'date' }, { key: 'to', label: 'To', type: 'date' }
   ];
   const cols = [

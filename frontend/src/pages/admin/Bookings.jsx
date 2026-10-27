@@ -9,7 +9,7 @@ import BookingModal from '../../components/shared/BookingModal';
 import AssignModal from '../../components/shared/AssignModal';
 import ReportModal from '../../components/shared/ReportModal';
 import DownloadReportButton from '../../components/shared/DownloadReportButton';
-import { CITIES } from '../../lib/constants';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
 import { carName, downloadCSV, fmtDate, fmtTime, money } from '../../lib/format';
 
 export default function Bookings() {
@@ -32,7 +32,7 @@ export default function Bookings() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [base, tab, q, flt.key]); // eslint-disable-line
 
   const fdefs = [
-    { key: 'city', label: 'All emirates', options: CITIES },
+    { key: 'city', label: ALL_REGIONS, options: CITIES },
     { key: 'plan', label: 'All plans', options: s.plans.map((p) => ({ value: p.id, label: p.name })) },
     { key: 'inspector', label: 'All inspectors', options: s.users.filter((u) => u.role === 'inspector').map((u) => ({ value: u.id, label: u.name })) },
     { key: 'pay', label: 'All payments', options: ['paid', 'pending', 'refunded'] },

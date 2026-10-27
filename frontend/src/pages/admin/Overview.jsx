@@ -10,7 +10,7 @@ import BookingModal from '../../components/shared/BookingModal';
 import AssignModal from '../../components/shared/AssignModal';
 import { packagePerformance, revenueSeries, periodRange, PERIODS, suggestInspector } from '../../lib/stats';
 import { addDays, carName, fmtDate, isoDate, money } from '../../lib/format';
-import { CITIES } from '../../lib/constants';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
 
 export const ChartTip = ({ active, payload, label, money: isMoney }) => {
   if (!active || !payload?.length) return null;
@@ -72,7 +72,7 @@ export default function Overview() {
     <div className="page">
       <div className="hello"><div><h1>Operations overview</h1><p className="muted">Live snapshot of revenue, customers and inspections.</p></div></div>
 
-      <div className="toolbar"><span /><FilterBar flt={flt} defs={[{ key: 'period', label: 'All time', options: [{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: '365', label: 'Last 12 months' }, { value: 'custom', label: 'Custom dates' }] }, { key: 'city', label: 'All emirates', options: CITIES }, { key: 'from', label: 'From', type: 'date', showIf: (v) => v.period === 'custom' }, { key: 'to', label: 'To', type: 'date', showIf: (v) => v.period === 'custom' }]} /></div>
+      <div className="toolbar"><span /><FilterBar flt={flt} defs={[{ key: 'period', label: 'All time', options: [{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: '365', label: 'Last 12 months' }, { value: 'custom', label: 'Custom dates' }] }, { key: 'city', label: ALL_REGIONS, options: CITIES }, { key: 'from', label: 'From', type: 'date', showIf: (v) => v.period === 'custom' }, { key: 'to', label: 'To', type: 'date', showIf: (v) => v.period === 'custom' }]} /></div>
       <div className="grid-6">
         <StatCard icon={Wallet} label="Total revenue" value={k.revenue} format={money} tone="indigo" hint="vs prior 30 days" trend={k.trend} />
         <StatCard icon={Users} label="Customers" value={k.customers} tone="teal" />

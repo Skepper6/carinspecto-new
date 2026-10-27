@@ -1,7 +1,7 @@
 import { Crosshair } from 'lucide-react';
-import { CITIES, ADDRESS_LABELS } from '../../lib/constants';
+import { CITIES, ADDRESS_LABELS, REGION_LABEL } from '../../lib/constants';
 import { Field, Input, Select, PhoneInput } from '../ui/kit';
-import { isValidPhone } from '../../lib/format';
+import { isValidPhone, PHONE_ERROR } from '../../lib/format';
 import Button from '../ui/Button';
 
 // custom label typed under "Other" becomes the saved label
@@ -12,11 +12,11 @@ export const formatAddress = (a) => [a.building, a.unit && `Unit ${a.unit}`, a.s
 
 export function validateAddress(a, { phone = true } = {}) {
   const e = {};
-  if (!a.city) e.city = 'Select an emirate';
+  if (!a.city) e.city = `Select a ${REGION_LABEL.toLowerCase()}`;
   if (!a.area || a.area.trim().length < 2) e.area = 'Enter the area / community';
   if (!a.street || a.street.trim().length < 2) e.street = 'Enter the street or road';
   if (!a.building || a.building.trim().length < 1) e.building = 'Enter the building / villa';
-  if (phone && !isValidPhone(a.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+  if (phone && !isValidPhone(a.phone)) e.phone = PHONE_ERROR;
   return e;
 }
 
@@ -28,7 +28,7 @@ export default function AddressFields({ value, onChange, errors = {}, onGps, loc
   return (
     <>
       <div className="form-grid">
-        <Select label="Emirate" value={value.city} onChange={set('city')} options={CITIES} placeholder="Select" error={errors.city} />
+        <Select label={REGION_LABEL} value={value.city} onChange={set('city')} options={CITIES} placeholder="Select" error={errors.city} />
         {onGps ? <Field label="Use my location"><Button type="button" variant="outline" icon={Crosshair} loading={locating} onClick={onGps}>Detect with GPS</Button></Field> : <span />}
         <Input label="Area / community" value={value.area} onChange={set('area')} placeholder="e.g. Dubai Marina" error={errors.area} />
         <Input label="Street / road" value={value.street} onChange={set('street')} placeholder="e.g. Al Wasl Road" error={errors.street} />

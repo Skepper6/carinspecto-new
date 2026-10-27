@@ -3,7 +3,7 @@ import { Download, Ban, CheckCircle2, Users, Trash2 } from 'lucide-react';
 import { useUI } from '../../context/UIContext';
 import { useDB, updateUser, removeUser } from '../../lib/db';
 import { Avatar, Badge, PageHeader, SearchInput, StatusBadge, Tabs, useLoading, FilterBar, useFilters, inRange } from '../../components/ui/kit';
-import { CITIES } from '../../lib/constants';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -27,7 +27,7 @@ export default function Customers() {
     .filter((u) => (!flt.f.city || u.city === flt.f.city) && (!flt.f.bookings || (flt.f.bookings === 'with' ? u.orders > 0 : u.orders === 0)) && inRange(u.joinedAt, flt.f))
     .sort((a, b) => b.joinedAt.localeCompare(a.joinedAt)), [base, tab, q, flt.key]); // eslint-disable-line
   const fdefs = [
-    { key: 'city', label: 'All emirates', options: CITIES },
+    { key: 'city', label: ALL_REGIONS, options: CITIES },
     { key: 'bookings', label: 'All customers', options: [{ value: 'with', label: 'With bookings' }, { value: 'none', label: 'No bookings yet' }] },
     { key: 'from', label: 'Joined from', type: 'date' }, { key: 'to', label: 'Joined to', type: 'date' }
   ];

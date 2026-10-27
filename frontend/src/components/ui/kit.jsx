@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Search, Star, Inbox, Check, X as XIcon, Minus, Filter, ChevronDown, CalendarDays } from 'lucide-react';
 import Calendar from './Calendar';
 import { STATUS } from '../../lib/constants';
-import { initials, fmtPhone, isoDate } from '../../lib/format';
+import { initials, fmtPhone, isoDate, PHONE_HINT, PHONE_PLACEHOLDER } from '../../lib/format';
 import Button from './Button';
 
 export const Logo = ({ height = 38 }) => <img src="/logo.png" alt="Car InspectO" className="logo-img" style={{ height }} />;
@@ -467,5 +467,5 @@ export const FilterBar = ({ defs: given, flt }) => {
 
 // onChange receives the formatted string (not the event)
 export const PhoneInput = ({ onChange, value, ...p }) => (
-  <Input type="tel" inputMode="tel" autoComplete="tel" maxLength={17} placeholder="+971 50 123 4567" hint="UAE mobile – 9 digits after +971" {...p} value={value ?? ''} onChange={(e) => onChange(fmtPhone(e.target.value))} />
+  <Input type="tel" inputMode="tel" autoComplete="tel" maxLength={17} placeholder={PHONE_PLACEHOLDER} hint={PHONE_HINT} {...p} value={value ?? ''} onChange={(e) => onChange(fmtPhone(e.target.value))} />
 );

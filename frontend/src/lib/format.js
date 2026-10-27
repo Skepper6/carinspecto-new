@@ -1,4 +1,5 @@
 import { CURRENCY } from './constants';
+import { market } from './market';
 
 export const money = (n = 0) => `${CURRENCY}${Math.round(n).toLocaleString('en-GB')}`;
 
@@ -49,17 +50,35 @@ export function downloadCSV(filename, rows) {
 
 export const carName = (car) => `${car.year} ${car.make} ${car.model}`;
 
-// UAE phone: +971 5X XXX XXXX (9 national digits). Typing is restricted to digits and capped in length.
-export function fmtPhone(raw = '') {
+// National digits for the current market. Strips the country code (or 00 + code) and a leading trunk 0.
+// The country code is only stripped when the input is longer than a national number, so an Indian
+// number that happens to start with 91 is kept.
+const nationalDigits = (raw) => {
+  const p = market.phone;
   let d = String(raw).replace(/\D/g, '');
-  if (d.startsWith('00971')) d = d.slice(5);
-  else if (d.startsWith('971')) d = d.slice(3);
-  else if (d.startsWith('0')) d = d.slice(1);
-  d = d.slice(0, 9);
+  if (d.length > p.nationalLength) {
+    if (d.startsWith(`00${p.code}`)) d = d.slice(p.code.length + 2);
+    else if (d.startsWith(p.code)) d = d.slice(p.code.length);
+  }
+  if (d.startsWith('0')) d = d.slice(1);
+  return d;
+};
+
+export const PHONE_PLACEHOLDER = market.phone.example;
+export const PHONE_HINT = `Mobile: ${market.phone.nationalLength} digits after +${market.phone.code}`;
+export const PHONE_ERROR = `Enter a valid mobile number, e.g. ${market.phone.example}`;
+
+// Typing is restricted to digits and capped at the market's national length.
+export function fmtPhone(raw = '') {
+  const p = market.phone;
+  const d = nationalDigits(raw).slice(0, p.nationalLength);
   if (!d) return '';
-  return `+971 ${[d.slice(0, 2), d.slice(2, 5), d.slice(5, 9)].filter(Boolean).join(' ')}`;
+  let i = 0;
+  const grouped = p.groups.map((n) => { const part = d.slice(i, i + n); i += n; return part; }).filter(Boolean).join(' ');
+  return `+${p.code} ${grouped}`;
 }
 export const isValidPhone = (v = '') => {
-  const d = String(v).replace(/\D/g, '').replace(/^971/, '');
-  return (d.length === 9 && d[0] === '5') || d.length === 8;
+  const p = market.phone;
+  const d = nationalDigits(v);
+  return (d.length === p.nationalLength && p.startsWith.some((s) => d.startsWith(s))) || d.length === p.landlineLength;
 };

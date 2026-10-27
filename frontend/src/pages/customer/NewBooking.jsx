@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, createBooking, updateUser } from '../../lib/db';
 import { priceFor } from '../../lib/pricing';
-import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
+import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, TAX_NAME, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
 import { carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
 import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
@@ -302,7 +302,7 @@ export default function NewBooking() {
             <div className="price-box flat">
               <div><span>Inspection</span><b>{money(price.plan)}</b></div>
               <div><span>Booking fee</span><b>{money(price.bookingFee)}</b></div>
-              <div><span>VAT ({Math.round(VAT_RATE * 100)}%)</span><b>{money(price.vat)}</b></div>
+              <div><span>{TAX_NAME} ({Math.round(VAT_RATE * 100)}%)</span><b>{money(price.vat)}</b></div>
               <div className="total"><span>Total</span><b>{money(price.total)}</b></div>
             </div>
             {date && time && <p className="sum-slot"><CalendarClock size={15} /> {fmtDate(date)} · {fmtTime(time)}</p>}

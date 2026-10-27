@@ -12,7 +12,7 @@ import { resendVerification } from '../../services/auth';
 import { stripeEnabled } from '../../services/stripe';
 import { CITIES } from '../../lib/constants';
 import { formatCardNumber, formatExpiry, validateCardNumber, validateExpiry, cardBrand } from '../../lib/card';
-import { fmtDate, uid, isValidPhone } from '../../lib/format';
+import { fmtDate, uid, isValidPhone, PHONE_ERROR } from '../../lib/format';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -31,7 +31,7 @@ export default function Profile() {
   const saveProfile = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter your name';
-    if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+    if (f.phone && !isValidPhone(f.phone)) e.phone = PHONE_ERROR;
     setErrs(e);
     if (Object.keys(e).length) return;
     await guard(updateUser(me.id, { name: f.name.trim(), phone: f.phone }), 'Profile updated.');
