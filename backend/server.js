@@ -14,15 +14,16 @@ import bookingRoutes from './src/routes/bookings.js';
 import inspectionRoutes from './src/routes/inspections.js';
 import ticketRoutes from './src/routes/tickets.js';
 import fileRoutes from './src/routes/files.js';
-import paymentRoutes, { stripeWebhook } from './src/routes/payments.js';
+import paymentRoutes, { stripeWebhook, razorpayWebhook } from './src/routes/payments.js';
+import { gateway } from './src/services/gateway.js';
 import miscRoutes from './src/routes/misc.js';
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   console.error('JWT_SECRET is missing or too short (use 32+ random characters). See backend/.env.example.');
   process.exit(1);
 }
-if (process.env.NODE_ENV === 'production' && !process.env.STRIPE_SECRET_KEY && process.env.ALLOW_DEMO_PAYMENTS !== 'true') {
-  console.error('Live mode needs STRIPE_SECRET_KEY. Without it anyone could create a booking marked as paid. (Set ALLOW_DEMO_PAYMENTS=true only for a cash-only launch.)');
+if (process.env.NODE_ENV === 'production' && !gateway.configured && process.env.ALLOW_DEMO_PAYMENTS !== 'true') {
+  console.error(`Live mode needs the ${gateway.name} keys (see backend/.env.example). Without them anyone could create a booking marked as paid. (Set ALLOW_DEMO_PAYMENTS=true only for a cash-only launch.)`);
   process.exit(1);
 }
 if (!(await connectDB())) {
@@ -38,6 +39,7 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(',').map((s) => s.trim()) : true }));
 app.use(compression());
 app.post('/api/payments/webhook', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhook);   // needs the raw body
+app.post('/api/payments/razorpay-webhook', express.raw({ type: 'application/json', limit: '1mb' }), razorpayWebhook);
 const bigJson = express.json({ limit: '30mb' });   // inspection saves carry compressed photos
 app.use('/api/inspections', bigJson);
 app.use(express.json({ limit: '2mb' }));

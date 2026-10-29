@@ -4,7 +4,7 @@ import { Booking, Payment, Plan, User } from '../models/index.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { cleanFlat, fail, notify, notifyAdmins, nextSeq, send } from '../services/helpers.js';
 import { PROMOS, priceFor } from '../config/constants.js';
-import { stripe } from '../services/stripe.js';
+import { gateway } from '../services/gateway.js';
 import { mailBookingConfirmed } from '../services/emails.js';
 import { parse } from './auth.js';
 
@@ -21,6 +21,7 @@ const createSchema = z.object({
   promo: z.string().trim().max(30).optional().default(''),
   method: str(60), payStatus: z.enum(['paid', 'pending']),
   txnId: z.string().max(100).nullable().optional(),
+  txnProof: z.object({ orderId: z.string().max(60), signature: z.string().max(200) }).nullable().optional(),   // Razorpay: order id and signature returned by the checkout
 });
 
 const now = () => new Date();
@@ -37,16 +38,14 @@ router.post('/', requireRole('customer'), async (req, res) => {
   if (d.promo && promoPct === undefined) fail(400, 'That promo code is not valid.');
   const pricing = priceFor(plan.price, promoPct ?? 0);
 
-  // A booking is only "paid" if Stripe confirms it (or, with no Stripe key configured, in demo mode).
+  // A booking is only "paid" if the payment provider confirms it (or, with no keys configured, in demo mode).
   let txnId = `TXN${Math.floor(Math.random() * 1e9)}`;
   const payStatus = d.payStatus;
-  if (payStatus === 'paid' && stripe) {
-    if (!d.txnId?.startsWith('pi_')) fail(402, 'The payment could not be verified.');
-    const pi = await stripe.paymentIntents.retrieve(d.txnId).catch(() => null);
-    if (!pi || pi.status !== 'succeeded' || pi.currency !== 'aed' || pi.amount !== Math.round(pricing.total * 100)) fail(402, 'The payment could not be verified.');
-    if (await Payment.exists({ txnId: pi.id })) fail(409, 'This payment was already used for another booking.');
-    txnId = pi.id;
-  } else if (payStatus === 'paid' && process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_PAYMENTS !== 'true') fail(402, 'Card payments are not available right now.');   // ALLOW_DEMO_PAYMENTS=true: accept the booking without charging (until Stripe is configured)
+  if (payStatus === 'paid' && gateway.configured) {
+    const verified = await gateway.verify({ txnId: d.txnId, proof: d.txnProof, amount: pricing.total });
+    if (await Payment.exists({ txnId: verified })) fail(409, 'This payment was already used for another booking.');
+    txnId = verified;
+  } else if (payStatus === 'paid' && process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_PAYMENTS !== 'true') fail(402, 'Card payments are not available right now.');   // ALLOW_DEMO_PAYMENTS=true: accept the booking without charging (until the payment provider is configured)
 
   const customer = req.user;
   const code = `CI-${await nextSeq('booking')}`;
@@ -93,10 +92,7 @@ router.post('/:code/cancel', async (req, res) => {
 
   const payment = await Payment.findOne({ bookingCode: b.code });
   const wasPaid = b.payment?.status === 'paid';
-  if (wasPaid && stripe && b.payment.txnId?.startsWith('pi_')) {
-    try { await stripe.refunds.create({ payment_intent: b.payment.txnId }); }
-    catch (e) { if (e?.code !== 'charge_already_refunded') fail(502, 'The refund could not be processed. Please try again or contact support.'); }
-  }
+  if (wasPaid && gateway.configured && gateway.owns(b.payment.txnId)) await gateway.refund(b.payment.txnId);
   b.status = 'cancelled';
   if (wasPaid) { b.payment = { ...b.payment, status: 'refunded' }; if (payment) payment.status = 'refunded'; }
   b.timeline.push({ at: now(), label: wasPaid ? 'Booking cancelled – refund initiated' : 'Booking cancelled', by: req.user.name });

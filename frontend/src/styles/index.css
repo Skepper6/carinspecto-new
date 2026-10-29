@@ -1410,3 +1410,14 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
   .toolbar:not(.an-toolbar):has(> .tabs > button:nth-child(5)) .filters .search { flex: 0 1 360px; width: 360px; }
 }
 .shell .pick, .shell .pick:hover, .shell .plan, .shell .plan:hover, .shell .plan.popular, .shell .cat, .shell .cat:hover, .shell .strip-item, .shell .report-card, .shell .report-cover, .shell .faq-item.open { box-shadow: none; }
+
+/* month / year picker: compact */
+.cal-pick { grid-template-columns: 76px 1fr; gap: 8px; height: 206px; }
+.cal-years { gap: 2px; padding-right: 4px; scrollbar-width: thin; }
+.cal-years button { height: 30px; font-size: 13px; border-radius: 8px; }
+.cal-months { gap: 4px; }
+.cal-months button { font-size: 13px; border-radius: 8px; }
+.cal .cal-years button.on, .cal .cal-months button.on { background: var(--primary); color: #fff; }
+:root[data-theme='dark'] .cal .cal-years button.on, :root[data-theme='dark'] .cal .cal-months button.on { color: #0e0c20; }
+.cal header .cal-title b { font-size: 14px; font-weight: 600; }
+.cal header .cal-title svg { width: 14px; height: 14px; }

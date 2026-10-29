@@ -6,6 +6,7 @@ import { PageHeader, PayBadge, SearchInput, StatCard, Tabs, useLoading, FilterBa
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import { downloadCSV, fmtDateTime, money } from '../../lib/format';
+import { TAX_NAME } from '../../lib/constants';
 
 export default function Revenue() {
   const s = useDB((x) => x);
@@ -33,19 +34,19 @@ export default function Revenue() {
     { key: 'customer', label: 'Customer' },
     { key: 'method', hide: 'md', label: 'Method', width: 170 },
     { key: 'at', hide: 'lg', label: 'Date', width: 150, render: (p) => fmtDateTime(p.at) },
-    { key: 'vat', hide: 'md', label: 'VAT', width: 90, render: (p) => money(p.vat) },
+    { key: 'vat', hide: 'md', label: TAX_NAME, width: 90, render: (p) => money(p.vat) },
     { key: 'amount', label: 'Amount', width: 110, render: (p) => <b>{money(p.amount)}</b> },
     { key: 'status', label: 'Status', width: 130, render: (p) => <PayBadge status={p.status} /> },
   ];
 
   return (
     <div className="page fill">
-      <PageHeader title="Revenue & payments" subtitle="Every transaction, VAT collected and refunds."
-        actions={<Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-payments.csv', rows.map((p) => ({ Transaction: p.txnId, Order: p.bookingId, Customer: p.customer, Method: p.method, Date: p.at, VAT: p.vat, Amount: p.amount, Status: p.status }))); toast.success('Payments exported.'); }}>Export CSV</Button>} />
+      <PageHeader title="Revenue & payments" subtitle={`Every transaction, ${TAX_NAME} collected and refunds.`}
+        actions={<Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-payments.csv', rows.map((p) => ({ Transaction: p.txnId, Order: p.bookingId, Customer: p.customer, Method: p.method, Date: p.at, [TAX_NAME]: p.vat, Amount: p.amount, Status: p.status }))); toast.success('Payments exported.'); }}>Export CSV</Button>} />
       <div className="grid-4 compact">
         <StatCard icon={Wallet} label="Gross revenue" value={gross} format={money} tone="indigo" />
-        <StatCard icon={Receipt} label="VAT collected" value={vat} format={money} tone="teal" />
-        <StatCard icon={TrendingUp} label="Net of VAT" value={gross - vat} format={money} tone="green" />
+        <StatCard icon={Receipt} label={`${TAX_NAME} collected`} value={vat} format={money} tone="teal" />
+        <StatCard icon={TrendingUp} label={`Net of ${TAX_NAME}`} value={gross - vat} format={money} tone="green" />
         <StatCard icon={Undo2} label="Refunded" value={refunds} format={money} tone="orange" />
       </div>
       <div className="toolbar">

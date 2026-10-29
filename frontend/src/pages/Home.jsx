@@ -9,7 +9,8 @@ import Button from '../components/ui/Button';
 import { useDB } from '../lib/db';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
-import { PORTALS } from '../lib/constants';
+import { PORTALS, COUNTRY, SERVICE_AREA, COMPANY, TAX_NAME } from '../lib/constants';
+import { market } from '../lib/market';
 import { money } from '../lib/format';
 
 const Counter = ({ to, suffix = '' }) => {
@@ -36,11 +37,7 @@ const CATS = [
   [Activity, 'Diagnostics', 'Pre/post OBD scan & road test'],
   [Camera, 'Photo evidence', 'Auto-labelled interior, engine, tyres…'],
 ];
-const REVIEWS = [
-  ['Priya N.', 'Dubai Marina', 'The inspector caught a hidden repaint and a weak battery before a long road trip. Worth every dirham.'],
-  ['Omar A.', 'Abu Dhabi', 'Booking took two minutes and the report was in my inbox before the inspector had even left.'],
-  ['Sarah T.', 'Sharjah', 'Professional, punctual and the photo-backed report gave me total peace of mind about my SUV.'],
-];
+const REVIEWS = market.reviews;
 
 export default function Home() {
   const plans = useDB((s) => s.plans);
@@ -102,9 +99,9 @@ export default function Home() {
         <i className="orb o1" /><i className="orb o2" />
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow"><BadgeCheck size={16} /> Certified car inspections across the UAE</span>
-            <h1>Know your car's <span className="grad">true condition</span> – anywhere in the UAE.</h1>
-            <p>Book a certified Car InspectO inspector, get a full multi-point check at your home, office or parking spot in Dubai and every emirate, then receive a photo-backed report in minutes.</p>
+            <span className="eyebrow"><BadgeCheck size={16} /> Certified car inspections across {COUNTRY}</span>
+            <h1>Know your car's <span className="grad">true condition</span> – anywhere in {COUNTRY}.</h1>
+            <p>Book a certified Car InspectO inspector, get a full multi-point check at your home, office or parking spot in {SERVICE_AREA}, then receive a photo-backed report in minutes.</p>
             <div className="hero-cta">
               <Link to={user?.role === 'customer' ? '/app/book' : '/signup'}><Button size="lg" icon={CalendarCheck}>Book an inspection</Button></Link>
               <button className="btn btn-ghost btn-lg" onClick={() => scrollTo('portals')}><span>Choose your portal</span><ArrowRight size={16} /></button>
@@ -122,7 +119,7 @@ export default function Home() {
                 <ScoreRing score={92} size={104} />
                 <div>
                   <b>2022 Hyundai Creta</b>
-                  <span className="muted small">Petrol · Dubai A 48213</span>
+                  <span className="muted small">Petrol · {market.examples.plate}</span>
                   <div className="rc-tags"><i className="t g">Engine ✓</i><i className="t g">Brakes ✓</i><i className="t a">Tyres 4mm</i></div>
                 </div>
               </div>
@@ -140,7 +137,7 @@ export default function Home() {
 
       {/* STATS */}
       <section className="wrap stats-strip">
-        {[[12480, '+', 'Inspections done'], [150, '+', 'Checkpoints per car'], [8, '', 'Emirates & cities'], [98, '%', 'Customer satisfaction']].map(([n, s, l]) => (
+        {[[12480, '+', 'Inspections done'], [150, '+', 'Checkpoints per car'], [8, '', 'Service areas'], [98, '%', 'Customer satisfaction']].map(([n, s, l]) => (
           <Reveal key={l} className="strip-item"><b><Counter to={n} suffix={s} /></b><span>{l}</span></Reveal>
         ))}
       </section>
@@ -198,14 +195,14 @@ export default function Home() {
       {/* PLANS */}
       <section id="plans" className="section alt">
         <div className="wrap">
-          <Reveal className="section-head"><span className="eyebrow">Plans & pricing</span><h2>Simple, transparent pricing</h2><p className="muted">VAT and the small booking fee are shown before you pay – no surprises.</p></Reveal>
+          <Reveal className="section-head"><span className="eyebrow">Plans & pricing</span><h2>Simple, transparent pricing</h2><p className="muted">{TAX_NAME} and the small booking fee are shown before you pay – no surprises.</p></Reveal>
           <div className="grid-3 plans">
             {plans.map((p, i) => (
               <Reveal key={p.id} delay={i * 80} className={`plan ${p.popular ? 'popular' : ''}`}>
                 {p.popular && <span className="plan-flag">Most popular</span>}
                 <h3 style={{ color: p.color }}>{p.name}</h3>
                 <p className="muted">{p.tagline}</p>
-                <div className="plan-price"><b>{money(p.price)}</b><span>+ VAT</span></div>
+                <div className="plan-price"><b>{money(p.price)}</b><span>+ {TAX_NAME}</span></div>
                 <p className="plan-meta">{p.checkpoints} checkpoints · {p.duration}</p>
                 <ul>{p.features.map((f) => <li key={f}><Check size={16} />{f}</li>)}</ul>
                 <Link to={user?.role === 'customer' ? `/app/book?plan=${p.id}` : '/signup'}><Button variant={p.popular ? 'primary' : 'outline'} className="w-full">Choose {p.name}</Button></Link>
@@ -256,10 +253,10 @@ export default function Home() {
 
       <footer className="home-foot">
         <div className="wrap foot-grid">
-          <div><span className="logo-chip"><Logo height={52} /></span><p>Certified digital vehicle inspections across Dubai and the UAE.</p></div>
+          <div><span className="logo-chip"><Logo height={52} /></span><p>Certified digital vehicle inspections across {COUNTRY}.</p></div>
           <div><h5>Portals</h5>{Object.entries(PORTALS).map(([r, p]) => <Link key={r} to={`/login?role=${r}`}>{p.label}</Link>)}</div>
           <div><h5>Company</h5><button onClick={() => scrollTo('how')}>How it works</button><button onClick={() => scrollTo('plans')}>Plans</button><button onClick={() => scrollTo('faq')}>FAQ</button><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div>
-          <div><h5>Contact</h5><span><Phone size={14} /> +971 4 123 4567</span><span><Mail size={14} /> hello@carinspecto.ae</span></div>
+          <div><h5>Contact</h5><span><Phone size={14} /> {COMPANY.phone}</span><span><Mail size={14} /> {COMPANY.email}</span></div>
         </div>
         <div className="wrap foot-base">© {new Date().getFullYear()} Car InspectO. All rights reserved.</div>
       </footer>

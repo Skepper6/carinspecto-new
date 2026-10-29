@@ -3,6 +3,7 @@ import { rasterize, carCoverArt, roundedThumb } from './image';
 import { interiorDiagram, exteriorDiagram, chassisDiagram, wheelDiagram } from './carDiagrams';
 import { carName, fmtDate, fmtTime, fmtDateTime } from './format';
 import { COMPANY, COVER } from './constants';
+import { market } from './market';
 
 const INDIGO = [51, 35, 127];
 const ORANGE = [245, 130, 32];
@@ -25,7 +26,7 @@ const DISCLAIMER = [
   ['Seller Consent and Agreement', ''],
   ['4. Consent to Inspection Findings:', '"By allowing an inspection, the Seller agrees that they will not hold Car InspectO liable for any discrepancies, claims, or disputes arising from the findings in the inspection report. The Seller acknowledges that the report is an independent evaluation and does not guarantee or validate the Seller\'s representations about the vehicle\'s condition."'],
   ['Dispute Resolution with Sellers', ''],
-  ['5. Mediation and Arbitration:', '"If the Seller disputes the findings of an inspection report and seeks to claim damages, the matter shall first be referred to good-faith negotiations between all parties (Buyer, Seller and Car InspectO). If unresolved, the dispute shall be subject to mediation or binding arbitration in accordance with the rules of the Dubai International Arbitration Centre (DIAC), with Car InspectO\'s liability limited to the fee paid for the inspection."'],
+  ['5. Mediation and Arbitration:', '"If the Seller disputes the findings of an inspection report and seeks to claim damages, the matter shall first be referred to good-faith negotiations between all parties (Buyer, Seller and Car InspectO). If unresolved, the dispute shall be subject to mediation or binding arbitration ' + market.arbitration + ', with Car InspectO\'s liability limited to the fee paid for the inspection."'],
   ['Indemnification Clause', ''],
   ['6. Seller Indemnity:', '"The Seller agrees to indemnify and hold Car InspectO harmless from any claims, damages, or disputes arising from inaccuracies, misrepresentations, or omissions in the Seller\'s description of the vehicle or its condition prior to the inspection."'],
 ];
@@ -58,6 +59,7 @@ function drawFlag(doc, spec, x, y) {
   box(WHITE, x, y, w, h);
   if (spec === 'Japanese') { doc.setFillColor(188, 0, 45); doc.circle(x + w / 2, y + h / 2, 3.2, 'F'); }
   else if (spec === 'GCC') { box([0, 115, 47], x, y, w, h / 3); box([0, 0, 0], x, y + (h * 2) / 3, w, h / 3); box(RED, x, y, 4.5, h); }
+  else if (spec === 'Indian') { box([255, 153, 51], x, y, w, h / 3); box([19, 136, 8], x, y + (h * 2) / 3, w, h / 3); doc.setDrawColor(0, 0, 128); doc.setLineWidth(0.3); doc.circle(x + w / 2, y + h / 2, 1.2, 'S'); }
   else if (spec === 'American') { for (let i = 0; i < 4; i++) box(RED, x, y + i * (h / 4) * 1 + (i ? 0 : 0), w, h / 8); box(BLUE, x, y, 7, 5.5); }
   else if (spec === 'European') { box(BLUE, x, y, w, h); doc.setFillColor(255, 204, 0); for (let i = 0; i < 8; i++) doc.circle(x + w / 2 + Math.cos((i * Math.PI) / 4) * 3.6, y + h / 2 + Math.sin((i * Math.PI) / 4) * 3.6, 0.6, 'F'); }
   else if (spec === 'Canadian') { box(RED, x, y, 4, h); box(RED, x + w - 4, y, 4, h); box(RED, x + w / 2 - 1.5, y + 3, 3, 5); }

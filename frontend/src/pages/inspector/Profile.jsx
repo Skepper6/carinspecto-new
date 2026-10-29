@@ -8,7 +8,7 @@ import { Avatar, Card, Input, PageHeader, Select, Stars, PhoneInput } from '../.
 import Button from '../../components/ui/Button';
 import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
 import { CITIES } from '../../lib/constants';
-import { fmtDate, isValidPhone } from '../../lib/format';
+import { fmtDate, isValidPhone, PHONE_ERROR } from '../../lib/format';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -22,7 +22,7 @@ export default function Profile() {
   const save = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter your name';
-    if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+    if (f.phone && !isValidPhone(f.phone)) e.phone = PHONE_ERROR;
     setErr(e);
     if (Object.keys(e).length) return;
     await guard(updateUser(me.id, f), 'Profile updated.');

@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch server.js",
+    "dev:in": "node --env-file=.env.india --watch server.js",
+    "start:in": "node --env-file=.env.india server.js",
+    "seed:in": "node --env-file=.env.india src/scripts/seed.js",
+    "smoke:in": "node --env-file=.env.india src/scripts/smoke.js",
+    "smoke:razorpay": "node src/scripts/smoke-razorpay.js",
     "start": "node server.js",
     "seed": "node src/scripts/seed.js",
     "smoke": "node src/scripts/smoke.js",

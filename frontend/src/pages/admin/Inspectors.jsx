@@ -7,8 +7,8 @@ import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { inspectorPerformance } from '../../lib/stats';
-import { CITIES } from '../../lib/constants';
-import { downloadCSV, fmtDate, isValidPhone } from '../../lib/format';
+import { CITIES, ALL_REGIONS } from '../../lib/constants';
+import { downloadCSV, fmtDate, isValidPhone, PHONE_ERROR } from '../../lib/format';
 
 const EMPTY = { name: '', email: '', phone: '', city: '', specialization: '', pw: '' };
 
@@ -32,7 +32,7 @@ export default function Inspectors() {
     .filter((u) => (!flt.f.city || u.city === flt.f.city) && (!flt.f.rating || u.rating >= Number(flt.f.rating)) && (!flt.f.avail || (flt.f.avail === 'yes' ? u.available !== false : u.available === false)) && inRange(u.joinedAt, flt.f))
     .sort((a, b) => b.joinedAt.localeCompare(a.joinedAt));
   const fdefs = [
-    { key: 'city', label: 'All emirates', options: CITIES },
+    { key: 'city', label: ALL_REGIONS, options: CITIES },
     { key: 'rating', label: 'Any rating', options: [{ value: '4.5', label: '4.5+ stars' }, { value: '4', label: '4+ stars' }] },
     { key: 'avail', label: 'Any availability', options: [{ value: 'yes', label: 'Available' }, { value: 'no', label: 'Unavailable' }] },
     { key: 'from', label: 'Joined from', type: 'date' }, { key: 'to', label: 'Joined to', type: 'date' }
@@ -45,7 +45,7 @@ export default function Inspectors() {
     if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email';
     else if (findUserByEmail(f.email)) e.email = 'This email is already in use';
     if (!f.city) e.city = 'Select a city';
-    if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+    if (f.phone && !isValidPhone(f.phone)) e.phone = PHONE_ERROR;
     if (f.pw.length < 8) e.pw = 'Min. 8 characters';
     setErr(e);
     if (Object.keys(e).length) return;

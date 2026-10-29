@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, FileCheck2, Clock, ArrowLeft } from 'lucide-react';
 import { Logo } from '../ui/kit';
+import { SERVICE_AREA } from '../../lib/constants';
 
 // The same two-column frame as the sign-in page, for the password and email pages.
 export default function AuthShell({ children }) {
@@ -14,7 +15,7 @@ export default function AuthShell({ children }) {
         <ul>
           <li><ShieldCheck size={20} /> Verified, background-checked inspectors</li>
           <li><FileCheck2 size={20} /> Photo-backed PDF reports</li>
-          <li><Clock size={20} /> Dubai & all emirates · 7 days a week</li>
+          <li><Clock size={20} /> {SERVICE_AREA} · 7 days a week</li>
         </ul>
         <i className="orb o1" /><i className="orb o2" />
       </aside>

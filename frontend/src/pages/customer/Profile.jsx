@@ -9,10 +9,10 @@ import Modal from '../../components/ui/Modal';
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
 import { resendVerification } from '../../services/auth';
-import { stripeEnabled } from '../../services/stripe';
+import { onlineEnabled } from '../../services/payments';
 import { CITIES } from '../../lib/constants';
 import { formatCardNumber, formatExpiry, validateCardNumber, validateExpiry, cardBrand } from '../../lib/card';
-import { fmtDate, uid, isValidPhone } from '../../lib/format';
+import { fmtDate, uid, isValidPhone, PHONE_ERROR } from '../../lib/format';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -31,7 +31,7 @@ export default function Profile() {
   const saveProfile = async () => {
     const e = {};
     if (f.name.trim().length < 2) e.name = 'Enter your name';
-    if (f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+    if (f.phone && !isValidPhone(f.phone)) e.phone = PHONE_ERROR;
     setErrs(e);
     if (Object.keys(e).length) return;
     await guard(updateUser(me.id, { name: f.name.trim(), phone: f.phone }), 'Profile updated.');
@@ -48,7 +48,7 @@ export default function Profile() {
   const addCard = async () => {
     const digits = c.number.replace(/\s/g, '');
     const e = {};
-    const en = validateCardNumber(digits, stripeEnabled), ee = validateExpiry(c.exp);
+    const en = validateCardNumber(digits, onlineEnabled), ee = validateExpiry(c.exp);
     if (en) e.number = en;
     if (ee) e.exp = ee;
     setCe(e);

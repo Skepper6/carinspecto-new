@@ -4,9 +4,10 @@ import { ShieldCheck, FileCheck2, Clock, Eye, EyeOff, Sparkles, ArrowLeft } from
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { Logo, Input, Tabs, PhoneInput } from '../components/ui/kit';
-import { isValidPhone } from '../lib/format';
+import { isValidPhone, PHONE_ERROR } from '../lib/format';
 import Button from '../components/ui/Button';
-import { PORTALS } from '../lib/constants';
+import { PORTALS, SERVICE_AREA } from '../lib/constants';
+import { market } from '../lib/market';
 import { googleEnabled } from '../services/auth';
 
 // One-click test logins.
@@ -15,8 +16,8 @@ import { googleEnabled } from '../services/auth';
 //    password is written into the website code unless you switch this on. Remove the settings (and redeploy) to hide it.
 const DEMO = import.meta.env.DEV   // written as import.meta.env.DEV (not via a variable) so the build removes this branch from the live site
   ? {
-    customer: { email: 'omar@example.com', pw: 'demo123' },
-    inspector: { email: 'khalid@carinspecto.com', pw: 'demo123' },
+    customer: { email: market.demo.customer, pw: 'demo123' },
+    inspector: { email: market.demo.inspector, pw: 'demo123' },
     admin: { email: 'admin@carinspecto.com', pw: 'admin123' },
   }
   : import.meta.env.VITE_SHOW_DEMO_LOGINS === 'true'
@@ -62,7 +63,7 @@ export default function Login({ signup: signupMode = false }) {
     if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email address';
     if (isSignup ? f.pw.length < 8 : f.pw.length < 1) e.pw = isSignup ? 'Password must be at least 8 characters' : 'Enter your password';
     if (isSignup && !accepted) e.terms = 'Please accept the Terms and Privacy Policy';
-    if (isSignup && f.phone && !isValidPhone(f.phone)) e.phone = 'Enter a valid UAE number, e.g. +971 50 123 4567';
+    if (isSignup && f.phone && !isValidPhone(f.phone)) e.phone = PHONE_ERROR;
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -115,7 +116,7 @@ export default function Login({ signup: signupMode = false }) {
         <ul>
           <li><ShieldCheck size={20} /> Verified, background-checked inspectors</li>
           <li><FileCheck2 size={20} /> Photo-backed PDF reports</li>
-          <li><Clock size={20} /> Dubai & all emirates · 7 days a week</li>
+          <li><Clock size={20} /> {SERVICE_AREA} · 7 days a week</li>
         </ul>
         <i className="orb o1" /><i className="orb o2" />
       </aside>

@@ -2,7 +2,7 @@ import Modal from '../ui/Modal';
 import { Avatar, PayBadge, StatusBadge, Timeline } from '../ui/kit';
 import { useDB } from '../../lib/db';
 import { carName, fmtDate, fmtTime, money } from '../../lib/format';
-import { VAT_RATE } from '../../lib/constants';
+import { TAX_NAME, VAT_RATE } from '../../lib/constants';
 
 // Read-only booking details used by all three portals. `footer` lets each portal add its own actions.
 export default function BookingModal({ bookingId, onClose, footer }) {
@@ -31,7 +31,7 @@ export default function BookingModal({ bookingId, onClose, footer }) {
               <div><span>{d.plan?.name} inspection</span><b>{money(d.b.pricing.plan)}</b></div>
               {d.b.pricing.discount > 0 && <div className="disc"><span>Promo discount</span><b>−{money(d.b.pricing.discount)}</b></div>}
               <div><span>Booking fee</span><b>{money(d.b.pricing.bookingFee)}</b></div>
-              <div><span>VAT ({Math.round(VAT_RATE * 100)}%)</span><b>{money(d.b.pricing.vat)}</b></div>
+              <div><span>{TAX_NAME} ({Math.round(VAT_RATE * 100)}%)</span><b>{money(d.b.pricing.vat)}</b></div>
               <div className="total"><span>Total · {d.b.payment.method}</span><b>{money(d.b.pricing.total)}</b></div>
             </div>
           </div>

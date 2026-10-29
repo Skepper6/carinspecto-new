@@ -1,4 +1,5 @@
-import { CAR_MAKES, CAR_TYPES, FUELS, TIME_SLOTS } from './constants';
+import { CAR_MAKES, CAR_TYPES, FUELS, TIME_SLOTS, CITIES, COUNTRY, TAX_NAME } from './constants';
+import { market } from './market';
 import { SECTIONS, countCheckpoints, isGradedType } from './inspectionSchema';
 import { addDays, isoDate } from './format';
 import { placeholderPhoto, carCoverArt } from './image';
@@ -20,40 +21,26 @@ const PREMIUM = [...STANDARD, 'chassis', 'diagnostics'];
 
 export const PLANS = [
   {
-    id: 'basic', name: 'Essential', price: 199, checkpoints: countCheckpoints(BASIC), duration: '60 min', color: '#2ea6a0',
+    id: 'basic', name: 'Essential', price: market.plans.basic, checkpoints: countCheckpoints(BASIC), duration: '60 min', color: '#2ea6a0',
     tagline: 'Body, tyres and interior health check',
     sections: BASIC,
     features: ['Vehicle summary', 'Tyres, rims, brakes & suspension', 'Interior & exterior paint check', 'Photo-backed PDF report'],
   },
   {
-    id: 'standard', name: 'Standard', price: 349, checkpoints: countCheckpoints(STANDARD), duration: '90 min', color: '#3a2a8c', popular: true,
+    id: 'standard', name: 'Standard', price: market.plans.standard, checkpoints: countCheckpoints(STANDARD), duration: '90 min', color: '#3a2a8c', popular: true,
     tagline: 'Our most chosen plan for a thorough check',
     sections: STANDARD,
     features: ['Everything in Essential', 'Electrical systems', 'Engine bay, leaks & transmission', 'Inspector call-back'],
   },
   {
-    id: 'premium', name: 'Premium', price: 549, checkpoints: countCheckpoints(PREMIUM), duration: '2 hrs', color: '#f58220',
+    id: 'premium', name: 'Premium', price: market.plans.premium, checkpoints: countCheckpoints(PREMIUM), duration: '2 hrs', color: '#f58220',
     tagline: 'Full inspection incl. chassis, OBD scan & road test',
     sections: PREMIUM,
     features: ['Everything in Standard', 'Chassis / subframe check', 'Pre & post-drive OBD diagnostics', 'Road test & priority scheduling'],
   },
 ];
 
-const CUSTOMERS = [
-  ['Omar Al Mansoori', 'Dubai'], ['Fatima Al Hashimi', 'Abu Dhabi'], ['Rashid Al Nuaimi', 'Sharjah'], ['Sarah Thompson', 'Dubai'],
-  ['Ahmed Khan', 'Ajman'], ['Priya Nair', 'Dubai'], ['Khalid Al Suwaidi', 'Al Ain'], ['Layla Haddad', 'Sharjah'],
-  ['James Carter', 'Dubai'], ['Mariam Al Ketbi', 'Ras Al Khaimah'], ['Yusuf Ibrahim', 'Abu Dhabi'], ['Elena Petrova', 'Dubai'],
-];
-const INSPECTORS = [
-  ['Khalid Rahman', 'Dubai', 'Luxury & performance specialist'], ['Suresh Kumar', 'Dubai', 'Diesel & SUV expert'],
-  ['Imran Ali', 'Abu Dhabi', 'Sedan & hybrid specialist'], ['Hassan Mahmoud', 'Sharjah', 'EV & hybrid certified'],
-  ['Pavel Novak', 'Al Ain', 'Transmission specialist'],
-];
-const STREETS = ['Sheikh Zayed Road', 'Al Wasl Road', 'Jumeirah Beach Road', 'Marina Walk', 'Al Khalidiyah St', 'Corniche Road', 'Al Majaz', 'Business Bay'];
-const COORDS = {
-  Dubai: [25.2048, 55.2708], 'Abu Dhabi': [24.4539, 54.3773], Sharjah: [25.3463, 55.4209], Ajman: [25.4052, 55.5136],
-  'Ras Al Khaimah': [25.7895, 55.9432], Fujairah: [25.1288, 56.3265], 'Umm Al Quwain': [25.5647, 55.5534], 'Al Ain': [24.2075, 55.7447],
-};
+const { customers: CUSTOMERS, inspectors: INSPECTORS, streets: STREETS, coords: COORDS, areas: AREAS, phones: PHONES } = market.seed;
 
 const COLOURS = ['White', 'Grey', 'Silver', 'Black', 'Blue', 'Red'];
 const MAKERS = ['Michelin', 'Bridgestone', 'Pirelli', 'Continental', 'Goodyear'];
@@ -82,7 +69,7 @@ export function makeInspectionData(plan, r, quality) {
         cell.v = r() < quality ? [] : [pickOf(it.options)];
       } else if (it.type === 'select') {
         if (isGradedType(it)) cell.v = r() < quality ? it.options[0] : pickOf(it.options.slice(1));
-        else cell.v = it.id === 'vehicleType' ? 'SUV' : it.id === 'regionalSpecs' ? 'GCC' : pickOf(it.options.slice(0, 2));
+        else cell.v = it.id === 'vehicleType' ? 'SUV' : it.id === 'regionalSpecs' ? it.options[0] : pickOf(it.options.slice(0, 2));
       } else if (it.type === 'number') {
         cell.v = it.id === 'odometer' ? Math.round(18000 + r() * 90000) : 0;
       } else if (it.id === 'vin') cell.v = 'WDB' + Math.floor(r() * 1e12).toString(36).toUpperCase().padEnd(14, '7');
@@ -99,10 +86,9 @@ export function makeInspectionData(plan, r, quality) {
   return data;
 }
 
-const AREAS = ['Marina', 'Jumeirah', 'Downtown', 'Al Barsha', 'Deira', 'Khalidiyah', 'Al Nahda', 'Mirdif'];
 function mkAddress(id, label, no, street, city, isDefault) {
   const area = AREAS[(no * 7) % AREAS.length];
-  const building = `Villa ${no}`;
+  const building = `${market.seed.buildingWord} ${no}`;
   return { id, label, building, unit: '', street, area, landmark: 'Near the main entrance', city, phone: '', line: `${building}, ${street}, ${area}`, address: `${building}, ${street}, ${area}`, isDefault };
 }
 
@@ -114,21 +100,21 @@ export function buildSeed() {
 
   users.push({
     id: 'u_admin', role: 'admin', name: 'Admin Team', email: 'admin@carinspecto.com', pw: 'admin123',
-    phone: '+971 50 000 0001', status: 'active', joinedAt: addDays(now, -400).toISOString(), city: 'Dubai',
+    phone: PHONES.admin, status: 'active', joinedAt: addDays(now, -400).toISOString(), city: CITIES[0],
   });
   CUSTOMERS.forEach(([name, city], i) => {
-    const email = i === 0 ? 'omar@example.com' : `${name.toLowerCase().replace(/ /g, '.')}@example.com`;
+    const email = i === 0 ? market.demo.customer : `${name.toLowerCase().replace(/ /g, '.')}@example.com`;
     users.push({
-      id: `u_c${i + 1}`, role: 'customer', name, email, pw: 'demo123', phone: `+971 50 ${String(1000000 + i * 73117).slice(0, 3)} ${String(1000 + i * 311).slice(0, 4)}`,
+      id: `u_c${i + 1}`, role: 'customer', name, email, pw: 'demo123', phone: PHONES.customer(i),
       status: i === 9 ? 'suspended' : 'active', city, joinedAt: addDays(now, -Math.round(30 + r() * 300)).toISOString(),
       addresses: [mkAddress(`a${i}`, 'Home', 12 + i, pick(STREETS), city, true)],
-      paymentMethods: [{ id: `p${i}`, type: 'card', brand: pick(['Visa', 'Mastercard', 'Amex']), last4: String(1000 + Math.floor(r() * 8999)), exp: '09/28', isDefault: true }],
+      paymentMethods: [{ id: `p${i}`, type: 'card', brand: pick(market.seed.cardBrands), last4: String(1000 + Math.floor(r() * 8999)), exp: '09/28', isDefault: true }],
     });
   });
   INSPECTORS.forEach(([name, city, spec], i) => {
-    const email = i === 0 ? 'khalid@carinspecto.com' : `${name.split(' ')[0].toLowerCase()}@carinspecto.com`;
+    const email = i === 0 ? market.demo.inspector : `${name.split(' ')[0].toLowerCase()}@carinspecto.com`;
     users.push({
-      id: `u_i${i + 1}`, role: 'inspector', name, email, pw: 'demo123', phone: `+971 55 ${String(2000000 + i * 51131).slice(0, 3)} ${String(2000 + i * 211).slice(0, 4)}`,
+      id: `u_i${i + 1}`, role: 'inspector', name, email, pw: 'demo123', phone: PHONES.inspector(i),
       status: i === 4 ? 'suspended' : 'active', city, specialization: spec, rating: +(4.4 + r() * 0.55).toFixed(1),
       joinedAt: addDays(now, -Math.round(120 + r() * 300)).toISOString(), available: true,
     });
@@ -168,11 +154,11 @@ export function buildSeed() {
 
     const booking = {
       id, customerId: customer.id, inspectorId: hasInspector ? insp.id : null,
-      car: { type: pick(CAR_TYPES), make, model, year: now.getFullYear() - Math.floor(1 + r() * 9), fuel: pick(FUELS.slice(0, 4)), reg: `${pick(['Dubai', 'Abu Dhabi', 'Sharjah'])} ${pick(['A', 'B', 'K', 'N', 'R'])} ${10000 + Math.floor(r() * 89999)}` },
+      car: { type: pick(CAR_TYPES), make, model, year: now.getFullYear() - Math.floor(1 + r() * 9), fuel: pick(FUELS.slice(0, 4)), reg: market.seed.plate(pick, r) },
       planId: plan.id,
       location: { ...mkAddress('', 'Home', 12 + i, pick(STREETS), city, false), lat: COORDS[city][0], lng: COORDS[city][1] },
       date: isoDate(date), time: pick(TIME_SLOTS), status, pricing,
-      payment: { status: status === 'cancelled' ? 'refunded' : 'paid', method: pick(['Visa •••• 4242', 'Apple Pay', 'Mastercard •••• 8811']), txnId: `TXN${Math.floor(r() * 1e9)}` },
+      payment: { status: status === 'cancelled' ? 'refunded' : 'paid', method: pick(market.seed.payMethods), txnId: `TXN${Math.floor(r() * 1e9)}` },
       purpose: pick(['Pre-purchase check', 'Routine check-up', 'Pre-purchase check', 'Post-accident check', 'Pre-trip check']), createdAt: created.toISOString(), timeline,
       rating: status === 'completed' && r() < 0.7 ? Math.round(4 + r()) : null,
     };
@@ -202,7 +188,7 @@ export function buildSeed() {
   const tickets = [
     ['Report not downloading', 'Reports', 'high', 'open', 'u_c2'], ['Reschedule my inspection', 'Booking', 'medium', 'in_progress', 'u_c2'],
     ['Refund for cancelled booking', 'Payments', 'high', 'open', 'u_c4'], ['Inspector arrived late', 'Service', 'low', 'resolved', 'u_c5'],
-    ['Change registered phone number', 'Account', 'low', 'resolved', 'u_c3'], ['Need VAT invoice (TRN)', 'Payments', 'medium', 'in_progress', 'u_c6'],
+    ['Change registered phone number', 'Account', 'low', 'resolved', 'u_c3'], [`Need ${TAX_NAME} invoice (${market.taxIdLabel})`, 'Payments', 'medium', 'in_progress', 'u_c6'],
     ['Wrong car model on report', 'Reports', 'high', 'open', 'u_c7'], ['Coupon code not applying', 'Payments', 'medium', 'open', 'u_c8'],
     ['How long is a Premium inspection?', 'General', 'low', 'resolved', 'u_c9'],
   ].map(([subject, category, priority, status, customerId], i) => ({
@@ -222,11 +208,11 @@ export function buildSeed() {
 
   const content = {
     faqs: [
-      { id: 'f1', q: 'How long does an inspection take?', a: 'Between 60 minutes and 2 hours depending on the plan you choose. Our inspector will come to your location anywhere in the UAE.' },
+      { id: 'f1', q: 'How long does an inspection take?', a: `Between 60 minutes and 2 hours depending on the plan you choose. Our inspector will come to your location anywhere in ${COUNTRY === 'UAE' ? 'the UAE' : COUNTRY}.` },
       { id: 'f2', q: 'When will I receive my report?', a: 'Your branded PDF report is available in your dashboard minutes after the inspector finishes, and we email you a copy.' },
       { id: 'f3', q: 'Can I reschedule or cancel a booking?', a: 'Yes. You can reschedule or cancel from My Bookings up to 4 hours before the slot. Cancelled paid bookings are refunded.' },
       { id: 'f4', q: 'Are inspectors verified?', a: 'Every Car InspectO inspector is background-checked, trained and certified before taking assignments.' },
-      { id: 'f5', q: 'Which payment methods are accepted?', a: 'Credit/debit cards and Apple Pay (or cash on arrival) – card payments are secured by our payment partner. VAT and the booking fee are shown before you pay.' },
+      { id: 'f5', q: 'Which payment methods are accepted?', a: `${market.payMethodsText} – online payments are secured by our payment partner. ${TAX_NAME} and the booking fee are shown before you pay.` },
     ],
     terms: 'By booking an inspection you agree that Car InspectO provides a visual and diagnostic assessment of the vehicle at the time of inspection. Reports are advisory and do not constitute a warranty.',
     privacy: 'We only collect the data needed to deliver your inspection. Your information is encrypted in transit and never sold to third parties.',

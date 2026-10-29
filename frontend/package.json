@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:in": "vite --mode india --port 5174 --strictPort",
+    "build:in": "vite build --mode india",
     "build": "vite build",
     "preview": "vite preview"
   },

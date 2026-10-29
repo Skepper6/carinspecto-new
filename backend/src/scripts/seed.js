@@ -11,6 +11,7 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { Booking, Content, Counter, File, Inspection, Notification, Payment, Plan, Ticket, User } from '../models/index.js';
 import { connectDB } from '../config/db.js';
+import { market } from '../config/market.js';
 
 if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
   console.error('Refusing to wipe a production database. Pass --force if you really mean it.');
@@ -20,7 +21,9 @@ if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) 
 const frontend = resolve(dirname(fileURLToPath(import.meta.url)), '../../../frontend');
 const dir = mkdtempSync(join(tmpdir(), 'ci-seed-'));
 const out = join(dir, 'seed.json');
-execFileSync(process.execPath, [join(frontend, 'scripts/export-seed.mjs'), out], { cwd: frontend, stdio: 'inherit' });
+// The demo data follows the market (MARKET=in builds Indian cities, names and prices)
+const env = { ...process.env, ...(process.env.MARKET ? { VITE_MARKET: process.env.MARKET } : {}) };
+execFileSync(process.execPath, [join(frontend, 'scripts/export-seed.mjs'), out], { cwd: frontend, stdio: 'inherit', env });
 const seed = JSON.parse(readFileSync(out, 'utf8'));
 rmSync(dir, { recursive: true, force: true });
 
@@ -69,5 +72,5 @@ await Counter.insertMany([
 ]);
 
 console.log(`Seeded ${seed.users.length} users, ${seed.bookings.length} bookings, ${Object.keys(seed.inspections).length} inspections, ${seed.tickets.length} tickets.`);
-console.log('Demo logins: omar@example.com / demo123 (customer), khalid@carinspecto.com / demo123 (inspector), admin@carinspecto.com / admin123');
+console.log(`Demo logins: ${market.demo.customer} / demo123 (customer), ${market.demo.inspector} / demo123 (inspector), admin@carinspecto.com / admin123`);
 await mongoose.disconnect();

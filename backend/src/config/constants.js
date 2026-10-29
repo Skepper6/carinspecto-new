@@ -1,6 +1,8 @@
-export const BOOKING_FEE = 15;
-export const VAT_RATE = 0.05;
-export const PROMOS = { FIRST10: 0.1, DUBAI15: 0.15 };
+import { market } from './market.js';
+
+export const BOOKING_FEE = market.bookingFee;
+export const VAT_RATE = market.taxRate;
+export const PROMOS = market.promos;
 
 export const BOOKING_STATUS = ['pending', 'assigned', 'ongoing', 'completed', 'cancelled'];
 export const TICKET_STATUS = ['open', 'in_progress', 'resolved'];
