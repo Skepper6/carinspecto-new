@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { useDB, createBooking, updateUser } from '../../lib/db';
 import { priceFor } from '../../lib/pricing';
+import { market } from '../../lib/market';
 import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, TAX_NAME, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
 import { carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
 import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
@@ -17,7 +18,8 @@ import Combobox from '../../components/ui/Combobox';
 import { CAR_DB, ALL_YEARS, makesForYear, modelsFor, findModel, productionRange, BODY_TYPES, BODY_LABEL, FUEL_TYPES, VARIANTS } from '../../lib/carData';
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import StripeCheckout from '../../components/shared/StripeCheckout';
-import { stripeEnabled } from '../../services/stripe';
+import RazorpayCheckout from '../../components/shared/RazorpayCheckout';
+import { onlineEnabled, onlineLabel, onlineMethodName, onlineKeyHint } from '../../services/payments';
 import { formatCardNumber, formatExpiry, formatCvv, validateCardNumber, validateExpiry, validateCvv } from '../../lib/card';
 
 const STEPS = [['Plan & price', Layers], ['Vehicle', Car], ['Location', MapPin], ['Date & time', CalendarClock], ['Review & pay', CreditCard]];
@@ -53,7 +55,7 @@ export default function NewBooking() {
   const [purpose, setPurpose] = useState(INSPECTION_REASONS[0]);
   const [other, setOther] = useState({ reason: '', fuel: '', type: '' });
   const setOtherField = (k) => (e) => { setOther((o) => ({ ...o, [k]: e.target.value })); setErrors((x) => ({ ...x, [`${k}Other`]: undefined })); };
-  const [method, setMethod] = useState(!CARDS_AVAILABLE ? 'cash' : me.paymentMethods?.[0] ? 'card:' + me.paymentMethods[0].id : stripeEnabled ? 'stripe' : 'newcard');
+  const [method, setMethod] = useState(!CARDS_AVAILABLE ? 'cash' : onlineEnabled ? 'online' : me.paymentMethods?.[0] ? 'card:' + me.paymentMethods[0].id : 'newcard');   // with real payments on, saved demo cards are not offered, so start on the online option
   const [nc, setNc] = useState({ number: '', exp: '', cvv: '' });
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(null);
@@ -94,7 +96,7 @@ export default function NewBooking() {
       if (!time) e.time = 'Pick a time slot';
     }
     if (step === 4 && method === 'newcard') {
-      const en = validateCardNumber(nc.number, stripeEnabled), ee = validateExpiry(nc.exp), ec = validateCvv(nc.cvv, nc.number);
+      const en = validateCardNumber(nc.number, onlineEnabled), ee = validateExpiry(nc.exp), ec = validateCvv(nc.cvv, nc.number);
       if (en) e.number = en;
       if (ee) e.exp = ee;
       if (ec) e.cvv = ec;
@@ -127,14 +129,14 @@ export default function NewBooking() {
     payLock.current = true;
     setPaying(true);
     let intent = null;
-    if (method === 'stripe') {
+    if (method === 'online') {
       try { intent = await confirmRef.current(); } catch (err) { payLock.current = false; setPaying(false); toast.error(err.message || 'Payment failed', 'Payment not completed'); return; }
     } else await new Promise((r) => setTimeout(r, 1200));
     const card = me.paymentMethods?.find((c) => 'card:' + c.id === method);
-    const label = method === 'stripe' ? 'Card / Apple Pay (Stripe)' : method === 'applepay' ? 'Apple Pay' : method === 'cash' ? 'Cash on arrival' : method === 'newcard' ? `Card •••• ${nc.number.replace(/\s/g, '').slice(-4)}` : `${card.brand} •••• ${card.last4}`;
+    const label = method === 'online' ? onlineMethodName : method === 'applepay' ? 'Apple Pay' : method === 'cash' ? 'Cash on arrival' : method === 'newcard' ? `Card •••• ${nc.number.replace(/\s/g, '').slice(-4)}` : `${card.brand} •••• ${card.last4}`;
     let b;
     try {
-      b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null);
+      b = await createBooking(user, { car: { ...car, year: Number(car.year), type: car.type === 'Other' ? other.type.trim() : car.type, fuel: car.fuel === 'Other' ? other.fuel.trim() : car.fuel }, location: { ...loc, address: formatAddress(loc) }, date, time, purpose: purpose === 'Other' ? other.reason.trim() : purpose }, plan, '', label, method === 'cash' ? 'pending' : 'paid', intent?.id ?? null, intent?.proof ?? null);
     } catch (err) {
       payLock.current = false; setPaying(false);
       toast.error(intent ? `${err.message} Your card was charged, so please contact support with reference ${intent.id}.` : err.message, 'Booking not completed');
@@ -175,7 +177,7 @@ export default function NewBooking() {
                   <Select label="Fuel type" value={car.fuel} onChange={(e) => setCarField('fuel', e.target.value)} options={[...FUEL_TYPES, 'Other']} placeholder="Select" error={errors.fuel} />
                   {car.fuel === 'Other' && <Input label="Specify fuel type" value={other.fuel} onChange={setOtherField('fuel')} placeholder="e.g. Hydrogen, LPG" error={errors.fuelOther} autoFocus />}
                   <Combobox label="Variant / trim (optional)" value={car.variant} onChange={(v) => setCarField('variant', v)} options={VARIANTS} placeholder="Select or type" allowCustom />
-                  <Input className="span-2" label="Registration number" value={car.reg} onChange={upd('reg')} placeholder="Dubai A 12345" error={errors.reg} />
+                  <Input className="span-2" label="Registration number" value={car.reg} onChange={upd('reg')} placeholder={market.examples.plate} error={errors.reg} />
                 </div>
                 <Field label="Reason for inspection">
                   <div className="chips">{INSPECTION_REASONS.map((p) => <button key={p} type="button" className={`chip ${purpose === p ? 'on' : ''}`} onClick={() => setPurpose(p)}>{p}</button>)}</div>
@@ -187,14 +189,14 @@ export default function NewBooking() {
             {step === 0 && (
               <>
                 <h3>Choose your inspection plan</h3>
-                <p className="muted small mb">Prices are shown before you enter any details. The all-in total includes VAT and the booking fee.</p>
+                <p className="muted small mb">Prices are shown before you enter any details. The all-in total includes {TAX_NAME} and the booking fee.</p>
                 <div className="plan-pick">
                   {plans.map((p) => (
                     <button key={p.id} type="button" className={`pick ${planId === p.id ? 'on' : ''}`} onClick={() => setPlanId(p.id)} style={{ '--c': p.color }}>
                       {p.popular && <span className="plan-flag">Popular</span>}
                       <span className="pick-check"><Check size={14} /></span>
                       <h4>{p.name}</h4>
-                      <b>{money(p.price)}<small> + VAT</small></b>
+                      <b>{money(p.price)}<small> + {TAX_NAME}</small></b>
                       <span className="pick-total">All-in: <b>{money(priceFor(p, 0).total)}</b></span>
                       <span className="muted small">{p.checkpoints} checkpoints · {p.duration}</span>
                       <ul>{p.features.map((f) => <li key={f}><Check size={14} />{f}</li>)}</ul>
@@ -256,8 +258,8 @@ export default function NewBooking() {
 
                 <Field label="Payment method">
                   <div className="pay-methods">
-                    {!CARDS_AVAILABLE ? null : stripeEnabled ? (
-                      <button type="button" className={method === 'stripe' ? 'on' : ''} onClick={() => setMethod('stripe')}><CreditCard size={18} />Card · Apple Pay · Google Pay</button>
+                    {!CARDS_AVAILABLE ? null : onlineEnabled ? (
+                      <button type="button" className={method === 'online' ? 'on' : ''} onClick={() => setMethod('online')}><CreditCard size={18} />{onlineLabel}</button>
                     ) : (
                       <>
                         {me.paymentMethods?.map((c) => (
@@ -270,9 +272,11 @@ export default function NewBooking() {
                     <button type="button" className={method === 'cash' ? 'on' : ''} onClick={() => setMethod('cash')}><Banknote size={18} />Cash on arrival</button>
                   </div>
                 </Field>
-                {method === 'stripe' && <StripeCheckout amount={price.total} email={user.email} register={(fn) => { confirmRef.current = fn; }} />}
+                {method === 'online' && (market.paymentProvider === 'razorpay'
+                  ? <RazorpayCheckout amount={price.total} user={user} register={(fn) => { confirmRef.current = fn; }} />
+                  : <StripeCheckout amount={price.total} email={user.email} register={(fn) => { confirmRef.current = fn; }} />)}
                 {!CARDS_AVAILABLE && <p className="muted small mt-s">Card payments are coming soon – please choose cash on arrival for now.</p>}
-                {!stripeEnabled && <p className="muted small mt-s">{import.meta.env.PROD ? 'Online card charging is not switched on yet – your card is not charged now. Your booking is confirmed and our team will contact you to collect payment.' : <>Demo mode – add your Stripe publishable key in <b>.env</b> to take real payments.</>}</p>}
+                {!onlineEnabled && <p className="muted small mt-s">{import.meta.env.PROD ? 'Online card charging is not switched on yet – your card is not charged now. Your booking is confirmed and our team will contact you to collect payment.' : <>Demo mode – add your {onlineKeyHint} in <b>.env</b> to take real payments.</>}</p>}
                 {method === 'newcard' && (
                   <div className="form-grid three">
                     <Input label="Card number" value={nc.number} onChange={(e) => { const number = formatCardNumber(e.target.value); setNc({ ...nc, number, cvv: formatCvv(nc.cvv, number) }); setErrors({}); }} placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" maxLength={19} error={errors.number} />

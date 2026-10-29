@@ -7,6 +7,8 @@
 //   - panel items: `defects` holds damage codes (SH, CP, DT, CK)
 //   - files items: `photos` holds uploaded images or PDFs (data URLs)
 
+import { market } from './market';
+
 const WHEELS = [['RR', 'Rear Right (RR)'], ['RL', 'Rear Left (RL)'], ['FR', 'Front Right (FR)'], ['FL', 'Front Left (FL)']];
 const WHEELS_ST = [...WHEELS, ['ST', 'Spare tyre (ST)']];
 
@@ -149,7 +151,7 @@ export const SECTIONS = [
     items: [
       { id: 'vin', label: 'VIN / chassis number', type: 'text', req: true, placeholder: 'e.g. WDB2304701F157232' },
       { id: 'odometer', label: 'Odometer reading (km)', type: 'number', req: true },
-      { id: 'regionalSpecs', label: 'Regional specs', type: 'select', options: ['GCC', 'American', 'Japanese', 'European', 'Canadian', 'Korean', 'Chinese', 'Other'] },
+      { id: 'regionalSpecs', label: 'Regional specs', type: 'select', options: market.specs },
       { id: 'transmissionType', label: 'Transmission', type: 'select', options: ['Automatic', 'Manual', 'CVT', 'DCT', 'Other'] },
       { id: 'engineSize', label: 'Engine size', type: 'select', options: ['3-Cylinder', '4-Cylinder', '5-Cylinder', '6-Cylinder', '8-Cylinder', '10-Cylinder', '12-Cylinder', 'Electric motor', 'Other'] },
       { id: 'interiorType', label: 'Interior', type: 'select', options: ['Leather', 'Fabric', 'Mixed', 'Alcantara', 'Other'] },

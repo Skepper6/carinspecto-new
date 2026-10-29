@@ -7,6 +7,7 @@ import { Logo, Input, Tabs, PhoneInput } from '../components/ui/kit';
 import { isValidPhone, PHONE_ERROR } from '../lib/format';
 import Button from '../components/ui/Button';
 import { PORTALS, SERVICE_AREA } from '../lib/constants';
+import { market } from '../lib/market';
 import { googleEnabled } from '../services/auth';
 
 // One-click test logins.
@@ -15,8 +16,8 @@ import { googleEnabled } from '../services/auth';
 //    password is written into the website code unless you switch this on. Remove the settings (and redeploy) to hide it.
 const DEMO = import.meta.env.DEV   // written as import.meta.env.DEV (not via a variable) so the build removes this branch from the live site
   ? {
-    customer: { email: 'omar@example.com', pw: 'demo123' },
-    inspector: { email: 'khalid@carinspecto.com', pw: 'demo123' },
+    customer: { email: market.demo.customer, pw: 'demo123' },
+    inspector: { email: market.demo.inspector, pw: 'demo123' },
     admin: { email: 'admin@carinspecto.com', pw: 'admin123' },
   }
   : import.meta.env.VITE_SHOW_DEMO_LOGINS === 'true'

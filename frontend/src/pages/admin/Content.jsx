@@ -6,6 +6,7 @@ import { Card, Input, PageHeader, Tabs, Textarea, EmptyState, SearchInput } from
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { money, uid } from '../../lib/format';
+import { TAX_NAME } from '../../lib/constants';
 
 export default function Content() {
   const content = useDB((s) => s.content);
@@ -70,7 +71,7 @@ export default function Content() {
       )}
 
       {tab === 'plans' && (
-        <Card title="Package pricing (excl. VAT)">
+        <Card title={`Package pricing (excl. ${TAX_NAME})`}>
           <div className="form-grid three">
             {plans.map((p) => <Input key={p.id} label={`${p.name} – ${p.checkpoints} checkpoints`} type="number" value={prices[p.id]} onChange={(e) => setPrices({ ...prices, [p.id]: e.target.value })} hint={`Currently ${money(p.price)}`} />)}
           </div>

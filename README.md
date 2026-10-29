@@ -23,6 +23,24 @@ npm run dev
 Demo logins (after `npm run seed`): `omar@example.com` / `demo123` (customer), `khalid@carinspecto.com` / `demo123` (inspector), `admin@carinspecto.com` / `admin123`.
 The seed is for development: **change or remove these accounts before going live** – their passwords are public.
 
+## India version
+
+One codebase serves both countries. Each country is its own deployment (own domain, database, admin, payment account), chosen by `MARKET` (backend) and `VITE_MARKET` (frontend): `uae` (default, AED, 5% VAT, Stripe) or `in` (INR, 18% GST, Razorpay). Currency, tax, cities, phone format, demo data, wording and the payment provider all come from `backend/src/config/markets/` and `frontend/src/markets/`.
+
+Run India next to the UAE app on your own computer (separate ports and database, nothing shared):
+
+```bash
+# one-time: create backend/.env.india and frontend/.env.india (templates: see .env.example; they are not committed)
+cd backend  && npm run seed:in && npm run dev:in     # API on http://localhost:5001, database carinspecto_india_dev
+cd frontend && npm run dev:in                        # site on http://localhost:5174
+```
+
+Demo logins for India: `rohan@example.com` / `demo123` (customer), `vikram@carinspecto.com` / `demo123` (inspector), `admin@carinspecto.com` / `admin123`.
+
+Payments: UAE uses Stripe, India uses Razorpay (UPI, cards, netbanking, wallets). Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` in the India backend env and `VITE_RAZORPAY_KEY_ID` in the India frontend env (Razorpay dashboard > Account & Settings; use Test Mode keys first). Webhook: `POST /api/payments/razorpay-webhook` for `payment.captured` and `refund.processed`. Without keys the app runs in demo-payment mode, like Stripe.
+
+Before India goes live, confirm the placeholders in the India market files: GST rate, booking fee, plan prices, promo codes, company details, service cities and the arbitration clause (legal counsel). Also add a GSTIN / tax-invoice flow if you are GST-registered (not built).
+
 ## Backend configuration (`backend/.env`)
 
 | Variable | Purpose |
@@ -50,7 +68,9 @@ The seed is for development: **change or remove these accounts before going live
 ## Checks
 
 ```bash
-cd backend && npm run smoke     # 112 API checks (permissions, booking lifecycle, tickets, files, passwords, sessions…) against a running, freshly seeded server
+cd backend && npm run smoke     # 114 API checks (permissions, booking lifecycle, tickets, files, passwords, sessions…) against a running, freshly seeded server
+cd backend && npm run smoke:in  # the same against the India instance (npm run dev:in)
+cd backend && npm run smoke:razorpay  # India payments end to end with a stand-in Razorpay: orders, signatures, wrong amounts, refunds, webhooks (throwaway database)
 ```
 
 ## Before going live

@@ -1,5 +1,14 @@
 // End-to-end API check against a RUNNING server (npm run dev) with the demo seed loaded:  npm run smoke
-const BASE = process.env.API || 'http://localhost:5000/api';
+// Run with the same MARKET as the server (node --env-file=.env.india src/scripts/smoke.js for India).
+import { market } from '../config/market.js';
+import { priceFor } from '../config/constants.js';
+const BASE = process.env.API || `http://localhost:${process.env.PORT || 5000}/api`;
+const D = market.demo;
+// Values that differ by market: a suspended demo customer, phone numbers, and where the test car and address are
+const X = {
+  uae: { suspended: 'mariam.al.ketbi@example.com', phone: '+971 50 111 2222', phone0: '+971 50 000 0000', reg: 'Dubai A 12345', city: 'Dubai', building: 'Villa 1', street: 'Al Wasl Road', area: 'Jumeirah' },
+  in: { suspended: 'neha.patel@example.com', phone: '+91 98765 43210', phone0: '+91 98000 00000', reg: 'MH 02 AB 1234', city: 'Mumbai', building: 'Flat 1', street: 'Linking Road', area: 'Bandra' },
+}[market.code];
 let pass = 0; let failed = 0;
 const ok = (cond, name, extra = '') => { if (cond) { pass++; console.log(`  ✓ ${name}`); } else { failed++; console.log(`  ✗ ${name} ${extra}`); } };
 
@@ -24,15 +33,15 @@ ok(pub.json?.state?.plans?.length === 3 && pub.json.state.content.faqs.length >=
 ok(pub.json.state.bookings.length === 0, 'public data has no bookings');
 
 section('Auth');
-ok((await call('POST', '/auth/login', { body: { email: 'omar@example.com', password: 'wrong' } })).status === 401, 'wrong password -> 401');
-ok((await call('POST', '/auth/login', { body: { email: 'omar@example.com', password: 'demo123', role: 'admin' } })).status === 403, 'wrong portal -> 403');
-const omar = await login('omar@example.com', 'demo123', 'customer');
-const khalid = await login('khalid@carinspecto.com', 'demo123', 'inspector');
+ok((await call('POST', '/auth/login', { body: { email: D.customer, password: 'wrong' } })).status === 401, 'wrong password -> 401');
+ok((await call('POST', '/auth/login', { body: { email: D.customer, password: 'demo123', role: 'admin' } })).status === 403, 'wrong portal -> 403');
+const omar = await login(D.customer, 'demo123', 'customer');
+const khalid = await login(D.inspector, 'demo123', 'inspector');
 const admin = await login('admin@carinspecto.com', 'admin123', 'admin');
 ok(omar && khalid && admin, 'customer, inspector and admin can sign in');
 ok((await call('GET', '/bootstrap')).status === 401, 'bootstrap without token -> 401');
 ok((await call('GET', '/bootstrap', { token: 'garbage' })).status === 401, 'bootstrap with bad token -> 401');
-const suspended = await call('POST', '/auth/login', { body: { email: 'mariam.al ketbi@example.com'.replace(' ', '.'), password: 'demo123' } });
+const suspended = await call('POST', '/auth/login', { body: { email: X.suspended, password: 'demo123' } });
 ok(suspended.status === 403, 'suspended customer cannot sign in', `(got ${suspended.status})`);
 
 section('Scoped data');
@@ -51,7 +60,8 @@ ok(is.state.tickets.length === 0 && is.state.payments.length === 0, 'inspector s
 const as = (await call('GET', '/bootstrap', { token: admin })).json;
 ok(as.state.bookings.length === 78 && as.state.users.length === 18 && as.state.tickets.length === 9, 'admin sees everything');
 ok(!JSON.stringify(as).includes('passwordHash'), 'no password hashes in admin payload');
-ok(Object.keys(as.state.inspections).length === 69 && !('undefined' in as.state.inspections), 'every inspection is keyed by its booking id (admin)');
+const withInspection = as.state.bookings.filter((b) => ['completed', 'ongoing'].includes(b.status)).length;   // the seed gives every started or finished booking an inspection
+ok(Object.keys(as.state.inspections).length === withInspection && !('undefined' in as.state.inspections), 'every inspection is keyed by its booking id (admin)');
 ok(Object.entries(as.state.inspections).every(([k, i]) => k === i.bookingId), 'inspection map keys match booking ids');
 ok(Object.keys(is.state.inspections).length > 0 && Object.keys(is.state.inspections).every((k) => is.state.bookings.some((b) => b.id === k)), 'inspector gets inspections for their own bookings');
 ok(Object.keys(cs.state.inspections).length > 0 && Object.keys(cs.state.inspections).every((k) => cs.state.bookings.some((b) => b.id === k) && cs.state.inspections[k].status === 'completed'), 'customer gets only finished inspections of their bookings');
@@ -68,12 +78,12 @@ ok((await call('PUT', '/content', { token: omar, body: { terms: 'x' } })).status
 ok((await call('PATCH', '/plans/basic', { token: khalid, body: { price: 1 } })).status === 403, 'inspector cannot change prices');
 ok((await call('POST', '/bookings', { token: khalid, body: {} })).status === 403, 'inspector cannot create bookings');
 ok((await call('GET', '/users', { token: admin })).status === 404, 'no user-list endpoint leaks');
-const self = await call('PATCH', `/users/${myId}`, { token: omar, body: { role: 'admin', email: 'x@y.com', status: 'suspended', passwordHash: 'x', phone: '+971 50 111 2222' } });
-ok(self.status === 200 && self.json.users[0].role === 'customer' && self.json.users[0].email === 'omar@example.com' && self.json.users[0].status === 'active' && self.json.users[0].phone === '+971 50 111 2222', 'self-edit ignores role/email/status, keeps allowed fields');
+const self = await call('PATCH', `/users/${myId}`, { token: omar, body: { role: 'admin', email: 'x@y.com', status: 'suspended', passwordHash: 'x', phone: X.phone } });
+ok(self.status === 200 && self.json.users[0].role === 'customer' && self.json.users[0].email === D.customer && self.json.users[0].status === 'active' && self.json.users[0].phone === X.phone, 'self-edit ignores role/email/status, keeps allowed fields');
 
 section('Booking lifecycle');
-const car = { type: 'SUV', make: 'Toyota', model: 'Prado', year: 2020, fuel: 'Petrol', reg: 'Dubai A 12345' };
-const loc = { building: 'Villa 1', street: 'Al Wasl Road', area: 'Jumeirah', city: 'Dubai', address: 'Villa 1, Al Wasl Road, Jumeirah' };
+const car = { type: 'SUV', make: 'Toyota', model: 'Prado', year: 2020, fuel: 'Petrol', reg: X.reg };
+const loc = { building: X.building, street: X.street, area: X.area, city: X.city, address: `${X.building}, ${X.street}, ${X.area}` };
 const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 const bad = await call('POST', '/bookings', { token: omar, body: { car, location: loc, date: '2001-01-01', time: '10:00', purpose: 'Routine check-up', planId: 'standard', method: 'Cash on arrival', payStatus: 'pending' } });
 ok(bad.status === 400, 'past date rejected');
@@ -82,10 +92,10 @@ ok((await call('POST', '/bookings', { token: omar, body: { car, location: loc, d
 const created = await call('POST', '/bookings', { token: omar, body: { car, location: loc, date: tomorrow, time: '11:00', purpose: 'Pre-purchase check', planId: 'standard', promo: 'FIRST10', method: 'Cash on arrival', payStatus: 'pending', price: 1 } });
 const bk = created.json?.bookings?.[0];
 ok(created.status === 201 && /^CI-\d+$/.test(bk?.id), `booking created (${bk?.id})`);
-// standard 349, 10% off = 35 -> 314 + 15 fee = 329, VAT 5% = 16 -> 345
-ok(bk.pricing.total === 345 && bk.pricing.discount === 35 && bk.pricing.vat === 16, 'server computed pricing (client cannot set it)', JSON.stringify(bk.pricing));
+const std = priceFor(pub.json.state.plans.find((p) => p.id === 'standard').price, 0.1);   // 10% off, then the booking fee, then tax
+ok(bk.pricing.total === std.total && bk.pricing.discount === std.discount && bk.pricing.vat === std.vat, 'server computed pricing (client cannot set it)', JSON.stringify(bk.pricing));
 ok(bk.status === 'pending' && bk.payment.status === 'pending' && bk.inspectorId === null, 'cash booking starts pending/unassigned');
-ok(created.json.payments[0].amount === 345, 'payment record created');
+ok(created.json.payments[0].amount === std.total, 'payment record created');
 const adm1 = (await call('GET', '/bootstrap', { token: admin })).json;
 ok(adm1.state.notifications.some((n) => n.title === 'New booking' && n.body.includes(bk.id)), 'admin was notified of the new booking');
 
@@ -147,9 +157,9 @@ const cs3 = (await call('GET', '/bootstrap', { token: omar })).json;
 ok(cs3.state.notifications.some((n) => n.title === 'Support replied'), 'customer notified of the reply');
 
 section('Admin: users, content, plans');
-ok((await call('POST', '/users', { token: admin, body: { name: 'Dup', email: 'khalid@carinspecto.com', city: 'Dubai', pw: 'secret12' } })).status === 409, 'duplicate inspector email rejected');
+ok((await call('POST', '/users', { token: admin, body: { name: 'Dup', email: D.inspector, city: X.city, pw: 'secret12' } })).status === 409, 'duplicate inspector email rejected');
 const email = `smoke${Date.now()}@carinspecto.com`;
-const ni = await call('POST', '/users', { token: admin, body: { name: 'Smoke Tester', email, city: 'Dubai', specialization: 'Test', pw: 'secret12', phone: '+971 50 000 0000' } });
+const ni = await call('POST', '/users', { token: admin, body: { name: 'Smoke Tester', email, city: X.city, specialization: 'Test', pw: 'secret12', phone: X.phone0 } });
 ok(ni.status === 201 && ni.json.users[0].role === 'inspector', 'admin creates an inspector');
 ok(!!(await login(email, 'secret12', 'inspector')), 'new inspector can sign in with the temp password');
 ok((await call('PATCH', `/users/${ni.json.users[0].id}`, { token: admin, body: { status: 'suspended' } })).json?.users?.[0]?.status === 'suspended', 'admin suspends the inspector');
@@ -158,11 +168,12 @@ ok((await call('DELETE', `/users/${ni.json.users[0].id}`, { token: admin })).sta
 ok((await call('DELETE', `/users/${as.state.users.find((u) => u.role === 'admin').id}`, { token: admin })).status === 403, 'admin accounts cannot be deleted');
 ok((await call('PUT', '/content', { token: admin, body: { terms: 'New terms of service text.' } })).json?.content?.terms === 'New terms of service text.', 'admin edits terms');
 ok((await call('PATCH', '/plans/basic', { token: admin, body: { price: 5 } })).status === 400, 'plan price below minimum rejected');
-const pp = await call('PATCH', '/plans/basic', { token: admin, body: { price: 209 } });
-ok(pp.json?.plans?.[0]?.price === 209, 'admin changes a plan price');
-await call('PATCH', '/plans/basic', { token: admin, body: { price: 199 } });
+const basicPrice = pub.json.state.plans.find((p) => p.id === 'basic').price;
+const pp = await call('PATCH', '/plans/basic', { token: admin, body: { price: basicPrice + 10 } });
+ok(pp.json?.plans?.[0]?.price === basicPrice + 10, 'admin changes a plan price');
+await call('PATCH', '/plans/basic', { token: admin, body: { price: basicPrice } });
 const after = await call('POST', '/bookings', { token: omar, body: { car, location: loc, date: tomorrow, time: '09:30', purpose: 'Routine check-up', planId: 'basic', method: 'Cash', payStatus: 'pending' } });
-ok(after.json?.bookings?.[0]?.pricing?.plan === 199, 'new bookings use the current plan price');
+ok(after.json?.bookings?.[0]?.pricing?.plan === basicPrice, 'new bookings use the current plan price');
 
 section('Change tracking');
 const r1 = (await call('GET', '/rev')).json.rev;
@@ -204,6 +215,9 @@ ok((await call('POST', '/auth/resend-verification', { token: omar })).json?.alre
 ok((await call('POST', '/payments/webhook', { body: { type: 'charge.refunded' } })).status === 503, 'stripe webhook is closed until a secret is configured');
 const wh = await fetch(BASE + '/payments/webhook', { method: 'POST', headers: { 'Content-Type': 'application/json', 'stripe-signature': 't=1,v1=bad' }, body: '{}' });
 ok(wh.status === 503 || wh.status === 400, 'stripe webhook never accepts unsigned events');
+ok((await call('POST', '/payments/razorpay-webhook', { body: { event: 'refund.processed' } })).status === 503, 'razorpay webhook is closed until a secret is configured');
+const otherProvider = market.paymentProvider === 'razorpay' ? '/payments/create-intent' : '/payments/create-order';
+ok((await call('POST', otherProvider, { token: omar, body: { amount: 100 } })).status === 404, "the other market's payment endpoint is not available");
 
 section('Error handling');
 ok((await call('GET', '/nope')).status === 404, 'unknown route -> JSON 404');

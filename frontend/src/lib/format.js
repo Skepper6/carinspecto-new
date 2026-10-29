@@ -1,7 +1,7 @@
 import { CURRENCY } from './constants';
 import { market } from './market';
 
-export const money = (n = 0) => `${CURRENCY}${Math.round(n).toLocaleString('en-GB')}`;
+export const money = (n = 0) => `${CURRENCY}${Math.round(n).toLocaleString(market.locale)}`;
 
 export const fmtDate = (d, opts) => {
   if (!d) return '—';
@@ -50,16 +50,17 @@ export function downloadCSV(filename, rows) {
 
 export const carName = (car) => `${car.year} ${car.make} ${car.model}`;
 
-// National digits for the current market. Strips the country code (or 00 + code) and a leading trunk 0.
-// The country code is only stripped when the input is longer than a national number, so an Indian
-// number that happens to start with 91 is kept.
+// National digits for the current market. Strips the country code and a leading trunk 0.
+// An explicit "+code" or "00code" prefix is always stripped (the formatted value starts with it, so it must go on every
+// keystroke). Without one, the code is only stripped when the input is longer than a national number (a pasted
+// "9198765…"), so a national number that happens to start with the code is kept.
 const nationalDigits = (raw) => {
   const p = market.phone;
-  let d = String(raw).replace(/\D/g, '');
-  if (d.length > p.nationalLength) {
-    if (d.startsWith(`00${p.code}`)) d = d.slice(p.code.length + 2);
-    else if (d.startsWith(p.code)) d = d.slice(p.code.length);
-  }
+  const s = String(raw).trim();
+  let d = s.replace(/\D/g, '');
+  if (s.startsWith('+') && d.startsWith(p.code)) d = d.slice(p.code.length);
+  else if (d.startsWith(`00${p.code}`)) d = d.slice(p.code.length + 2);
+  else if (d.length > p.nationalLength && d.startsWith(p.code)) d = d.slice(p.code.length);
   if (d.startsWith('0')) d = d.slice(1);
   return d;
 };

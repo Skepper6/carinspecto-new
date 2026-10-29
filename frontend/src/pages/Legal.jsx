@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useDB } from '../lib/db';
 import { Logo } from '../components/ui/kit';
+import { COMPANY } from '../lib/constants';
 
 const PAGES = {
   terms: { title: 'Terms & Conditions', field: 'terms' },
@@ -24,7 +25,7 @@ export default function Legal({ kind }) {
         {text?.trim()
           ? text.trim().split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)
           : <p className="muted">This page has not been published yet.</p>}
-        <p className="legal-foot muted small">Questions? Contact us at hello@carinspecto.ae · <Link to={other[0]}>{other[1]}</Link></p>
+        <p className="legal-foot muted small">Questions? Contact us at {COMPANY.email} · <Link to={other[0]}>{other[1]}</Link></p>
       </main>
     </div>
   );

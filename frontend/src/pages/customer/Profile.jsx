@@ -9,7 +9,7 @@ import Modal from '../../components/ui/Modal';
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import ChangePasswordCard from '../../components/shared/ChangePasswordCard';
 import { resendVerification } from '../../services/auth';
-import { stripeEnabled } from '../../services/stripe';
+import { onlineEnabled } from '../../services/payments';
 import { CITIES } from '../../lib/constants';
 import { formatCardNumber, formatExpiry, validateCardNumber, validateExpiry, cardBrand } from '../../lib/card';
 import { fmtDate, uid, isValidPhone, PHONE_ERROR } from '../../lib/format';
@@ -48,7 +48,7 @@ export default function Profile() {
   const addCard = async () => {
     const digits = c.number.replace(/\s/g, '');
     const e = {};
-    const en = validateCardNumber(digits, stripeEnabled), ee = validateExpiry(c.exp);
+    const en = validateCardNumber(digits, onlineEnabled), ee = validateExpiry(c.exp);
     if (en) e.number = en;
     if (ee) e.exp = ee;
     setCe(e);

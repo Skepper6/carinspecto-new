@@ -1,5 +1,6 @@
 import { Crosshair } from 'lucide-react';
 import { CITIES, ADDRESS_LABELS, REGION_LABEL } from '../../lib/constants';
+import { market } from '../../lib/market';
 import { Field, Input, Select, PhoneInput } from '../ui/kit';
 import { isValidPhone, PHONE_ERROR } from '../../lib/format';
 import Button from '../ui/Button';
@@ -30,11 +31,11 @@ export default function AddressFields({ value, onChange, errors = {}, onGps, loc
       <div className="form-grid">
         <Select label={REGION_LABEL} value={value.city} onChange={set('city')} options={CITIES} placeholder="Select" error={errors.city} />
         {onGps ? <Field label="Use my location"><Button type="button" variant="outline" icon={Crosshair} loading={locating} onClick={onGps}>Detect with GPS</Button></Field> : <span />}
-        <Input label="Area / community" value={value.area} onChange={set('area')} placeholder="e.g. Dubai Marina" error={errors.area} />
-        <Input label="Street / road" value={value.street} onChange={set('street')} placeholder="e.g. Al Wasl Road" error={errors.street} />
-        <Input label="Building / villa name & number" value={value.building} onChange={set('building')} placeholder="e.g. Villa 12 or Marina Tower" error={errors.building} />
+        <Input label="Area / community" value={value.area} onChange={set('area')} placeholder={`e.g. ${market.examples.area}`} error={errors.area} />
+        <Input label="Street / road" value={value.street} onChange={set('street')} placeholder={`e.g. ${market.examples.street}`} error={errors.street} />
+        <Input label="Building / villa name & number" value={value.building} onChange={set('building')} placeholder={`e.g. ${market.examples.building}`} error={errors.building} />
         <Input label="Floor / apartment (optional)" value={value.unit} onChange={set('unit')} placeholder="e.g. 14, Apt 1402" />
-        <Input className="span-2" label="Landmark (optional)" value={value.landmark} onChange={set('landmark')} placeholder="e.g. Near Spinneys, opposite the mosque" />
+        <Input className="span-2" label="Landmark (optional)" value={value.landmark} onChange={set('landmark')} placeholder={`e.g. ${market.examples.landmark}`} />
         {showPhone && <PhoneInput className="span-2" label="Contact number for the visit" value={value.phone} onChange={(v) => onChange({ ...value, phone: v })} error={errors.phone} />}
       </div>
       <Field label="Save address as">

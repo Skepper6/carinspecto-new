@@ -162,10 +162,10 @@ export const removeUser = (id) => mutation('DELETE', `/users/${id}`);
 
 /* ---- bookings ---- */
 // `customer` is kept for the old call signature; the server always uses the signed-in user.
-export async function createBooking(_customer, form, plan, promoCode = '', paymentLabel = 'Card', payStatus = 'paid', txnId = null) {
+export async function createBooking(_customer, form, plan, promoCode = '', paymentLabel = 'Card', payStatus = 'paid', txnId = null, txnProof = null) {
   const data = await mutation('POST', '/bookings', {
     car: form.car, location: form.location, date: form.date, time: form.time, purpose: form.purpose,
-    planId: plan.id, promo: promoCode || '', method: paymentLabel, payStatus, txnId,
+    planId: plan.id, promo: promoCode || '', method: paymentLabel, payStatus, txnId, txnProof,
   });
   return data.bookings[0];
 }
