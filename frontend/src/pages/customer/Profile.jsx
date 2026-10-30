@@ -71,7 +71,7 @@ export default function Profile() {
         <Card title="Personal details">
           <div className="profile-head"><Avatar name={me.name} size={64} /><div><b>{me.name}</b><p className="muted small">Member since {fmtDate(me.joinedAt)}</p></div></div>
           <div className="form-grid">
-            <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} />
+            <Input label="Full name" value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErrs({ ...errs, name: undefined }); }} error={errs.name} />
             <PhoneInput label="Phone" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErrs({ ...errs, phone: undefined }); }} error={errs.phone} />
             <Input className="span-2" label="Email" value={me.email} disabled hint="Email is linked to your sign-in and cannot be changed here." />
           </div>

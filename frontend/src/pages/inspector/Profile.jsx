@@ -35,7 +35,7 @@ export default function Profile() {
         <Card title="Details">
           <div className="profile-head"><Avatar name={me.name} size={64} /><div><b>{me.name}</b><p className="muted small">Inspector since {fmtDate(me.joinedAt)}</p></div></div>
           <div className="form-grid">
-            <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={err.name} />
+            <Input label="Full name" value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErr({ ...err, name: undefined }); }} error={err.name} />
             <PhoneInput label="Phone" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErr({ ...err, phone: undefined }); }} error={err.phone} />
             <Select label="Base city" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} options={CITIES} />
             <Input label="Specialisation" value={f.specialization} onChange={(e) => setF({ ...f, specialization: e.target.value })} />

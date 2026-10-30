@@ -22,8 +22,10 @@ export function TicketThread({ ticketId, as }) {
   const [text, setText] = useState('');
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
-  const [seenAt] = useState(() => t?.seen?.[as] ?? ''); // what was already read when the thread was opened
+  const [seenAt, setSeenAt] = useState(() => t?.seen?.[as] ?? ''); // what was already read when the thread was opened
   const lastAt = t?.messages[t.messages.length - 1]?.at;
+  // the orange highlight only points out what is new; a few seconds after it is on screen the message counts as read
+  useEffect(() => { if (!lastAt) return undefined; const id = setTimeout(() => setSeenAt(lastAt), 4000); return () => clearTimeout(id); }, [lastAt]);
   // opening a ticket (or receiving a message while it is open) marks it as seen
   useEffect(() => { if (t && ticketState(t, as).unseen) markTicketSeen(t.id, as); }, [t?.id, lastAt]); // eslint-disable-line
   const listRef = useRef(null);
@@ -141,12 +143,12 @@ export default function Support() {
 
       <Modal open={creating} onClose={() => setCreating(false)} title="Create support ticket" footer={<><Button variant="ghost" onClick={() => setCreating(false)}>Cancel</Button><Button icon={Send} loading={busy} onClick={submit}>Submit ticket</Button></>}>
         <div className="form-grid">
-          <Input className="span-2" label="Subject" value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value })} error={errs.subject} />
+          <Input className="span-2" label="Subject" value={f.subject} onChange={(e) => { setF({ ...f, subject: e.target.value }); setErrs({ ...errs, subject: undefined }); }} error={errs.subject} />
           <Select label="Category" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} options={TICKET_CATEGORIES} />
           <Select label="Priority" value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value })} options={['low', 'medium', 'high']} />
           {f.category === 'Other' && <Input className="span-2" label="Please specify" value={f.categoryDetail} onChange={(e) => { setF({ ...f, categoryDetail: e.target.value }); setErrs({ ...errs, categoryDetail: undefined }); }} placeholder="What is this about?" error={errs.categoryDetail} autoFocus />}
           <Select className="span-2" label="Related booking (optional)" value={f.bookingId} onChange={(e) => setF({ ...f, bookingId: e.target.value })} options={bookings.map((b) => ({ value: b.id, label: `${b.id} · ${b.car.make} ${b.car.model}` }))} placeholder="None" />
-          <Textarea className="span-2" label="How can we help?" value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} error={errs.message} />
+          <Textarea className="span-2" label="How can we help?" value={f.message} onChange={(e) => { setF({ ...f, message: e.target.value }); setErrs({ ...errs, message: undefined }); }} error={errs.message} />
           <div className="span-2 field"><span className="field-label">Attachments (optional)</span><FileAttach value={files} onChange={setFiles} onError={toast.error} /></div>
         </div>
       </Modal>

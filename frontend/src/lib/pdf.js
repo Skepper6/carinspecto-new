@@ -661,7 +661,29 @@ export async function generateReportPDF({ booking, inspection, plan, customer, i
   return doc;
 }
 
+// The report is drawn with jsPDF, which cannot embed another PDF, so the inspector's attached PDFs (e.g. a TBE test report)
+// show as a document icon in the body and their real pages are appended after the last page here.
+const attachedPdfs = (inspection) => {
+  const out = [];
+  Object.values(inspection?.data ?? {}).forEach((sec) => Object.values(sec ?? {}).forEach((cell) => (cell?.photos ?? []).forEach((p) => { if (typeof p === 'string' && p.startsWith('data:application/pdf')) out.push(p); })));
+  return out;
+};
+
 export async function downloadReport(args) {
   const doc = await generateReportPDF(args);
-  doc.save(`CarInspectO-Report-${args.booking.id}.pdf`);
+  const name = `CarInspectO-Report-${args.booking.id}.pdf`;
+  const extra = attachedPdfs(args.inspection);
+  if (!extra.length) { doc.save(name); return; }
+  const { PDFDocument } = await import('pdf-lib');
+  const merged = await PDFDocument.load(doc.output('arraybuffer'));
+  for (const uri of extra) {
+    try {
+      const src = await PDFDocument.load(await (await fetch(uri)).arrayBuffer(), { ignoreEncryption: true });
+      (await merged.copyPages(src, src.getPageIndices())).forEach((pg) => merged.addPage(pg));
+    } catch { /* an unreadable attachment is skipped; the report itself still downloads */ }
+  }
+  const blob = new Blob([await merged.save()], { type: 'application/pdf' });
+  const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 4000);
 }

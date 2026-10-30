@@ -1438,3 +1438,6 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 /* portal dashboards use the full width of the content area (no centred max-width column) */
 .content > .page, .page { max-width: none; width: 100%; margin: 0; }
 .verdict-word { font-weight: 700; color: var(--text); }
+
+/* no hover tint on the attachment download button */
+.att-chip .att-dl:hover:not(:disabled), .msg.me .att-chip .att-dl:hover:not(:disabled) { background: none; }

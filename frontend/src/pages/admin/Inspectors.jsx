@@ -91,12 +91,12 @@ export default function Inspectors() {
       <Modal open={add} onClose={() => setAdd(false)} title="Add inspector" subtitle="They can sign in from the Inspector tab with these credentials."
         footer={<><Button variant="ghost" onClick={() => setAdd(false)}>Cancel</Button><Button icon={UserPlus} onClick={create}>Create inspector</Button></>}>
         <div className="form-grid">
-          <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={err.name} />
-          <Input label="Email" type="email" autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={err.email} />
+          <Input label="Full name" value={f.name} onChange={(e) => { setF({ ...f, name: e.target.value }); setErr({ ...err, name: undefined }); }} error={err.name} />
+          <Input label="Email" type="email" autoComplete="off" value={f.email} onChange={(e) => { setF({ ...f, email: e.target.value }); setErr({ ...err, email: undefined }); }} error={err.email} />
           <PhoneInput label="Phone" value={f.phone} onChange={(v) => { setF({ ...f, phone: v }); setErr({ ...err, phone: undefined }); }} error={err.phone} />
-          <Select label="Base city" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} options={CITIES} placeholder="Select" error={err.city} />
+          <Select label="Base city" value={f.city} onChange={(e) => { setF({ ...f, city: e.target.value }); setErr({ ...err, city: undefined }); }} options={CITIES} placeholder="Select" error={err.city} />
           <Input label="Specialisation" value={f.specialization} onChange={(e) => setF({ ...f, specialization: e.target.value })} placeholder="e.g. Luxury & EV" />
-          <Input label="Temporary password" type="text" autoComplete="off" value={f.pw} onChange={(e) => setF({ ...f, pw: e.target.value })} error={err.pw} />
+          <Input label="Temporary password" type="text" autoComplete="off" value={f.pw} onChange={(e) => { setF({ ...f, pw: e.target.value }); setErr({ ...err, pw: undefined }); }} error={err.pw} />
         </div>
       </Modal>
 

@@ -81,7 +81,7 @@ export default function Content() {
 
       <Modal open={!!edit} onClose={() => setEdit(null)} title={edit && content.faqs.some((f) => f.id === edit.id) ? 'Edit FAQ' : 'Add FAQ'}
         footer={<><Button variant="ghost" onClick={() => setEdit(null)}>Cancel</Button><Button icon={Save} onClick={saveFaq}>Save</Button></>}>
-        {edit && <div className="form-grid"><Input className="span-2" label="Question" value={edit.q} onChange={(e) => setEdit({ ...edit, q: e.target.value })} error={err.q} /><Textarea className="span-2" label="Answer" value={edit.a} onChange={(e) => setEdit({ ...edit, a: e.target.value })} error={err.a} /></div>}
+        {edit && <div className="form-grid"><Input className="span-2" label="Question" value={edit.q} onChange={(e) => { setEdit({ ...edit, q: e.target.value }); setErr({ ...err, q: undefined }); }} error={err.q} /><Textarea className="span-2" label="Answer" value={edit.a} onChange={(e) => { setEdit({ ...edit, a: e.target.value }); setErr({ ...err, a: undefined }); }} error={err.a} /></div>}
       </Modal>
     </div>
   );
