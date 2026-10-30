@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight, CalendarCheck, MapPin, ClipboardCheck, FileText, ShieldCheck, Star, Check, Plus, UserRound, Wrench, Settings,
   Car, CircleDot, Cog, Settings2, Activity, Camera, BadgeCheck, Menu, X, Moon, Sun, Phone, Mail,
@@ -12,6 +12,7 @@ import { useUI } from '../context/UIContext';
 import { PORTALS, COUNTRY, SERVICE_AREA, COMPANY, TAX_NAME } from '../lib/constants';
 import { market } from '../lib/market';
 import { money } from '../lib/format';
+import PlanDetails from '../components/shared/PlanDetails';
 
 const Counter = ({ to, suffix = '' }) => {
   const v = useCountUp(to, 1400);
@@ -68,6 +69,7 @@ export default function Home() {
   }, [menu]);
 
   const links = [['how','How it works'], ['checks', 'What we check'], ['plans', 'Plans'], ['faq', 'FAQ']];
+  const nav = useNavigate();
   const scrollTo = (id) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
   return (
@@ -204,7 +206,7 @@ export default function Home() {
                 <p className="muted">{p.tagline}</p>
                 <div className="plan-price"><b>{money(p.price)}</b><span>+ {TAX_NAME}</span></div>
                 <p className="plan-meta">{p.checkpoints} checkpoints · {p.duration}</p>
-                <ul>{p.features.map((f) => <li key={f}><Check size={16} />{f}</li>)}</ul>
+                <PlanDetails plan={p} chooseLabel={`Choose ${p.name}`} onChoose={() => nav(user?.role === 'customer' ? `/app/book?plan=${p.id}` : '/signup')} />
                 <Link to={user?.role === 'customer' ? `/app/book?plan=${p.id}` : '/signup'}><Button variant={p.popular ? 'primary' : 'outline'} className="w-full">Choose {p.name}</Button></Link>
               </Reveal>
             ))}

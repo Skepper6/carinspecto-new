@@ -19,7 +19,7 @@ export default {
   phone: { code: '971', nationalLength: 9, groups: [2, 3, 4], startsWith: ['5'], landlineLength: 8, example: '+971 50 123 4567' },
   company: { name: 'Car InspectO', phone: '+971 4 123 4567', email: 'hello@carinspecto.ae', web: 'www.carinspecto.ae' },
   demo: { customer: 'omar@example.com', inspector: 'khalid@carinspecto.com' },
-  plans: { basic: 199, standard: 349, premium: 549 },   // excl. tax; the live prices live in the database and are edited by the admin
+  plans: { basic: 249, standard: 399, premium: 599 },   // excl. tax; the live prices live in the database and are edited by the admin
   payMethodsText: 'Credit/debit cards and Apple Pay (or cash on arrival)',
   currencyWord: 'dirham',
   specs: ['GCC', 'American', 'Japanese', 'European', 'Canadian', 'Korean', 'Chinese', 'Other'],   // regional specs offered on the inspection form

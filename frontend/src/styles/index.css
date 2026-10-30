@@ -1421,3 +1421,14 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 :root[data-theme='dark'] .cal .cal-years button.on, :root[data-theme='dark'] .cal .cal-months button.on { color: #0e0c20; }
 .cal header .cal-title b { font-size: 14px; font-weight: 600; }
 .cal header .cal-title svg { width: 14px; height: 14px; }
+
+/* plan details: short list on the card, full breakdown in a popup */
+.plan-more { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 2px 0 12px; font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer; background: none; border: 0; padding: 4px 0; } .plan-more:hover { text-decoration: underline; } .plan-more:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.pd-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; } .pd-facts span { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: var(--surface-2, var(--bg)); border: 1px solid var(--border); }
+.pd-best { font-size: 14px; line-height: 22px; margin-bottom: 14px; color: var(--muted); } .pd-best b { color: var(--text); font-weight: 600; }
+.pd-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.pd-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; background: var(--surface); }
+.pd-card h5 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14px; font-weight: 700; margin: 0 0 10px; } .pd-card h5 em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--primary); white-space: nowrap; }
+.pd-card ul { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 20px; } .pd-card li { display: flex; gap: 8px; align-items: flex-start; } .pd-card li svg { flex: none; margin-top: 3px; color: var(--green); }
+.pd-card.not { background: transparent; } .pd-card.not li { color: var(--muted); } .pd-card.not li svg { color: var(--red, #d64545); }
+@media (max-width: 700px) { .pd-grid { grid-template-columns: 1fr; } }

@@ -21,7 +21,7 @@ export default {
   phone: { code: '91', nationalLength: 10, groups: [5, 5], startsWith: ['6', '7', '8', '9'], example: '+91 98765 43210' },
   company: { name: 'Car InspectO', phone: '+91 80 1234 5678', email: 'hello@carinspecto.in', web: 'www.carinspecto.in' },
   demo: { customer: 'rohan@example.com', inspector: 'vikram@carinspecto.com' },
-  plans: { basic: 1499, standard: 2499, premium: 3999 },   // placeholders, excl. tax; the live prices live in the database and are edited by the admin
+  plans: { basic: 1799, standard: 2999, premium: 4499 },   // placeholders, excl. tax; the live prices live in the database and are edited by the admin
   payMethodsText: 'UPI, credit/debit cards, netbanking and wallets (or cash on arrival)',
   currencyWord: 'rupee',
   specs: ['Indian', 'European', 'Japanese', 'American', 'Korean', 'Chinese', 'Other'],   // regional specs offered on the inspection form

@@ -19,6 +19,7 @@ import { CAR_DB, ALL_YEARS, makesForYear, modelsFor, findModel, productionRange,
 import AddressFields, { EMPTY_ADDRESS, formatAddress, validateAddress, withLabel } from '../../components/shared/AddressFields';
 import StripeCheckout from '../../components/shared/StripeCheckout';
 import RazorpayCheckout from '../../components/shared/RazorpayCheckout';
+import PlanDetails from '../../components/shared/PlanDetails';
 import { onlineEnabled, onlineLabel, onlineMethodName, onlineKeyHint } from '../../services/payments';
 import { formatCardNumber, formatExpiry, formatCvv, validateCardNumber, validateExpiry, validateCvv } from '../../lib/card';
 
@@ -62,7 +63,7 @@ export default function NewBooking() {
   const [locating, setLocating] = useState(false);
 
   const plan = plans.find((p) => p.id === planId);
-  const price = useMemo(() => priceFor(plan, 0), [plan]);
+  const price = useMemo(() => (plan ? priceFor(plan, 0) : null), [plan]);
   const setCarField = (k, v) => {
     setCar((c) => {
       const n = { ...c, [k]: v };
@@ -147,6 +148,12 @@ export default function NewBooking() {
     setDone(b);
   };
 
+  if (!plan) return (
+    <div className="page">
+      <PageHeader title="Book an inspection" subtitle="Inspection plans are not available right now. Please try again in a few minutes." />
+    </div>
+  );
+
   const marks = {};
   return (
     <div className="page">
@@ -199,7 +206,7 @@ export default function NewBooking() {
                       <b>{money(p.price)}<small> + {TAX_NAME}</small></b>
                       <span className="pick-total">All-in: <b>{money(priceFor(p, 0).total)}</b></span>
                       <span className="muted small">{p.checkpoints} checkpoints · {p.duration}</span>
-                      <ul>{p.features.map((f) => <li key={f}><Check size={14} />{f}</li>)}</ul>
+                      <PlanDetails plan={p} chooseLabel={`Select ${p.name}`} onChoose={() => setPlanId(p.id)} />
                     </button>
                   ))}
                 </div>
