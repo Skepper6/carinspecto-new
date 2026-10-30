@@ -3,7 +3,10 @@
 // Body: Sedan SUV Hatchback Coupe Convertible Wagon Pickup Van Sports
 // It is a broad reference list (not every regional trim/variant) – admins can extend it later via the API.
 
-const RAW = {
+import { market } from './market';
+import { RAW_IN } from './carDataIndia';
+
+const RAW_GLOBAL = {
   Toyota: ['Land Cruiser 1951 - SUV', 'Prado 1984 - SUV', 'Camry 1982 - Sedan', 'Corolla 1966 - Sedan', 'Corolla Cross 2020 - SUV', 'Yaris 1999 - Hatchback', 'Avalon 1994 2022 Sedan', 'Crown 1955 - Sedan', 'Fortuner 2005 - SUV', 'Hilux 1968 - Pickup', 'Tundra 1999 - Pickup', 'Tacoma 1995 - Pickup', 'RAV4 1994 - SUV', 'Highlander 2000 - SUV', '4Runner 1984 - SUV', 'Sequoia 2001 - SUV', 'C-HR 2016 2023 SUV', 'Rush 2006 - SUV', 'Raize 2019 - SUV', 'Innova 2004 - Van', 'Alphard 2002 - Van', 'Hiace 1967 - Van', 'Avanza 2003 - Van', 'Sienna 1997 - Van', 'Prius 1997 - Hatchback', 'Supra 1978 - Sports', 'GR86 2021 - Coupe', '86 2012 2020 Coupe', 'MR2 1984 2007 Sports', 'Celica 1970 2006 Coupe', 'Starlet 1973 1999 Hatchback', 'Tercel 1978 1999 Hatchback', 'Cressida 1976 1992 Sedan', 'Century 1967 - Sedan', 'Venza 2008 - SUV', 'bZ4X 2022 - SUV', 'Land Cruiser 70 1984 - SUV', 'FJ Cruiser 2006 2022 SUV', 'Previa 1990 2005 Van', 'Sera 1990 1995 Coupe', 'Soarer 1981 2005 Coupe', 'Mark II 1968 2004 Sedan', 'Crown Victoria 1955 1989 Sedan', 'Corona 1957 2001 Sedan'],
   Lexus: ['LX 1996 - SUV', 'GX 2002 - SUV', 'RX 1998 - SUV', 'NX 2014 - SUV', 'UX 2018 - SUV', 'TX 2023 - SUV', 'ES 1989 - Sedan', 'GS 1991 2020 Sedan', 'IS 1999 - Sedan', 'LS 1989 - Sedan', 'LC 2017 - Coupe', 'RC 2014 - Coupe', 'LFA 2010 2012 Sports', 'SC 1991 2010 Convertible', 'CT 2011 2022 Hatchback', 'LM 2020 - Van'],
   Nissan: ['Patrol 1951 - SUV', 'Armada 2003 - SUV', 'X-Trail 2000 - SUV', 'Kicks 2016 - SUV', 'Juke 2010 - SUV', 'Qashqai 2006 - SUV', 'Pathfinder 1986 - SUV', 'Murano 2002 - SUV', 'Rogue 2007 - SUV', 'Terra 2018 - SUV', 'Sunny 1966 - Sedan', 'Altima 1992 - Sedan', 'Maxima 1981 - Sedan', 'Sentra 1982 - Sedan', 'Versa 2006 - Sedan', 'Teana 2003 - Sedan', 'Micra 1982 - Hatchback', 'Note 2004 2022 Hatchback', 'Leaf 2010 - Hatchback', 'Ariya 2022 - SUV', 'GT-R 2007 - Sports', 'Skyline 1957 - Sedan', 'Fairlady Z 1969 - Sports', '370Z 2009 2020 Sports', 'Z 2022 - Sports', '350Z 2002 2008 Sports', '300ZX 1983 2000 Sports', 'Silvia 1965 2002 Coupe', '240SX 1989 1998 Coupe', 'Navara 1997 - Pickup', 'Frontier 1997 - Pickup', 'Titan 2003 - Pickup', 'Urvan 1973 - Van', 'Datsun 1000 1960 1967 Sedan', 'Datsun 510 1968 1981 Sedan', 'Datsun 240Z 1969 1973 Sports', 'Bluebird 1959 2001 Sedan', 'Cedric 1960 2014 Sedan', 'Gloria 1959 2004 Sedan', 'Stanza 1977 1992 Sedan', 'Pulsar 1978 2018 Hatchback', 'Almera 1995 2018 Sedan', 'Cube 1998 2019 Hatchback'],
@@ -135,6 +138,9 @@ export const ALL_YEARS = Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) 
 
 const tidy = (k) => k.replace(/_/g, ' ');
 const ALIAS = { 'Mercedes Benz': 'Mercedes-Benz', Mg: 'MG', 'Li Auto': 'Li Auto', 'Great Wall': 'Great Wall', 'Maruti Suzuki': 'Maruti Suzuki', 'Hispano Suiza': 'Hispano-Suiza', 'Hispano_Suiza': 'Hispano-Suiza', Bmw: 'BMW', Gmc: 'GMC', Gac: 'GAC', Byd: 'BYD', Ds: 'DS', Amc: 'AMC', Uaz: 'UAZ', Gaz: 'GAZ', Citroen: 'Citroën', Skoda: 'Škoda', Nio: 'NIO', Xpeng: 'XPeng' };
+
+// India builds use the India catalogue; everything else uses the global one
+const RAW = market.code === 'in' ? RAW_IN : RAW_GLOBAL;
 
 const RE = /^(.+?) (\d{4}) (\d{4}|-) (Sedan|SUV|Hatchback|Coupe|Convertible|Wagon|Pickup|Van|Sports)$/;
 const merged = {};

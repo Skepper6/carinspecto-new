@@ -11,6 +11,7 @@
     "smoke:in": "node --env-file=.env.india src/scripts/smoke.js",
     "smoke:razorpay": "node src/scripts/smoke-razorpay.js",
     "start": "node server.js",
+    "create-admin": "node src/scripts/create-admin.js",
     "seed": "node src/scripts/seed.js",
     "smoke": "node src/scripts/smoke.js",
     "migrate:photos": "node src/scripts/migrate-photos.js"
