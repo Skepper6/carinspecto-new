@@ -12,8 +12,8 @@ import {
 } from '../../lib/inspectionSchema';
 import { PHOTO_CATEGORIES, COVER } from '../../lib/constants';
 import { compressImage, checkUpload, PHOTO_ACCEPT, DOC_ACCEPT } from '../../lib/image';
-import { carName, fmtDate, fmtTime, uid } from '../../lib/format';
-import { SelectBox, Badge, EmptyState, PassFail, ScoreRing, StatusBadge, Textarea } from '../../components/ui/kit';
+import { carName, fmtDate, fmtTime, uid, isoDate } from '../../lib/format';
+import { DateField, SelectBox, Badge, EmptyState, PassFail, ScoreRing, StatusBadge, Textarea } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import PlateMaskModal from '../../components/shared/PlateMaskModal';
@@ -60,24 +60,13 @@ function FilesRow({ item, cell, onChange, toast }) {
   );
 }
 
-// picked, never typed: month + year (stored as MM-YYYY, the format the report prints)
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// picked from a calendar dropdown, never typed: month + year (stored as MM-YYYY, the format the report prints)
 function MonthPicker({ value, onChange }) {
-  const m = /^(d{2})-(d{4})$/.exec(value ?? '');
-  const [mm, setMm] = useState(m?.[1] ?? '');
-  const [yy, setYy] = useState(m?.[2] ?? '');
-  const now = new Date().getFullYear();
-  const years = Array.from({ length: 21 }, (_, i) => String(now - i));
-  const pick = (nm, ny) => { setMm(nm); setYy(ny); if (nm && ny) onChange(`${nm}-${ny}`); };
+  const m = /^(\d{2})-(\d{4})$/.exec(value ?? '');
   return (
-    <div className="month-pick">
-      <SelectBox className="input" aria-label="Month" value={mm} onChange={(e) => pick(e.target.value, yy)}>
-        <option value="">Month</option>{MONTH_NAMES.map((n, i) => <option key={n} value={String(i + 1).padStart(2, '0')}>{n}</option>)}
-      </SelectBox>
-      <SelectBox className="input" aria-label="Year" value={yy} onChange={(e) => pick(mm, e.target.value)}>
-        <option value="">Year</option>{years.map((y) => <option key={y}>{y}</option>)}
-      </SelectBox>
-    </div>
+    <DateField monthOnly label="Manufacturing date" placeholder="Select month & year" min="1990-01-01" max={isoDate()}
+      value={m ? `${m[2]}-${m[1]}-01` : ''}
+      onChange={(d) => onChange(d ? `${d.slice(5, 7)}-${d.slice(0, 4)}` : '')} />
   );
 }
 

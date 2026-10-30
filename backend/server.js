@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 import { connectDB } from './src/config/db.js';
 import { ensureCounters, HttpError } from './src/services/helpers.js';
-import { ensureDefaultPlans } from './src/services/defaults.js';
+import { ensureDefaultContent, ensureDefaultPlans } from './src/services/defaults.js';
 import syncRoutes from './src/routes/sync.js';
 import authRoutes from './src/routes/auth.js';
 import userRoutes from './src/routes/users.js';
@@ -33,6 +33,7 @@ if (!(await connectDB())) {
 }
 await ensureCounters();
 await ensureDefaultPlans();
+await ensureDefaultContent();
 
 const app = express();
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);

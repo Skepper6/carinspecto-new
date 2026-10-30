@@ -1380,6 +1380,8 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .selbox-pop li.ph { color: var(--muted); font-weight: 400; }
 .selbox-pop li.hi { background: var(--primary-50); color: var(--primary); }
 .selbox-pop li.sel { color: var(--primary); font-weight: 600; } .selbox-pop li svg { flex: none; }
+.selbox-pop li.sb-search { position: sticky; top: -6px; z-index: 1; margin: -6px -6px 6px; padding: 0 14px; min-height: 44px; gap: 8px; justify-content: flex-start; border-radius: 14px 14px 0 0; background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted); cursor: default; } .selbox-pop li.sb-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: none; font: inherit; font-size: 14px; color: var(--text); }
+.selbox-pop li.sb-empty { color: var(--muted); cursor: default; justify-content: center; }
 .selbox-pop li[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
 @media (max-width: 640px) { .selbtn.tabs-select { display: flex; } .rev-filter > .selbtn { flex: 0 0 auto; width: 128px; } }
 .photo .selbtn, .photo-grid .selbtn { width: 100%; }
@@ -1432,3 +1434,6 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .pd-card ul { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 20px; } .pd-card li { display: flex; gap: 8px; align-items: flex-start; } .pd-card li svg { flex: none; margin-top: 3px; color: var(--green); }
 .pd-card.not { background: transparent; } .pd-card.not li { color: var(--muted); } .pd-card.not li svg { color: var(--red, #d64545); }
 @media (max-width: 700px) { .pd-grid { grid-template-columns: 1fr; } }
+
+/* portal dashboards use the full width of the content area (no centred max-width column) */
+.content > .page, .page { max-width: none; width: 100%; margin: 0; }

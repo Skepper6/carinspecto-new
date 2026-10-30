@@ -128,10 +128,13 @@ const flatOptions = (children) => {
 export const SelectBox = ({ value, onChange, children, className = 'input', disabled, id, name, ...rest }) => {
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(-1);
+  const [q, setQ] = useState('');
   const [pos, setPos] = useState({ left: 8, top: 8, w: 200 });
   const btn = useRef(null);
   const pop = useRef(null);
   const opts = flatOptions(children);
+  const searchable = opts.length > 8;   // long lists (states, brands...) get a search box
+  const shown = q.trim() ? opts.filter((o) => o.value === '' ? false : o.label.toLowerCase().includes(q.trim().toLowerCase())) : opts;
   const cur = opts.find((o) => o.value === String(value ?? ''));
   const empty = !cur || cur.value === '';
   const label = cur?.label ?? opts.find((o) => o.value === '')?.label ?? '';
@@ -142,7 +145,7 @@ export const SelectBox = ({ value, onChange, children, className = 'input', disa
     const below = window.innerHeight - r.bottom;
     setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: below >= h + 12 || below >= r.top ? r.bottom + 6 : Math.max(8, r.top - h - 6), w });
   };
-  const show = () => { if (disabled) return; place(); setHi(opts.findIndex((o) => o.value === String(value ?? ''))); setOpen(true); };
+  const show = () => { if (disabled) return; setQ(''); place(); setHi(opts.findIndex((o) => o.value === String(value ?? ''))); setOpen(true); };
   const choose = (o) => { if (o.disabled) return; onChange?.({ target: { value: o.value, name } }); setOpen(false); btn.current?.focus(); };
   useEffect(() => {
     if (!open) return undefined;
@@ -152,14 +155,15 @@ export const SelectBox = ({ value, onChange, children, className = 'input', disa
     window.addEventListener('scroll', away, true); window.addEventListener('resize', away);
     return () => { document.removeEventListener('mousedown', out); document.removeEventListener('touchstart', out); window.removeEventListener('scroll', away, true); window.removeEventListener('resize', away); };
   }, [open]);
+  useEffect(() => { if (searchable) setHi(q.trim() ? 0 : -1); }, [q]);
   useEffect(() => { if (open && hi >= 0) pop.current?.querySelector('[data-hi="true"]')?.scrollIntoView({ block: 'nearest' }); }, [open, hi]);
   const key = (e) => {
     if (e.key === 'Escape') { setOpen(false); return; }
     if (!open && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); show(); return; }
     if (!open) return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(opts.length - 1, h + 1)); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(shown.length - 1, h + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(0, h - 1)); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (opts[hi]) choose(opts[hi]); }
+    else if (e.key === 'Enter' || (e.key === ' ' && e.target === btn.current)) { e.preventDefault(); if (shown[hi]) choose(shown[hi]); }
   };
   const stop = (e) => e.stopPropagation();
   return (
@@ -169,7 +173,9 @@ export const SelectBox = ({ value, onChange, children, className = 'input', disa
       </button>
       {open && createPortal(
         <ul ref={pop} className="selbox-pop" role="listbox" style={{ left: pos.left, top: pos.top, width: pos.w }} onMouseDown={stop} onTouchStart={stop}>
-          {opts.map((o, i) => (
+          {searchable && <li className="sb-search" onClick={stop}><Search size={15} /><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={key} placeholder="Search…" aria-label="Search options" /></li>}
+          {searchable && q.trim() && shown.length === 0 && <li className="sb-empty">No matches</li>}
+          {shown.map((o, i) => (
             <li key={o.value + i} role="option" aria-selected={o.value === String(value ?? '')} aria-disabled={o.disabled || undefined} data-hi={i === hi} className={`${o.value === String(value ?? '') ? 'sel' : ''} ${i === hi ? 'hi' : ''} ${o.value === '' ? 'ph' : ''}`} onMouseEnter={() => setHi(i)} onClick={() => choose(o)}>
               <span>{o.label}</span>{o.value === String(value ?? '') && <Check size={14} />}
             </li>
@@ -317,7 +323,7 @@ export const Tm = ({ t }) => {
 
 // Date field with our own calendar popup, so it looks and behaves the same in Chrome, Edge, Safari, iOS and Android
 // (native <input type="date"> renders blank or misaligned in Safari). Value is an ISO yyyy-mm-dd string.
-export const DateField = ({ value, onChange, min = '2000-01-01', max = '2100-12-31', placeholder = 'Select date', label, className = '' }) => {
+export const DateField = ({ value, onChange, min = '2000-01-01', max = '2100-12-31', placeholder = 'Select date', label, className = '', monthOnly = false }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ left: 8, top: 8 });
   const btn = useRef(null);
@@ -340,7 +346,7 @@ export const DateField = ({ value, onChange, min = '2000-01-01', max = '2100-12-
     window.addEventListener('scroll', away, true); window.addEventListener('resize', away);
     return () => { document.removeEventListener('mousedown', out); document.removeEventListener('touchstart', out); document.removeEventListener('keydown', esc); window.removeEventListener('scroll', away, true); window.removeEventListener('resize', away); };
   }, [open]);
-  const shown = value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const shown = value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', monthOnly ? { month: 'long', year: 'numeric' } : { day: '2-digit', month: 'short', year: 'numeric' }) : '';
   const stop = (e) => e.stopPropagation();
   return (
     <>
@@ -349,7 +355,7 @@ export const DateField = ({ value, onChange, min = '2000-01-01', max = '2100-12-
       </button>
       {open && createPortal(
         <div ref={pop} className="datef-pop" role="dialog" aria-label={label || 'Choose a date'} style={{ left: pos.left, top: pos.top, width: pos.w }} onMouseDown={stop} onTouchStart={stop}>
-          <Calendar value={value} min={min} max={max} onChange={(d) => { onChange(d); setOpen(false); }} />
+          <Calendar value={value} min={min} max={max} monthOnly={monthOnly} onChange={(d) => { onChange(d); setOpen(false); }} />
           <div className="datef-foot">
             <button type="button" className="link-btn" onClick={() => { onChange(''); setOpen(false); }}>Clear</button>
             <button type="button" className="link-btn" onClick={() => { const t = isoDate(); if (t >= min && t <= max) { onChange(t); setOpen(false); } }}>Today</button>

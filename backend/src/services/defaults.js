@@ -1,4 +1,5 @@
-import { Plan } from '../models/index.js';
+import { Content, Plan } from '../models/index.js';
+import { DEFAULT_CONTENT } from '../config/defaultContent.js';
 import { market } from '../config/market.js';
 
 // Prices excl. tax per market. Only used to create the plans on a brand-new database; after that the admin edits them in the portal.
@@ -31,4 +32,11 @@ export async function ensureDefaultPlans() {
   const prices = PRICES[market.code] ?? PRICES.uae;
   await Plan.insertMany(DEFAULT_PLANS.map((p, order) => ({ ...p, price: prices[p.key], order })));
   console.log('No plans found - created the default plans.');
+}
+
+// Same for the FAQ, terms and privacy text: a new database has none, so the Home FAQ and the legal pages would be blank.
+export async function ensureDefaultContent() {
+  const text = DEFAULT_CONTENT[market.code] ?? DEFAULT_CONTENT.uae;
+  const res = await Content.updateOne({ _id: 'main' }, { $setOnInsert: text }, { upsert: true });
+  if (res.upsertedCount) console.log('No content found - created the default FAQ, terms and privacy text.');
 }

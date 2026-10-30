@@ -7,10 +7,11 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 // Month grid date-picker. `min`/`max` are ISO strings. `marks` optionally dots days (e.g. ISO -> count).
 // Click the month / year title to jump straight to any year and month.
-export default function Calendar({ value, onChange, min = isoDate(), max = isoDate(addDays(new Date(), 60)), marks = {} }) {
+export default function Calendar({ value, onChange, min = isoDate(), max = isoDate(addDays(new Date(), 60)), marks = {}, monthOnly = false }) {   // monthOnly: just pick a month + year (value/onChange are the 1st of that month)
   const base = value ? new Date(value + 'T00:00:00') : new Date();
   const [view, setView] = useState(new Date(base.getFullYear(), base.getMonth(), 1));
-  const [pick, setPick] = useState(false);
+  const [pickOpen, setPick] = useState(false);
+  const pick = monthOnly || pickOpen;
   const y = view.getFullYear();
   const m = view.getMonth();
   const lead = (new Date(y, m, 1).getDay() + 6) % 7;
@@ -52,7 +53,7 @@ export default function Calendar({ value, onChange, min = isoDate(), max = isoDa
           </ul>
           <div className="cal-months" role="listbox" aria-label="Month">
             {MONTHS.map((mn, i) => (
-              <button key={mn} type="button" role="option" aria-selected={i === m} disabled={monthOff(y, i)} className={i === m ? 'on' : ''} onClick={() => { setView(new Date(y, i, 1)); setPick(false); }}>{mn}</button>
+              <button key={mn} type="button" role="option" aria-selected={i === m} disabled={monthOff(y, i)} className={i === m && (!monthOnly || value?.slice(0, 7) === `${y}-${String(i + 1).padStart(2, '0')}`) ? 'on' : ''} onClick={() => { setView(new Date(y, i, 1)); setPick(false); if (monthOnly) onChange(isoDate(new Date(y, i, 1))); }}>{mn}</button>
             ))}
           </div>
         </div>
