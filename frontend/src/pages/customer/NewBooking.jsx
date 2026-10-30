@@ -10,7 +10,7 @@ import { priceFor } from '../../lib/pricing';
 import { market } from '../../lib/market';
 import { CAR_TYPES, CAR_MAKES, FUELS, YEARS, TIME_SLOTS, CITIES, TAX_NAME, VAT_RATE, INSPECTION_REASONS } from '../../lib/constants';
 import { carName, fmtDate, fmtTime, isoDate, money, uid } from '../../lib/format';
-import { Field, Input, PageHeader, Select, Tm } from '../../components/ui/kit';
+import { Field, Input, PageHeader, Select, SelectBox, Tm } from '../../components/ui/kit';
 import Button from '../../components/ui/Button';
 import Calendar from '../../components/ui/Calendar';
 import Modal from '../../components/ui/Modal';
@@ -269,7 +269,13 @@ export default function NewBooking() {
                       <button type="button" className={method === 'online' ? 'on' : ''} onClick={() => setMethod('online')}><CreditCard size={18} />{onlineLabel}</button>
                     ) : (
                       <>
-                        {me.paymentMethods?.map((c) => (
+                        {(me.paymentMethods?.length ?? 0) > 1 ? (
+                          // several saved cards: one dropdown instead of a button per card
+                          <SelectBox className={`input ${method.startsWith('card:') ? 'on' : ''}`} aria-label="Saved cards" value={method.startsWith('card:') ? method : ''} onChange={(e) => e.target.value && setMethod(e.target.value)}>
+                            <option value="">{`Saved cards (${me.paymentMethods.length})`}</option>
+                            {me.paymentMethods.map((c) => <option key={c.id} value={'card:' + c.id}>{c.brand} •••• {c.last4}</option>)}
+                          </SelectBox>
+                        ) : me.paymentMethods?.map((c) => (
                           <button key={c.id} type="button" className={method === 'card:' + c.id ? 'on' : ''} onClick={() => setMethod('card:' + c.id)}><CreditCard size={18} />{c.brand} •••• {c.last4}</button>
                         ))}
                         <button type="button" className={method === 'newcard' ? 'on' : ''} onClick={() => setMethod('newcard')}><CreditCard size={18} />New card</button>

@@ -1441,3 +1441,8 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 
 /* no hover tint on the attachment download button */
 .att-chip .att-dl:hover:not(:disabled), .msg.me .att-chip .att-dl:hover:not(:disabled) { background: none; }
+
+/* saved-cards dropdown sits in the payment-method row next to the buttons */
+.pay-methods .selbtn { width: auto; min-width: 210px; justify-content: space-between; gap: 10px; }
+.pay-methods .selbtn.on { border-color: var(--primary); background: var(--primary-50); color: var(--primary); }
+@media (max-width: 640px) { .pay-methods .selbtn { width: 100%; } }
