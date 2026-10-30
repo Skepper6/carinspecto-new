@@ -394,7 +394,7 @@ function InspectionFormInner({ id }) {
         onSkip={() => { setPhotos(photos.map((p) => (p.id === maskFor.id ? { ...p, plateChecked: true } : p))); setDirty(true); setMaskFor(nextPlate(photos, maskFor.id)); }} />
       <Modal open={finishOpen} onClose={() => setFinishOpen(false)} size="sm" title="Ready to submit?"
         footer={<><Button variant="ghost" onClick={() => setFinishOpen(false)}>Review again</Button><Button icon={Flag} onClick={() => { setFinishOpen(false); finish(); }}>End inspection</Button></>}>
-        <div className="center"><ScoreRing score={totals.score} size={152} label="health score" /><p className="muted mt-s">{v.label} – {v.text}</p><p className="muted small mt-s">The customer will be notified and the PDF report will be generated. You can still edit it later from History.</p></div>
+        <div className="center"><ScoreRing score={totals.score} size={152} label="health score" /><p className="muted mt-s"><b className="verdict-word">{v.label}</b> – {v.text}</p><p className="muted small mt-s">The customer will be notified and the PDF report will be generated. You can still edit it later from History.</p></div>
       </Modal>
     </div>
   );

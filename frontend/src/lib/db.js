@@ -205,7 +205,7 @@ export async function downloadReportById(bookingId) {
   if (!booking) throw new Error('Booking not found.');
   const inspection = await fullInspection(bookingId);
   if (!inspection) throw new Error('No report for this booking yet.');
-  const { downloadReport } = await import('./pdf');
+  const { downloadReport } = await import('./pdf').catch(() => { window.location.reload(); throw new Error('A new version is available - the page is reloading, please try again.'); });
   await downloadReport({
     booking, inspection, plan: state.plans.find((p) => p.id === booking.planId),
     customer: state.users.find((u) => u.id === booking.customerId), inspector: state.users.find((u) => u.id === booking.inspectorId),
