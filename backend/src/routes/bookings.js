@@ -73,7 +73,6 @@ router.post('/:code/assign', requireRole('admin'), async (req, res) => {
   const insp = await User.findOne({ _id: inspectorId, role: 'inspector' }).catch(() => null);
   if (!insp) fail(400, 'Choose a valid inspector.');
   if (insp.status !== 'active') fail(400, 'That inspector is suspended.');
-  if (insp.available === false && String(b.inspector) !== String(insp._id)) fail(400, `${insp.name} is not available right now.`);
   b.inspector = insp._id;
   if (b.status === 'pending') b.status = 'assigned';
   b.timeline.push({ at: now(), label: `Assigned to ${insp.name}`, by: req.user.name });
