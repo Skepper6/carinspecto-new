@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { useDB, markNotificationsRead, ticketState } from '../../lib/db';
+import { useDB, markNotificationsRead, markNotificationRead, ticketState } from '../../lib/db';
 import { Avatar, Logo } from '../ui/kit';
 import { timeAgo } from '../../lib/format';
 
@@ -55,7 +55,9 @@ function Notifications({ user }) {
           <div className="popover-list">
             {(only === 'unread' ? items.filter((n) => !n.read) : items).length === 0 && <p className="muted center pad">{only === 'unread' ? 'No unread notifications' : "You're all caught up 🎉"}</p>}
             {(only === 'unread' ? items.filter((n) => !n.read) : items).slice(0, 12).map((n) => (
-              <div key={n.id} className={`notif-item ${n.read ? '' : 'unread'}`}>
+              <div key={n.id} className={`notif-item ${n.read ? '' : 'unread'}`} role="button" tabIndex={0}
+                onClick={() => !n.read && markNotificationRead(n.id)}
+                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !n.read) { e.preventDefault(); markNotificationRead(n.id); } }}>
                 <b>{n.title}</b><span>{n.body}</span><em>{timeAgo(n.at)}</em>
               </div>
             ))}

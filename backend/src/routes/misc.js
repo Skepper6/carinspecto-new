@@ -13,6 +13,12 @@ router.post('/notifications/read', requireAuth, async (req, res) => {
   await send(res, { notifications: list }, { changed: r.modifiedCount > 0 });
 });
 
+router.post('/notifications/:id/read', requireAuth, async (req, res) => {
+  const r = await Notification.updateOne({ _id: req.params.id, user: req.user._id, read: false }, { read: true });
+  const list = (await Notification.find({ user: req.user._id }).sort({ at: -1 }).limit(200)).map((n) => n.toJSON());
+  await send(res, { notifications: list }, { changed: r.modifiedCount > 0 });
+});
+
 const faq = z.object({ id: z.string().min(1).max(40), q: z.string().trim().min(5).max(300), a: z.string().trim().min(10).max(3000) });
 router.put('/content', requireAuth, requireRole('admin'), async (req, res) => {
   const d = parse(z.object({ faqs: z.array(faq).max(100).optional(), terms: z.string().max(50000).optional(), privacy: z.string().max(50000).optional() }), req.body);

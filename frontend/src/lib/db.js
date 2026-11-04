@@ -234,6 +234,7 @@ export const markTicketSeen = (ticketId) => mutation('POST', `/tickets/${ticketI
 
 /* ---- notifications / content / plans ---- */
 export const markNotificationsRead = () => mutation('POST', '/notifications/read').catch(() => {});
+export const markNotificationRead = (id) => mutation('POST', `/notifications/${id}/read`).catch(() => {});
 export const updateContent = (patch) => mutation('PUT', '/content', patch);
 export const updatePlan = (id, patch) => mutation('PATCH', `/plans/${id}`, patch);
 

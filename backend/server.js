@@ -67,7 +67,7 @@ app.use((err, _req, res, _next) => {
   if (err?.type === 'entity.too.large') return res.status(413).json({ error: 'That is too large to upload.' });
   if (err?.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid request.' });
   if (err?.name === 'CastError') return res.status(400).json({ error: 'Invalid request.' });
-  if (err?.code === 11000) return res.status(409).json({ error: 'That already exists.' });
+  if (err?.code === 11000) return res.status(409).json({ error: err.keyPattern?.email ? 'This email is already in use.' : 'That already exists.' });
   console.error(err);
   res.status(500).json({ error: 'Something went wrong on our side. Please try again.' });
 });

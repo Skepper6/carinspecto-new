@@ -12,12 +12,13 @@ export default function PlanDetails({ plan, onChoose, chooseLabel = 'Choose plan
   const d = planDetails(plan);
   const show = (e) => { e.stopPropagation(); setOpen(true); };
   return (
-    // the popup is rendered through a portal, but React still bubbles its clicks to the card, so stop them here
-    <span className="pd-wrap" style={{ display: 'contents' }} onClick={(e) => e.stopPropagation()}>
+    <span className="pd-wrap" style={{ display: 'contents' }}>
       <ul>{plan.features.map((f) => <li key={f}><Check size={14} />{f}</li>)}</ul>
       <span role="button" tabIndex={0} className="plan-more" onClick={show} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), show(e))}>
         View full details <ChevronRight size={14} />
       </span>
+      {/* the popup is rendered through a portal, but React still bubbles its clicks to the card, so stop them here (the list itself must still reach the card, so clicking anywhere on the card selects it) */}
+      <span style={{ display: 'contents' }} onClick={(e) => e.stopPropagation()}>
       <Modal
         open={open}
         onClose={() => setOpen(false)}
@@ -51,6 +52,7 @@ export default function PlanDetails({ plan, onChoose, chooseLabel = 'Choose plan
           )}
         </div>
       </Modal>
+      </span>
     </span>
   );
 }
