@@ -64,7 +64,9 @@ export default function Inspectors() {
   };
 
   const cols = [
-    { key: 'name', label: 'Inspector', phoneMinWidth: 260, render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><span className="cell-2"><b>{u.name}</b><span className="muted small">{u.specialization || u.email}</span></span></span> },
+    { key: 'name', label: 'Inspector', phoneMinWidth: 260, render: (u) => <span className="with-av"><Avatar name={u.name} size={34} /><b>{u.name}</b></span> },
+    { key: 'email', label: 'Email', width: 220 },
+    { key: 'specialization', hide: 'lg', label: 'Specialization', width: 200, render: (u) => u.specialization || <span className="muted">—</span> },
     { key: 'city', hide: 'md', phoneHide: true, label: 'City', width: 130 },
     { key: 'active', hide: 'md', label: 'Active jobs', width: 140 },
     { key: 'completed', hide: 'lg', label: 'Completed', width: 150 },
