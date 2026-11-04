@@ -279,7 +279,7 @@ export default function NewBooking() {
                           <button key={c.id} type="button" className={method === 'card:' + c.id ? 'on' : ''} onClick={() => setMethod('card:' + c.id)}><CreditCard size={18} />{c.brand} •••• {c.last4}</button>
                         ))}
                         <button type="button" className={method === 'newcard' ? 'on' : ''} onClick={() => setMethod('newcard')}><CreditCard size={18} />New card</button>
-                        <button type="button" className={method === 'applepay' ? 'on' : ''} onClick={() => setMethod('applepay')}><Apple size={18} />Apple Pay</button>
+                        {market.paymentProvider !== 'razorpay' && <button type="button" className={method === 'applepay' ? 'on' : ''} onClick={() => setMethod('applepay')}><Apple size={18} />Apple Pay</button>}
                       </>
                     )}
                     <button type="button" className={method === 'cash' ? 'on' : ''} onClick={() => setMethod('cash')}><Banknote size={18} />Cash on arrival</button>

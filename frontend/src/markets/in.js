@@ -19,7 +19,7 @@ export default {
   regions: ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'],
   // Mobile numbers: country code, 10 digits starting with 6-9.
   phone: { code: '91', nationalLength: 10, groups: [5, 5], startsWith: ['6', '7', '8', '9'], example: '+91 98765 43210' },
-  company: { name: 'Car InspectO', phone: '+91 80 1234 5678', email: 'hello@carinspecto.in', web: 'www.carinspecto.in' },
+  company: { name: 'Car InspectO', taxId: 'GSTIN – to be confirmed', address: 'Registered address – to be confirmed', phone: '+91 80 1234 5678', email: 'hello@carinspecto.in', web: 'www.carinspecto.in' },
   demo: { customer: 'rohan@example.com', inspector: 'vikram@carinspecto.com' },
   plans: { basic: 1799, standard: 2999, premium: 4499 },   // placeholders, excl. tax; the live prices live in the database and are edited by the admin
   payMethodsText: 'UPI, credit/debit cards, netbanking and wallets (or cash on arrival)',

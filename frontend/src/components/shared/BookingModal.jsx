@@ -3,6 +3,9 @@ import { Avatar, PayBadge, StatusBadge, Timeline } from '../ui/kit';
 import { useDB } from '../../lib/db';
 import { carName, fmtDate, fmtTime, money } from '../../lib/format';
 import { TAX_NAME, VAT_RATE } from '../../lib/constants';
+import { Download } from 'lucide-react';
+import { downloadInvoice } from '../../lib/invoice';
+import Button from '../ui/Button';
 
 // Read-only booking details used by all three portals. `footer` lets each portal add its own actions.
 export default function BookingModal({ bookingId, onClose, footer }) {
@@ -34,6 +37,9 @@ export default function BookingModal({ bookingId, onClose, footer }) {
               <div><span>{TAX_NAME} ({Math.round(VAT_RATE * 100)}%)</span><b>{money(d.b.pricing.vat)}</b></div>
               <div className="total"><span>Total · {d.b.payment.method}</span><b>{money(d.b.pricing.total)}</b></div>
             </div>
+            {d.b.payment.status === 'paid' && (
+              <Button variant="outline" icon={Download} className="mt-s" onClick={() => downloadInvoice({ booking: d.b, plan: d.plan, customer: d.customer })}>Download tax invoice</Button>
+            )}
           </div>
           <div>
             <h4 className="mb">Activity</h4>

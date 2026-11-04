@@ -94,7 +94,7 @@ export default function DataTable({ columns, rows, rowHeight = 64, onRowClick, r
             <thead>
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} style={{ width: shares[columns.indexOf(c)], textAlign: c.align, '--pmin': c.phoneMinWidth ? `${c.phoneMinWidth}px` : undefined }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''} ${c.phoneHide ? 'phone-hide' : ''}`} onClick={() => toggleSort(c)}>
+                  <th key={c.key} data-label={c.label} style={{ width: shares[columns.indexOf(c)], textAlign: c.align, '--pmin': c.phoneMinWidth ? `${c.phoneMinWidth}px` : undefined }} className={`${c.sortable === false ? '' : 'sortable'} ${c.hide ? 'hide-' + c.hide : ''} ${c.phoneHide ? 'phone-hide' : ''}`} onClick={() => toggleSort(c)}>
                     <span>{c.label}{sort?.key === c.key && (sort.dir === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</span>
                   </th>
                 ))}

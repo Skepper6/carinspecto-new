@@ -17,7 +17,7 @@ export default {
   regions: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain', 'Al Ain'],
   // Mobile numbers: country code, 9 national digits starting with 5 (landlines are 8 digits).
   phone: { code: '971', nationalLength: 9, groups: [2, 3, 4], startsWith: ['5'], landlineLength: 8, example: '+971 50 123 4567' },
-  company: { name: 'Car InspectO', phone: '+971 4 123 4567', email: 'hello@carinspecto.ae', web: 'www.carinspecto.ae' },
+  company: { name: 'Car InspectO', taxId: 'TRN – to be confirmed', address: 'Registered address – to be confirmed', phone: '+971 4 123 4567', email: 'hello@carinspecto.ae', web: 'www.carinspecto.ae' },
   demo: { customer: 'omar@example.com', inspector: 'khalid@carinspecto.com' },
   plans: { basic: 249, standard: 399, premium: 599 },   // excl. tax; the live prices live in the database and are edited by the admin
   payMethodsText: 'Credit/debit cards and Apple Pay (or cash on arrival)',
