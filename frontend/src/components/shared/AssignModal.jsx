@@ -30,11 +30,11 @@ export default function AssignModal({ booking, onClose }) {
       <div className="fbar assign-filters"><SearchInput value={q} onChange={setQ} placeholder={`Search by inspector name or ${REGION_LABEL.toLowerCase()}…`} /><SelectBox className="input sm" aria-label={REGION_LABEL} value={city} onChange={(e) => setCity(e.target.value)}><option value="">{ALL_REGIONS}</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</SelectBox></div>
       <div className="assign-list">
         {list.map((p) => (
-          <button key={p.id} className={sel === p.id ? 'on' : ''} onClick={() => setSel(p.id)}>
+          <button key={p.id} className={sel === p.id ? 'on' : ''} onClick={() => setSel(p.id)} disabled={!p.available && booking?.inspectorId !== p.id} style={p.available ? undefined : { opacity: 0.6 }}>
             <Avatar name={p.name} size={40} />
             <div>
-              <b>{p.name} {best?.id === p.id && <Badge tone="violet"><Sparkles size={11} /> Best match</Badge>}</b>
-              <span className="muted small">{p.city}{p.city === booking?.location.city ? ' (same city)' : ''} · {p.active} active · {p.rating ? `★ ${p.rating} (${p.reviews})` : 'no ratings yet'}</span>
+              <b>{p.name} {best?.id === p.id && <Badge tone="violet"><Sparkles size={11} /> Best match</Badge>} {!p.available && <Badge tone="red" dot>Not available</Badge>}</b>
+              <span className="muted small">{p.city}{p.city === booking?.location.city ? ' (same city)' : ''} · {p.available ? `${p.active} open job${p.active === 1 ? '' : 's'}` : 'Turned off availability'} · {p.rating ? `★ ${p.rating} (${p.reviews})` : 'no ratings yet'}</span>
             </div>
             <i className="radio" />
           </button>

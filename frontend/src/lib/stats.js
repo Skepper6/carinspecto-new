@@ -66,7 +66,7 @@ export function inspectorPerformance(state) {
     }).filter((x) => x !== null);
     const rated = done.filter((b) => b.rating);
     return {
-      id: u.id, name: u.name, status: u.status, city: u.city, completed: done.length,
+      id: u.id, name: u.name, status: u.status, available: u.available !== false, city: u.city, completed: done.length,
       active: mine.filter((b) => ['assigned', 'ongoing'].includes(b.status)).length,
       avgScore: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
       rating: rated.length ? +(rated.reduce((a, b) => a + b.rating, 0) / rated.length).toFixed(1) : null,   // no ratings yet = no number

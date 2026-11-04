@@ -26,9 +26,9 @@ export default function Inspectors() {
 
   const base = useMemo(() => {
     const perf = inspectorPerformance(s);
-    return s.users.filter((u) => u.role === 'inspector').map((u) => ({ ...u, ...perf.find((p) => p.id === u.id), status: u.status }));
+    return s.users.filter((u) => u.role === 'inspector').map((u) => ({ ...u, ...perf.find((p) => p.id === u.id), status: u.status, shown: u.status !== 'active' ? u.status : u.available === false ? 'inactive' : 'active' }));
   }, [s]);
-  const rows = base.filter((u) => tab === 'all' || u.status === tab).filter((u) => `${u.name} ${u.email} ${u.city} ${u.specialization}`.toLowerCase().includes(q.toLowerCase()))
+  const rows = base.filter((u) => tab === 'all' || u.shown === tab).filter((u) => `${u.name} ${u.email} ${u.city} ${u.specialization}`.toLowerCase().includes(q.toLowerCase()))
     .filter((u) => (!flt.f.city || u.city === flt.f.city) && (!flt.f.rating || u.rating >= Number(flt.f.rating)) && (!flt.f.avail || (flt.f.avail === 'yes' ? u.available !== false : u.available === false)) && inRange(u.joinedAt, flt.f))
     .sort((a, b) => b.joinedAt.localeCompare(a.joinedAt));
   const fdefs = [
@@ -71,12 +71,12 @@ export default function Inspectors() {
     { key: 'active', hide: 'md', label: 'Active jobs', width: 140 },
     { key: 'completed', hide: 'lg', label: 'Completed', width: 150 },
     { key: 'rating', hide: 'lg', label: 'Rating', width: 120, render: (u) => (u.rating ? <span className="rate"><Star size={14} fill="currentColor" /> {u.rating} <span className="muted small">({u.reviews})</span></span> : <span className="muted">No ratings yet</span>) },
-    { key: 'status', label: 'Status', width: 140, render: (u) => <Badge tone={u.status === 'active' ? 'green' : 'red'} dot>{u.status}</Badge> },
+    { key: 'status', label: 'Status', width: 140, render: (u) => <Badge tone={u.shown === 'active' ? 'green' : u.shown === 'inactive' ? 'amber' : 'red'} dot>{u.shown}</Badge> },
   ];
 
   const actions = (
     <>
-      <Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-inspectors.csv', rows.map((u) => ({ Name: u.name, Email: u.email, City: u.city, Completed: u.completed, Active: u.active, Rating: u.rating ?? '', Reviews: u.reviews, Status: u.status }))); toast.success('Inspectors exported.'); }}>Export</Button>
+      <Button variant="outline" icon={Download} onClick={() => { downloadCSV('car-inspecto-inspectors.csv', rows.map((u) => ({ Name: u.name, Email: u.email, City: u.city, Completed: u.completed, Active: u.active, Rating: u.rating ?? '', Reviews: u.reviews, Status: u.shown }))); toast.success('Inspectors exported.'); }}>Export</Button>
       <Button icon={UserPlus} onClick={() => setAdd(true)}>Add inspector</Button>
     </>
   );
@@ -85,7 +85,7 @@ export default function Inspectors() {
     <div className="page fill">
       <PageHeader title="Inspectors" subtitle="Add, suspend or remove inspectors and track their performance." actions={actions} />
       <div className="toolbar">
-        <Tabs value={tab} onChange={setTab} tabs={[{ value: 'all', label: 'All', count: base.length }, { value: 'active', label: 'Active' }, { value: 'suspended', label: 'Suspended' }]} />
+        <Tabs value={tab} onChange={setTab} tabs={[{ value: 'all', label: 'All', count: base.length }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'suspended', label: 'Suspended' }]} />
         <div className="filters"><FilterBar defs={fdefs} flt={flt} /><SearchInput value={q} onChange={setQ} placeholder="Search by name, email, city or specialisation…" /></div>
       </div>
       <DataTable columns={cols} rows={rows} loading={loading} onRowClick={(u) => setOpen(u.id)} resetKey={tab + q + flt.key} empty={<><UserCog size={30} /><b>No inspectors found</b></>} />
