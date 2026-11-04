@@ -29,7 +29,7 @@ router.post('/:code/start', requireRole('inspector'), async (req, res) => {
   b.timeline.push({ at: now(), label: 'Inspection started', by: req.user.name });
   await b.save();
   const ins = await Inspection.findOneAndUpdate({ bookingCode: b.code }, { $setOnInsert: { bookingCode: b.code, status: 'draft', data: {}, photos: [], comment: '', updatedAt: now() } }, { upsert: true, returnDocument: 'after' });
-  await notify(b.customer, 'Inspection started', `${req.user.name} has started inspecting your ${b.car.make} ${b.car.model}.`);
+  await notify(b.customer, 'Inspection started', `${req.user.name} has started inspecting your ${b.car.make} ${b.car.model}.`, '/app/bookings');
   await send(res, { bookings: [b.toJSON()], inspections: [lightInspection(ins)] });
 });
 
@@ -64,9 +64,9 @@ router.post('/:code/complete', requireRole('inspector'), async (req, res) => {
   b.status = 'completed';
   b.timeline.push({ at: now(), label: 'Inspection completed & report generated', by: req.user.name });
   await ins.save(); await b.save();
-  await notify(b.customer, 'Inspection report ready', `Your report for ${b.code} is ready to view and download.`);
+  await notify(b.customer, 'Inspection report ready', `Your report for ${b.code} is ready to view and download.`, `/app/reports?report=${encodeURIComponent(b.code)}`);
   mailReportReady(b.customer, b);
-  await notifyAdmins('Inspection completed', `${b.code} by ${req.user.name}`);
+  await notifyAdmins('Inspection completed', `${b.code} by ${req.user.name}`, '/admin/bookings');
   await send(res, { bookings: [b.toJSON()], inspections: [lightInspection(ins)] });
 });
 

@@ -33,6 +33,11 @@ function Notifications({ user }) {
   const ref = useRef(null);
   const items = useDB((s) => s.notifications.filter((n) => n.userId === user.id));
   const unread = items.filter((n) => !n.read).length;
+  const go = useNavigate();
+  const openItem = (n) => {
+    if (!n.read) markNotificationRead(n.id);
+    if (n.link) { setOpen(false); go(n.link); }
+  };
 
   useEffect(() => {
     const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -56,8 +61,8 @@ function Notifications({ user }) {
             {(only === 'unread' ? items.filter((n) => !n.read) : items).length === 0 && <p className="muted center pad">{only === 'unread' ? 'No unread notifications' : "You're all caught up 🎉"}</p>}
             {(only === 'unread' ? items.filter((n) => !n.read) : items).slice(0, 12).map((n) => (
               <div key={n.id} className={`notif-item ${n.read ? '' : 'unread'}`} role="button" tabIndex={0}
-                onClick={() => !n.read && markNotificationRead(n.id)}
-                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !n.read) { e.preventDefault(); markNotificationRead(n.id); } }}>
+                onClick={() => openItem(n)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(n); } }}>
                 <b>{n.title}</b><span>{n.body}</span><em>{timeAgo(n.at)}</em>
               </div>
             ))}

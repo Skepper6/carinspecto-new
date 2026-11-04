@@ -89,7 +89,7 @@ export const Ticket = mongoose.model('Ticket', ticketSchema);
 /* ---- notifications ---- */
 const notificationSchema = new Schema({
   user: { type: ObjectId, ref: 'User', required: true, index: true },
-  title: String, body: String, at: { type: Date, default: Date.now }, read: { type: Boolean, default: false },
+  title: String, body: String, link: String, at: { type: Date, default: Date.now }, read: { type: Boolean, default: false },
 }, opts);
 notificationSchema.set('toJSON', {
   transform: (_d, r) => { r.id = String(r._id); r.userId = String(r.user); delete r._id; delete r.__v; delete r.user; return r; },

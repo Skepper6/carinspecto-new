@@ -19,10 +19,10 @@ export async function ensureCounters() {
 export const nextSeq = async (name) => (await Counter.findByIdAndUpdate(name, { $inc: { seq: 1 } }, { returnDocument: 'after' })).seq;
 
 /* ---- notifications ---- */
-export const notify = (userId, title, body) => Notification.create({ user: userId, title, body });
-export async function notifyAdmins(title, body) {
+export const notify = (userId, title, body, link) => Notification.create({ user: userId, title, body, link });
+export async function notifyAdmins(title, body, link) {
   const admins = await User.find({ role: 'admin', status: 'active' }).select('_id').lean();
-  return Notification.insertMany(admins.map((a) => ({ user: a._id, title, body })));
+  return Notification.insertMany(admins.map((a) => ({ user: a._id, title, body, link })));
 }
 
 /* ---- small utilities ---- */

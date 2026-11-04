@@ -42,7 +42,7 @@ router.post('/', requireRole('customer'), async (req, res) => {
     status: 'open', customer: req.user._id, bookingId: d.bookingId ?? undefined, createdAt: stamp,
     messages: [{ from: 'customer', text: d.message, at: stamp, attachments }],
   });
-  await notifyAdmins('New support ticket', `${t.code} · ${d.subject}`);
+  await notifyAdmins('New support ticket', `${t.code} · ${d.subject}`, '/admin/tickets');
   await send(res, { tickets: [t.toJSON()] }, { status: 201 });
 });
 
@@ -55,7 +55,7 @@ router.post('/:code/reply', async (req, res) => {
   t.messages.push({ from, text: d.text, at: now(), attachments });
   if (from === 'admin') {
     if (t.status === 'open') t.status = 'in_progress';
-    await notify(t.customer, 'Support replied', `${t.code} · ${t.subject}`);
+    await notify(t.customer, 'Support replied', `${t.code} · ${t.subject}`, '/app/support');
     mailSupportReply(t.customer, t);
   } else if (t.status === 'resolved') t.status = 'open';   // a customer reply re-opens a resolved ticket
   await t.save();

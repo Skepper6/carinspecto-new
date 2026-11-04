@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { cleanFlat, fail, notify, notifyAdmins, nextSeq, send } from '../services/helpers.js';
 import { PROMOS, priceFor } from '../config/constants.js';
 import { gateway } from '../services/gateway.js';
-import { mailBookingConfirmed } from '../services/emails.js';
+import { mailBookingConfirmed, mailInspectorAssigned, mailCustomerInspectorAssigned } from '../services/emails.js';
 import { parse } from './auth.js';
 
 const router = Router();
@@ -60,8 +60,8 @@ router.post('/', requireRole('customer'), async (req, res) => {
     ],
   });
   const payment = await Payment.create({ bookingCode: code, customer: customer._id, amount: pricing.total, vat: pricing.vat, status: payStatus, method: d.method, txnId, at: stamp });
-  await notifyAdmins('New booking', `${code} · ${d.car.make} ${d.car.model} on ${d.date}`);
-  const mineNote = await notify(customer._id, 'Booking confirmed', `${code} is confirmed. We will assign an inspector shortly.`);
+  await notifyAdmins('New booking', `${code} · ${d.car.make} ${d.car.model} on ${d.date}`, '/admin/bookings');
+  const mineNote = await notify(customer._id, 'Booking confirmed', `${code} is confirmed. We will assign an inspector shortly.`, '/app/bookings');
   mailBookingConfirmed(customer._id, booking);
   await send(res, { bookings: [booking.toJSON()], payments: [payment.toJSON()], notifications: [mineNote.toJSON()] }, { status: 201 });
 });
@@ -77,8 +77,10 @@ router.post('/:code/assign', requireRole('admin'), async (req, res) => {
   if (b.status === 'pending') b.status = 'assigned';
   b.timeline.push({ at: now(), label: `Assigned to ${insp.name}`, by: req.user.name });
   await b.save();
-  await notify(insp._id, 'New inspection assigned', `${b.code} · ${b.car.make} ${b.car.model} on ${b.date} at ${b.time}`);
-  await notify(b.customer, 'Inspector assigned', `${insp.name} will inspect your ${b.car.make} ${b.car.model}.`);
+  await notify(insp._id, 'New inspection assigned', `${b.code} · ${b.car.make} ${b.car.model} on ${b.date} at ${b.time}`, '/inspector/assignments');
+  await notify(b.customer, 'Inspector assigned', `${insp.name} will inspect your ${b.car.make} ${b.car.model}.`, '/app/bookings');
+  mailInspectorAssigned(insp._id, b);                                   // no-ops until an email provider key is set
+  mailCustomerInspectorAssigned(b.customer, b, insp.name);
   await send(res, { bookings: [b.toJSON()] });
 });
 
@@ -98,8 +100,8 @@ router.post('/:code/cancel', async (req, res) => {
   b.timeline.push({ at: now(), label: wasPaid ? 'Booking cancelled – refund initiated' : 'Booking cancelled', by: req.user.name });
   await b.save();
   if (payment) await payment.save();
-  if (b.inspector) await notify(b.inspector, 'Inspection cancelled', `${b.code} was cancelled.`);
-  if (admin) await notify(b.customer, 'Booking cancelled', `${b.code} was cancelled by our team.${wasPaid ? ' Your refund has been initiated.' : ''}`);
+  if (b.inspector) await notify(b.inspector, 'Inspection cancelled', `${b.code} was cancelled.`, '/inspector/assignments');
+  if (admin) await notify(b.customer, 'Booking cancelled', `${b.code} was cancelled by our team.${wasPaid ? ' Your refund has been initiated.' : ''}`, '/app/bookings');
   await send(res, { bookings: [b.toJSON()], payments: payment ? [payment.toJSON()] : [] });
 });
 
@@ -114,7 +116,7 @@ router.post('/:code/reschedule', async (req, res) => {
   b.date = d.date; b.time = d.time;
   b.timeline.push({ at: now(), label: `Rescheduled to ${d.date} ${d.time}`, by: req.user.name });
   await b.save();
-  if (b.inspector) await notify(b.inspector, 'Inspection rescheduled', `${b.code} moved to ${d.date} at ${d.time}.`);
+  if (b.inspector) await notify(b.inspector, 'Inspection rescheduled', `${b.code} moved to ${d.date} at ${d.time}.`, '/inspector/assignments');
   await send(res, { bookings: [b.toJSON()] });
 });
 

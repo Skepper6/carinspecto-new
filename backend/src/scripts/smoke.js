@@ -175,6 +175,13 @@ await call('PATCH', '/plans/basic', { token: admin, body: { price: basicPrice } 
 const after = await call('POST', '/bookings', { token: omar, body: { car, location: loc, date: tomorrow, time: '09:30', purpose: 'Routine check-up', planId: 'basic', method: 'Cash', payStatus: 'pending' } });
 ok(after.json?.bookings?.[0]?.pricing?.plan === basicPrice, 'new bookings use the current plan price');
 
+section('Duplicate emails');
+const newInsp = (email) => ({ token: admin, body: { name: 'Dup Tester', email, city: loc.city, pw: 'goodpass1' } });
+ok((await call('POST', '/users', newInsp(D.inspector.toUpperCase()))).status === 409, 'adding an inspector with an existing email (any letter case) is refused');
+const dupMail = `dup${Date.now()}@example.com`;
+const both = await Promise.all([call('POST', '/users', newInsp(dupMail)), call('POST', '/users', newInsp(dupMail))]);
+ok(both.map((r) => r.status).sort().join() === '201,409', 'two simultaneous requests with the same email create only one account');
+
 section('Change tracking');
 const r1 = (await call('GET', '/rev')).json.rev;
 await call('POST', '/notifications/read', { token: omar });

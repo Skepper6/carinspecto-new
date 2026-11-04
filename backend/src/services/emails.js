@@ -54,6 +54,16 @@ export const mailReportReady = (userId, b) => toUser(userId, (u) => ({
   text: `Hi ${u.name},\n\nYour ${b.car.make} ${b.car.model} has been inspected and the report is ready to view and download.`,
   button: 'Open my report', link: `${clientUrl()}/app/reports?report=${encodeURIComponent(b.code)}`,
 }));
+export const mailInspectorAssigned = (userId, b) => toUser(userId, (u) => ({
+  subject: `New inspection assigned: ${b.code}`,
+  text: `Hi ${u.name},\n\nYou have a new inspection: ${b.car.make} ${b.car.model} on ${b.date} at ${b.time} in ${b.location?.city ?? 'the booked city'}.`,
+  button: 'Open my assignments', link: `${clientUrl()}/inspector/assignments`,
+}));
+export const mailCustomerInspectorAssigned = (userId, b, inspectorName) => toUser(userId, (u) => ({
+  subject: `An inspector is assigned to ${b.code}`,
+  text: `Hi ${u.name},\n\n${inspectorName} will inspect your ${b.car.make} ${b.car.model} on ${b.date} at ${b.time}.`,
+  button: 'View my bookings', link: `${clientUrl()}/app/bookings`,
+}));
 export const mailSupportReply = (userId, t) => toUser(userId, (u) => ({
   subject: `Support replied to ${t.code}`,
   text: `Hi ${u.name},\n\nOur team replied to your ticket "${t.subject}".`,

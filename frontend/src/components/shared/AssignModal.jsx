@@ -28,6 +28,7 @@ export default function AssignModal({ booking, onClose }) {
     <Modal open={!!booking} onClose={onClose} title="Assign inspector" subtitle={booking && `${booking.id} · ${carName(booking.car)} · ${fmtDate(booking.date)} ${fmtTime(booking.time)} · ${booking.location.city}`}
       footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button icon={UserCheck} disabled={!sel} onClick={save}>Assign</Button></>}>
       <div className="fbar assign-filters"><SearchInput value={q} onChange={setQ} placeholder={`Search by inspector name or ${REGION_LABEL.toLowerCase()}…`} /><SelectBox className="input sm" aria-label={REGION_LABEL} value={city} onChange={(e) => setCity(e.target.value)}><option value="">{ALL_REGIONS}</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</SelectBox></div>
+      {list.find((p) => p.id === sel && !p.available) && <p className="muted small" role="status">This inspector has availability turned off. The job will be waiting for them when they log in.</p>}
       <div className="assign-list">
         {list.map((p) => (
           <button key={p.id} className={sel === p.id ? 'on' : ''} onClick={() => setSel(p.id)}>
